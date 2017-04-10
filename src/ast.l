@@ -57,7 +57,7 @@ int yycolumn = 1;
 [0-9]+ {yylval.cint = strtoll(yytext, NULL, 10); return T_INTVAL;}
 
 [ \t]	; // ignore all whitespace
-\n { yylineno++; }
+\n { yycolumn = 0; }
 
 . { printf("%s: Normaal. Doen.\n", yytext); exit(1); }
 %%

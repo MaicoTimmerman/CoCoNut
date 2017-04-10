@@ -10,6 +10,8 @@ extern FILE* yyin;
 void yyerror(const char* s);
 
 int yydebug = 1;
+extern int yylineno;
+extern int yycolumn;
 %}
 
 %union {
@@ -98,7 +100,7 @@ child: T_ID T_ID
 attrs: T_ATTRIBUTES '{' attrlist '}'
      ;
 
-attrlist: attr attrlist
+attrlist: attr ',' attrlist
         | attr
         ;
 
@@ -134,7 +136,7 @@ attrval: T_STRINGVAL
 flags: T_FLAGS '{' flaglist '}'
      ;
 
-flaglist: flag flaglist
+flaglist: flag ',' flaglist
         | flag
         ;
 
@@ -179,6 +181,6 @@ int main() {
 }
 
 void yyerror(const char* s) {
-    fprintf(stderr, "Parse error at %d: %s\n", 1, s);
+    fprintf(stderr, "Parse error at line %d, col %d: %s\n", yylineno, yycolumn, s);
     exit(1);
 }
