@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ast-internal.h"
+
 extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
@@ -169,15 +171,14 @@ idlist: idlist ',' T_ID
 
 
 %%
-
-int main() {
+struct Config* parse(void) {
     yyin = stdin;
 
     do {
         yyparse();
     } while(!feof(yyin));
 
-    return 0;
+    return NULL;
 }
 
 void yyerror(const char* s) {

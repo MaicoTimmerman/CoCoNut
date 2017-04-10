@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "array.h"
-#include "ast.h"
+#include "ast-internal.h"
 
 struct Config {
     array *phases;
