@@ -1,0 +1,24 @@
+traversal Print { nodes { asda, asd, asd, asd, a, a } };
+
+enum MyTypes {
+    BT_Int, BT_Float, BT_Bool
+};
+
+nodeset MyNodeset {
+    IdExpr, BinopExpr, MonopExpr
+};
+
+node IdExpr {
+    children {
+        mandatory[A, B, C to D] MyNodeset somechildnode
+    },
+    attributes {
+        construct string Name,
+        string Other
+    },
+    flags {
+        construct SomeMandatoryFlag,
+        SomeFlag = true,
+        SomeOtherFlag = false
+    }
+};
