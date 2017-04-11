@@ -143,8 +143,8 @@ nodebody: children ',' attrs ',' flags      { $$ = create_nodebody($1, $3, $5); 
 children: T_CHILDREN '{' childlist '}' { $$ = $3; }
         ;
 
-childlist: child ',' childlist      {  array_append($3, $1);
-                                       $$ = $3;
+childlist: childlist ',' child      {  array_append($1, $3);
+                                       $$ = $1;
                                     }
          | child                    { array *tmp = create_array();
                                       array_append(tmp, $1);
@@ -161,8 +161,8 @@ child: T_ID T_ID                        { $$ = create_child(0, 0, NULL, $2, $1);
 attrs: T_ATTRIBUTES '{' attrlist '}'    { $$ = $3; }
      ;
 
-attrlist: attr ',' attrlist         { array_append($3, $1);
-                                      $$ = $3;
+attrlist: attrlist ',' attr         { array_append($1, $3);
+                                      $$ = $1;
                                     }
         | attr                      { array *tmp = create_array();
                                       array_append(tmp, $1);
@@ -204,8 +204,8 @@ attrval: T_STRINGVAL    { $$ = create_attrval_string($1); }
 flags: T_FLAGS '{' flaglist '}'                         { $$ = $3; }
      ;
 
-flaglist: flag ',' flaglist                             { array_append($3, $1);
-                                                          $$ = $3;
+flaglist: flaglist ',' flag                             { array_append($1, $3);
+                                                          $$ = $1;
                                                         }
         | flag                                          { array *tmp = create_array();
                                                           array_append(tmp, $1);
@@ -223,8 +223,8 @@ mandatory: T_MANDATORY '[' mandatoryarglist ']'         { $$ = $3;      }
          | T_MANDATORY                                  { $$ = NULL;    }
          ;
 
-mandatoryarglist: mandatoryarg ',' mandatoryarglist     { array_append($3, $1);
-                                                          $$ = $3;
+mandatoryarglist: mandatoryarglist ',' mandatoryarg     { array_append($1, $3);
+                                                          $$ = $1;
                                                         }
                 | mandatoryarg                          { array *tmp = create_array();
                                                           array_append(tmp, $1);
