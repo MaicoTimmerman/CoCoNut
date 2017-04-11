@@ -1,5 +1,3 @@
-%option noyywrap
-
 %{
 #include <stdio.h>
 #include "ast-internal.h"
@@ -73,6 +71,11 @@ int yycolumn = 1;
       }
 . { printf("%s: Normaal. Doen.\n", yytext); exit(1); }
 %%
+
+
+int yywrap() {
+	return (1);
+}
 
 void yyerror(const char* s) {
     fprintf(stderr, "Parse error at line %d, col %d: %s\n",
