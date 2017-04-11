@@ -52,7 +52,6 @@ int yydebug = 1;
 %error-verbose
 %locations
 
-
 %token<ival> T_INTVAL "integer value"
 %token<fval> T_FLOATVAL "float value"
 %token<string> T_STRINGVAL "string value"

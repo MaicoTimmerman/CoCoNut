@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include "ast-internal.h"
-#include "ast.tab.h"
+#include "ast.parser.h"
 
 #define YY_DECL int yylex()
 
@@ -16,6 +16,8 @@ int yycolumn = 1;
 %}
 
 %option yylineno
+%option nounput
+%option noinput
 %x COMMENT
 
 %%
