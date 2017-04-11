@@ -18,8 +18,15 @@ int yycolumn = 1;
 %}
 
 %option yylineno
+%x COMMENT
 
 %%
+\/\/[^\n]*                  {  }
+"/*"                        { BEGIN(COMMENT); }
+<COMMENT>{
+    "*/"                    { BEGIN(INITIAL); }
+    .                       {  }
+}
 "("	{return '(';}
 ")"	{return ')';}
 "["	{return '[';}
