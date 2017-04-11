@@ -3,39 +3,103 @@
 
 #include "array.h"
 
-struct Config;
-
-struct Phase;
-
-struct Traversal;
-
-struct Enum;
-
-struct Nodeset;
-
-struct Node;
-
 enum NodeType { NT_node, NT_nodeset };
 
-struct Child;
-
 enum MandatoryPhaseType { MP_single, MP_range };
-
-struct PhaseRange;
-
-struct MandatoryPhase;
 
 enum AttrType { AT_char, AT_uchar, AT_short, AT_ushort, AT_int, AT_uint,
                 AT_long, AT_ulong, AT_longlong, AT_ulonglong, AT_float,
                 AT_double, AT_longdouble, AT_string, AT_link_or_enum };
 
-struct Attr;
+enum AttrValueType { AV_string, AV_int, AV_float, AV_id };
 
-struct Flag;
 
-enum  AttrValueType;
+struct Config {
+    array *phases;
+    array *traversals;
+    array *enums;
+    array *nodesets;
+    array *nodes;
+};
 
-struct AttrValue;
+struct Phase {
+};
+
+struct Traversal {
+    char* id;
+
+    // Array of strings (after parsing) or struct node's
+    array *nodes;
+};
+
+struct Enum {
+    char* id;
+
+    array *values;
+};
+
+struct Nodeset {
+    char* id;
+
+    // Array of strings (after parsing) or struct node's
+    array *nodes;
+};
+
+struct Node {
+    char* id;
+
+    array *children;
+    array *attrs;
+    array *flags;
+};
+
+struct Child {
+    int construct;
+    int mandatory;
+    array *mandatory_phases;
+    char* id;
+    char* type;
+
+    union {
+        struct Node* node;
+        struct Nodeset* nodeset;
+    } node;
+
+    enum NodeType nodetype;
+};
+
+struct PhaseRange {
+    char *start;
+    char *end;
+};
+
+struct MandatoryPhase {
+    enum MandatoryPhaseType type;
+    union {
+        struct PhaseRange* range;
+        char *single;
+    } value;
+};
+
+struct Attr {
+    int construct;
+    enum AttrType type;
+    char *type_id;
+    char* id;
+    struct AttrValue *default_value;
+};
+
+struct AttrValue {
+    enum AttrValueType type;
+    void* value;
+};
+
+struct Flag {
+    int construct;
+    char* id;
+    int has_default_value;
+    int default_value;
+};
 
 array *create_array(void);
 

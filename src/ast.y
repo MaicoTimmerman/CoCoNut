@@ -19,6 +19,10 @@ static array *config_traversals;
 static array *config_nodesets;
 static array *config_nodes;
 
+static struct Config* parse_result = NULL;
+
+void yyerror(const char* s);
+
 int yydebug = 1;
 
 %}
@@ -99,7 +103,7 @@ int yydebug = 1;
 
 %%
 
-root: entry { $$ = create_config(create_array(),
+root: entry { parse_result = create_config(create_array(),
                                  config_traversals,
                                  config_enums,
                                  config_nodesets,
@@ -139,13 +143,13 @@ nodebody: children ',' attrs ',' flags      { $$ = create_nodebody($1, $3, $5); 
 children: T_CHILDREN '{' childlist '}' { $$ = $3; }
         ;
 
-childlist: child childlist      {  array_append($2, $1);
-                                   $$ = $2;
-                                }
-         | child                { array *tmp = create_array();
-                                  array_append(tmp, $1);
-                                  $$ = tmp;
-                                }
+childlist: child ',' childlist      {  array_append($3, $1);
+                                       $$ = $3;
+                                    }
+         | child                    { array *tmp = create_array();
+                                      array_append(tmp, $1);
+                                      $$ = tmp;
+                                    }
          ;
 
 child: T_ID T_ID                        { $$ = create_child(0, 0, NULL, $2, $1); }
@@ -260,9 +264,7 @@ struct Config* parse(void) {
     config_nodesets = create_array();
     config_nodes = create_array();
 
-    do {
-        yyparse();
-    } while(!feof(yyin));
+    yyparse();
 
-    return NULL;
+    return parse_result;;
 }

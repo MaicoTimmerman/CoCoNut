@@ -18,7 +18,7 @@ ast.tab.o: ast.tab.c ast.tab.h
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-ast: lex.yy.o ast.tab.o ast-internal.o main.o array.o
+ast: lex.yy.o ast.tab.o ast-internal.o main.o array.o print-ast.o
 	gcc -o ast $^ -g
 
 clean:
