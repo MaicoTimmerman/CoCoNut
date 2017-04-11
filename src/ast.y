@@ -117,140 +117,175 @@ entry: traversal entry { array_append(config_traversals, $1); }
      | %empty
      ;
 
-traversal: T_TRAVERSAL T_ID ';'                                 { $$ = create_traversal($2, NULL); }
-         | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'  { $$ = create_traversal($2, $6);   }
+traversal: T_TRAVERSAL T_ID ';'
+         { $$ = create_traversal($2, NULL); }
+         | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'
+         { $$ = create_traversal($2, $6);   }
          ;
 
-enum: T_ENUM T_ID '{' idlist '}' ';'    { $$ = create_enum($2, $4); }
+enum: T_ENUM T_ID '{' idlist '}' ';'
+    { $$ = create_enum($2, $4); }
     ;
 
-nodeset: T_NODESET T_ID '{' idlist '}' ';'  { $$ = create_nodeset($2, $4); }
+nodeset: T_NODESET T_ID '{' idlist '}' ';'
+       { $$ = create_nodeset($2, $4); }
        ;
 
-node: T_NODE T_ID '{' nodebody '}' ';'      { $$ = create_node($2, $4); }
+node: T_NODE T_ID '{' nodebody '}' ';'
+    { $$ = create_node($2, $4); }
     ;
 
-nodebody: children ',' attrs ',' flags      { $$ = create_nodebody($1, $3, $5);     }
-        | attrs ',' flags                   { $$ = create_nodebody(NULL, $1, $3);   }
-        | children ',' flags                { $$ = create_nodebody($1, NULL, $3);   }
-        | children ',' attrs                { $$ = create_nodebody($1, $3, NULL);   }
-        | children                          { $$ = create_nodebody($1, NULL, NULL); }
-        | attrs                             { $$ = create_nodebody(NULL, $1, NULL); }
-        | flags                             { $$ = create_nodebody(NULL, NULL, $1); }
-
+nodebody: children ',' attrs ',' flags
+        { $$ = create_nodebody($1, $3, $5);     }
+        | attrs ',' flags
+        { $$ = create_nodebody(NULL, $1, $3);   }
+        | children ',' flags
+        { $$ = create_nodebody($1, NULL, $3);   }
+        | children ',' attrs
+        { $$ = create_nodebody($1, $3, NULL);   }
+        | children
+        { $$ = create_nodebody($1, NULL, NULL); }
+        | attrs
+        { $$ = create_nodebody(NULL, $1, NULL); }
+        | flags
+        { $$ = create_nodebody(NULL, NULL, $1); }
         ;
 
-children: T_CHILDREN '{' childlist '}' { $$ = $3; }
+children: T_CHILDREN '{' childlist '}'
+        { $$ = $3; }
         ;
 
-childlist: childlist ',' child      {  array_append($1, $3);
-                                       $$ = $1;
-                                    }
-         | child                    { array *tmp = create_array();
-                                      array_append(tmp, $1);
-                                      $$ = tmp;
-                                    }
+childlist: childlist ',' child
+         {  array_append($1, $3); $$ = $1; }
+         | child
+         { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
          ;
 
-child: T_ID T_ID                        { $$ = create_child(0, 0, NULL, $2, $1); }
-     | mandatory T_ID T_ID              { $$ = create_child(0, 1, $1, $3, $2);   }
-     | T_CONSTRUCT T_ID T_ID            { $$ = create_child(1, 0, NULL, $3, $2); }
-     | T_CONSTRUCT mandatory T_ID T_ID  { $$ = create_child(1, 1, $2, $4, $3);   }
+child: T_ID T_ID
+     { $$ = create_child(0, 0, NULL, $2, $1); }
+     | mandatory T_ID T_ID
+     { $$ = create_child(0, 1, $1, $3, $2);   }
+     | T_CONSTRUCT T_ID T_ID
+     { $$ = create_child(1, 0, NULL, $3, $2); }
+     | T_CONSTRUCT mandatory T_ID T_ID
+     { $$ = create_child(1, 1, $2, $4, $3);   }
      ;
 
-attrs: T_ATTRIBUTES '{' attrlist '}'    { $$ = $3; }
+attrs: T_ATTRIBUTES '{' attrlist '}'
+     { $$ = $3; }
      ;
 
-attrlist: attrlist ',' attr         { array_append($1, $3);
-                                      $$ = $1;
-                                    }
-        | attr                      { array *tmp = create_array();
-                                      array_append(tmp, $1);
-                                      $$ = tmp;
-                                    }
+attrlist: attrlist ',' attr
+        { array_append($1, $3); $$ = $1; }
+        | attr
+        { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
         ;
 
-attr: attrhead                  { $$ = create_attr($1, NULL);}
-    | attrhead '=' attrval      { $$ = create_attr($1, $3);  }
+attr: attrhead
+    { $$ = create_attr($1, NULL);}
+    | attrhead '=' attrval
+    { $$ = create_attr($1, $3);  }
+    ;
 
-attrhead: attrprimitivetype T_ID                { $$ = create_attrhead_primitive(0, $1, $2); }
-        | T_CONSTRUCT attrprimitivetype T_ID    { $$ = create_attrhead_primitive(1, $2, $3); }
-        | T_ID T_ID                             { $$ = create_attrhead_idtype(0, $1, $2);    }
-        | T_CONSTRUCT T_ID T_ID                 { $$ = create_attrhead_idtype(1, $2, $3);    }
+attrhead: attrprimitivetype T_ID
+        { $$ = create_attrhead_primitive(0, $1, $2); }
+        | T_CONSTRUCT attrprimitivetype T_ID
+        { $$ = create_attrhead_primitive(1, $2, $3); }
+        | T_ID T_ID
+        { $$ = create_attrhead_idtype(0, $1, $2);    }
+        | T_CONSTRUCT T_ID T_ID
+        { $$ = create_attrhead_idtype(1, $2, $3);    }
         ;
 
-attrprimitivetype: T_CHAR                       { $$ = AT_char;   }
-                 | T_UNSIGNED T_CHAR            { $$ = AT_uchar;  }
-                 | T_SHORT                      { $$ = AT_short;  }
-                 | T_UNSIGNED T_SHORT           { $$ = AT_ushort; }
-                 | T_INT                        { $$ = AT_int;    }
-                 | T_UNSIGNED T_INT             { $$ = AT_uint;   }
-                 | T_LONG                       { $$ = AT_long;   }
-                 | T_UNSIGNED T_LONG            { $$ = AT_ulong;  }
-                 | T_LONG T_LONG                { $$ = AT_longlong;  }
-                 | T_UNSIGNED T_LONG T_LONG     { $$ = AT_ulonglong; }
-                 | T_FLOAT                      { $$ = AT_float;  }
-                 | T_DOUBLE                     { $$ = AT_double; }
-                 | T_LONG T_DOUBLE              { $$ = AT_longdouble; }
-                 | T_STRING                     { $$ = AT_string; }
+attrprimitivetype: T_CHAR
+                 { $$ = AT_char;   }
+                 | T_UNSIGNED T_CHAR
+                 { $$ = AT_uchar;  }
+                 | T_SHORT
+                 { $$ = AT_short;  }
+                 | T_UNSIGNED T_SHORT
+                 { $$ = AT_ushort; }
+                 | T_INT
+                 { $$ = AT_int;    }
+                 | T_UNSIGNED T_INT
+                 { $$ = AT_uint;   }
+                 | T_LONG
+                 { $$ = AT_long;   }
+                 | T_UNSIGNED T_LONG
+                 { $$ = AT_ulong;  }
+                 | T_LONG T_LONG
+                 { $$ = AT_longlong;  }
+                 | T_UNSIGNED T_LONG T_LONG
+                 { $$ = AT_ulonglong; }
+                 | T_FLOAT
+                 { $$ = AT_float;  }
+                 | T_DOUBLE
+                 { $$ = AT_double; }
+                 | T_LONG T_DOUBLE
+                 { $$ = AT_longdouble; }
+                 | T_STRING
+                 { $$ = AT_string; }
                  ;
 
-attrval: T_STRINGVAL    { $$ = create_attrval_string($1); }
-       | T_INTVAL       { $$ = create_attrval_int($1); }
-       | T_FLOATVAL     { $$ = create_attrval_float($1); }
-       | T_ID           { $$ = create_attrval_id($1); }
+attrval: T_STRINGVAL
+       { $$ = create_attrval_string($1); }
+       | T_INTVAL
+       { $$ = create_attrval_int($1); }
+       | T_FLOATVAL
+       { $$ = create_attrval_float($1); }
+       | T_ID
+       { $$ = create_attrval_id($1); }
        ;
 
-flags: T_FLAGS '{' flaglist '}'                         { $$ = $3; }
+flags: T_FLAGS '{' flaglist '}'
+     { $$ = $3; }
      ;
 
-flaglist: flaglist ',' flag                             { array_append($1, $3);
-                                                          $$ = $1;
-                                                        }
-        | flag                                          { array *tmp = create_array();
-                                                          array_append(tmp, $1);
-                                                          $$ = tmp;
-                                                        }
+flaglist: flaglist ',' flag
+        { array_append($1, $3); $$ = $1; }
+        | flag
+        { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
         ;
 
-flag: T_CONSTRUCT T_ID '=' bool                         { $$ = create_flag(1, $2, 1, $4); }
-    | T_CONSTRUCT T_ID                                  { $$ = create_flag(1, $2, 0, 0); }
-    | T_ID '=' bool                                     { $$ = create_flag(0, $1, 1, $3); }
-    | T_ID                                              { $$ = create_flag(0, $1, 0, 0); }
+flag: T_CONSTRUCT T_ID '=' bool
+    { $$ = create_flag(1, $2, 1, $4); }
+    | T_CONSTRUCT T_ID
+    { $$ = create_flag(1, $2, 0, 0); }
+    | T_ID '=' bool
+    { $$ = create_flag(0, $1, 1, $3); }
+    | T_ID
+    { $$ = create_flag(0, $1, 0, 0); }
     ;
 
-mandatory: T_MANDATORY '[' mandatoryarglist ']'         { $$ = $3;      }
-         | T_MANDATORY                                  { $$ = NULL;    }
+mandatory: T_MANDATORY '[' mandatoryarglist ']'
+         { $$ = $3;      }
+         | T_MANDATORY
+         { $$ = NULL;    }
          ;
 
-mandatoryarglist: mandatoryarglist ',' mandatoryarg     { array_append($1, $3);
-                                                          $$ = $1;
-                                                        }
-                | mandatoryarg                          { array *tmp = create_array();
-                                                          array_append(tmp, $1);
-                                                          $$ = tmp;
-                                                        }
+mandatoryarglist: mandatoryarglist ',' mandatoryarg
+                { array_append($1, $3); $$ = $1; }
+                | mandatoryarg
+                { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
                 ;
 
-mandatoryarg: T_ID              { $$ = create_mandatory_singlephase($1);    }
-            | T_ID T_TO T_ID    { $$ = create_mandatory_phaserange($1, $3); }
+mandatoryarg: T_ID
+            { $$ = create_mandatory_singlephase($1);    }
+            | T_ID T_TO T_ID
+            { $$ = create_mandatory_phaserange($1, $3); }
             ;
 
-bool: T_TRUE                { $$ = 1; }
-    | T_FALSE               { $$ = 0; }
+bool: T_TRUE
+    { $$ = 1; }
+    | T_FALSE
+    { $$ = 0; }
     ;
 
 
-idlist: idlist ',' T_ID     {
-                                array_append($1, $3);
-                                $$ = $1;
-                            }
-      | T_ID                {
-                                array *tmp = create_array();
-                                array_append(tmp, $1);
-                                $$ = tmp;
-                            }
-
+idlist: idlist ',' T_ID
+      { array_append($1, $3); $$ = $1; }
+      | T_ID
+      { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
       ;
 
 
