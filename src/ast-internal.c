@@ -8,7 +8,7 @@
 struct Config {
     array *phases;
     array *traversals;
-    array *attr_enums;
+    array *enums;
     array *nodesets;
     array *nodes;
 };
@@ -99,12 +99,12 @@ array *create_array(void) {
 }
 
 struct Config* create_config(array *phases, array *traversals,
-        array *attr_enums, array *nodesets, array *nodes) {
+        array *enums, array *nodesets, array *nodes) {
 
     struct Config *c = malloc(sizeof(struct Config));
     c->phases = phases;
     c->traversals = traversals;
-    c->attr_enums = attr_enums;
+    c->enums = enums;
     c->nodesets = nodesets;
     c->nodes = nodes;
     return c;

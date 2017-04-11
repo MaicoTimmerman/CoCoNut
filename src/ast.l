@@ -7,6 +7,7 @@
 
 #define YY_DECL int yylex()
 
+char linebuf[500];
 int yycolumn = 1;
 
 #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
@@ -58,7 +59,16 @@ int yycolumn = 1;
 [0-9]+ {yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
 
 [ \t]	; // ignore all whitespace
-\n { yycolumn = 0; }
-
+\n.*  { strncpy(linebuf, yytext+1, sizeof(linebuf)); /* save the next line */
+        yycolumn = 0;
+        yyless(1);      /* give back all but the \n to rescan */
+      }
 . { printf("%s: Normaal. Doen.\n", yytext); exit(1); }
 %%
+
+void yyerror(const char* s) {
+    fprintf(stderr, "Parse error at line %d, col %d: %s\n",
+        yylineno, yycolumn, s);
+    fprintf(stderr, "%s", linebuf);
+    exit(1);
+}

@@ -8,13 +8,19 @@
 
 extern int yylex();
 extern int yyparse();
-extern FILE* yyin;
-
-void yyerror(const char* s);
-
-int yydebug = 1;
 extern int yylineno;
 extern int yycolumn;
+extern char* yytext;
+extern FILE* yyin;
+
+static array *config_phases;
+static array *config_enums;
+static array *config_traversals;
+static array *config_nodesets;
+static array *config_nodes;
+
+int yydebug = 1;
+
 %}
 
 %union {
@@ -43,22 +49,39 @@ extern int yycolumn;
 %locations
 
 
-%token<ival> T_INTVAL
-%token<fval> T_FLOATVAL
-%token<string> T_STRINGVAL
-%token<string> T_ID
+%token<ival> T_INTVAL "integer value"
+%token<fval> T_FLOATVAL "float value"
+%token<string> T_STRINGVAL "string value"
+%token<string> T_ID "identifier"
 
-%token T_TRUE T_FALSE
+%token T_TRUE "true"
+       T_FALSE "false"
 
-%token T_ATTRIBUTES T_CHILDREN T_CONSTRUCT T_ENUM T_FLAGS T_MANDATORY
-%token T_NODE T_NODES T_NODESET T_TO T_TRAVERSAL
+%token T_ATTRIBUTES "\"attributes\""
+       T_CHILDREN "children"
+       T_CONSTRUCT "construct"
+       T_ENUM "enum"
+       T_FLAGS "flags"
+       T_MANDATORY "mandatory"
+%token T_NODE "node"
+       T_NODES "nodes"
+       T_NODESET "nodeset"
+       T_TO "to"
+       T_TRAVERSAL "traversal"
 
-%token T_UNSIGNED T_CHAR T_SHORT T_INT T_LONG T_FLOAT T_DOUBLE
-%token T_STRING
+%token T_UNSIGNED "unsigned"
+       T_CHAR "char"
+       T_SHORT "short"
+       T_INT "int"
+       T_LONG "long"
+       T_FLOAT "float"
+       T_DOUBLE "double"
+%token T_STRING "string"
+
+%token END 0 "End-of-file (EOF)"
 
 %type<array> idlist mandatoryarglist mandatory flaglist
              flags attrlist attrs childlist children
-             nodes nodesets enums traversals
 %type<boolean> bool
 %type<mandatoryphase> mandatoryarg
 %type<flag> flag
@@ -76,34 +99,29 @@ extern int yycolumn;
 
 %%
 
-root: traversals enums nodesets nodes   { $$ = create_config(create_array(), $1, $2, $3, $4); }
+root: entry { $$ = create_config(create_array(),
+                                 config_traversals,
+                                 config_enums,
+                                 config_nodesets,
+                                 config_nodes); }
     ;
 
-traversals: traversal traversals        { array_append($2, $1); $$ = $2; }
-          | %empty                      { $$ = create_array(); }
-          ;
+entry: traversal entry { array_append(config_traversals, $1); }
+     | enum entry { array_append(config_enums, $1); }
+     | nodeset entry { array_append(config_nodesets, $1); }
+     | node entry{ array_append(config_nodes, $1);  }
+     | %empty
+     ;
 
 traversal: T_TRAVERSAL T_ID ';'                                 { $$ = create_traversal($2, NULL); }
          | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'  { $$ = create_traversal($2, $6);   }
          ;
 
-enums: enum enums                   { array_append($2, $1); $$ = $2; }
-     | %empty                       { $$ = create_array(); }
-     ;
-
 enum: T_ENUM T_ID '{' idlist '}' ';'    { $$ = create_enum($2, $4); }
     ;
 
-nodesets: nodeset nodesets      { array_append($2, $1); $$ = $2; }
-        | %empty                { $$ = create_array();           }
-        ;
-
 nodeset: T_NODESET T_ID '{' idlist '}' ';'  { $$ = create_nodeset($2, $4); }
        ;
-
-nodes: node nodes               { array_append($2, $1); $$ = $2; }
-     | %empty                   { $$ = create_array(); }
-     ;
 
 node: T_NODE T_ID '{' nodebody '}' ';'      { $$ = create_node($2, $4); }
     ;
@@ -126,7 +144,7 @@ childlist: child childlist      {  array_append($2, $1);
                                 }
          | child                { array *tmp = create_array();
                                   array_append(tmp, $1);
-                                  $$ = tmp; 
+                                  $$ = tmp;
                                 }
          ;
 
@@ -140,11 +158,11 @@ attrs: T_ATTRIBUTES '{' attrlist '}'    { $$ = $3; }
      ;
 
 attrlist: attr ',' attrlist         { array_append($3, $1);
-                                      $$ = $3; 
+                                      $$ = $3;
                                     }
         | attr                      { array *tmp = create_array();
                                       array_append(tmp, $1);
-                                      $$ = tmp; 
+                                      $$ = tmp;
                                     }
         ;
 
@@ -153,7 +171,7 @@ attr: attrhead                  { $$ = create_attr($1, NULL);}
 
 attrhead: attrprimitivetype T_ID                { $$ = create_attrhead_primitive(0, $1, $2); }
         | T_CONSTRUCT attrprimitivetype T_ID    { $$ = create_attrhead_primitive(1, $2, $3); }
-        | T_ID T_ID                             { $$ = create_attrhead_idtype(0, $1, $2);    } 
+        | T_ID T_ID                             { $$ = create_attrhead_idtype(0, $1, $2);    }
         | T_CONSTRUCT T_ID T_ID                 { $$ = create_attrhead_idtype(1, $2, $3);    }
         ;
 
@@ -236,14 +254,15 @@ idlist: idlist ',' T_ID     {
 struct Config* parse(void) {
     yyin = stdin;
 
+    config_phases = create_array();
+    config_enums = create_array();
+    config_traversals = create_array();
+    config_nodesets = create_array();
+    config_nodes = create_array();
+
     do {
         yyparse();
     } while(!feof(yyin));
 
     return NULL;
-}
-
-void yyerror(const char* s) {
-    fprintf(stderr, "Parse error at line %d, col %d: %s\n", yylineno, yycolumn, s);
-    exit(1);
 }
