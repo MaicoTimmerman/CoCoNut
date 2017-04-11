@@ -2,6 +2,7 @@
 
 %{
 #include <stdio.h>
+#include "ast-internal.h"
 #include "ast.tab.h"
 
 #define YY_DECL int yylex()
@@ -52,9 +53,9 @@ int yycolumn = 1;
 "false" {return T_FALSE;}
 "true" {return T_TRUE;}
 
-[A-Za-z][A-Za-z_]* {yylval.stringval = strdup(yytext); return T_ID;}
-[0-9]+\.[0-9]+ {yylval.cflt = strtold(yytext, NULL); return T_FLOATVAL;}
-[0-9]+ {yylval.cint = strtoll(yytext, NULL, 10); return T_INTVAL;}
+[A-Za-z][A-Za-z_]* {yylval.string = strdup(yytext); return T_ID;}
+[0-9]+\.[0-9]+ {yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
+[0-9]+ {yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
 
 [ \t]	; // ignore all whitespace
 \n { yycolumn = 0; }

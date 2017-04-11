@@ -44,8 +44,6 @@ struct Node {
     array *flags;
 };
 
-enum NodeType { NT_node, NT_nodeset };
-
 struct Child {
     int construct;
     int mandatory;
@@ -61,8 +59,6 @@ struct Child {
     enum NodeType nodetype;
 };
 
-enum MandatoryPhaseType { MP_single, MP_range };
-
 struct PhaseRange {
     char *start;
     char *end;
@@ -76,16 +72,19 @@ struct MandatoryPhase {
     } value;
 };
 
-enum AttrType { AT_char, AT_uchar, AT_short, AT_ushort, AT_int, AT_uint,
-                AT_long, AT_ulong, AT_longlong, AT_ulonglong, AT_float,
-                AT_double, AT_longdouble, AT_string, AT_link_or_enum };
-
 struct Attr {
     int construct;
     enum AttrType type;
     char *type_id;
     char* id;
-    void* default_value;
+    struct AttrValue *default_value;
+};
+
+enum AttrValueType { AV_string, AV_int, AV_float, AV_id };
+
+struct AttrValue {
+    enum AttrValueType type;
+    void* value;
 };
 
 struct Flag {
@@ -143,12 +142,13 @@ struct Nodeset* create_nodeset(char* id, array *nodes) {
     return n;
 }
 
+struct Node* create_node(char *id, struct Node *nodebody) {
+    nodebody->id = id;
+    return nodebody;
+}
 
-struct Node* create_node(char* id,
-        array *children, array *attrs, array *flags) {
-
+struct Node* create_nodebody(array *children, array *attrs, array *flags) {
     struct Node *n = malloc(sizeof(struct Node));
-    n->id = strdup(id);
     n->children = children;
     n->attrs = attrs;
     n->flags = flags;
@@ -188,31 +188,65 @@ struct MandatoryPhase* create_mandatory_phaserange(
     return p;
 }
 
-struct Attr* create_attr_primitive(int construct, enum AttrType type,
-        char *id, void *default_value) {
+struct Attr* create_attr(struct Attr *attrhead, struct AttrValue *default_value) {
+    attrhead->default_value = default_value;
+    return attrhead;
+}
+
+struct Attr* create_attrhead_primitive(int construct, enum AttrType type,
+        char *id) {
 
     struct Attr* a = malloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = type;
     a->type_id = NULL;
     a->id = strdup(id);
-    a->default_value = default_value;
     return a;
 }
 
+struct Attr* create_attrhead_idtype(int construct, char *type, char *id) {
 
-struct Attr* create_attr_idtype(int construct, char *type, char *id,
-        void *default_value) {
-
-    struct Attr* a = malloc(sizeof(struct Attr));
+    struct Attr *a = malloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = AT_link_or_enum;
     a->type_id = strdup(type);
     a->id = strdup(id);
-    a->default_value = default_value;
     return a;
 }
 
+struct AttrValue* create_attrval_string(char* value) {
+    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    v->type = AV_string;
+    v->value = strdup(value);
+    return v;
+}
+
+struct AttrValue* create_attrval_int(long long value) {
+    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    v->type = AV_int;
+
+    long long *l = malloc(sizeof(long long));
+    *l = value;
+    v->value = l;
+    return v;
+}
+
+struct AttrValue* create_attrval_float(long double value) {
+    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    v->type = AV_float;
+
+    long double *f = malloc(sizeof(long double));
+    *f = value;
+    v->value = f;
+    return v;
+}
+
+struct AttrValue* create_attrval_id(char *id) {
+    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    v->type = AV_id;
+    v->value = strdup(id);
+    return v;
+}
 struct Flag* create_flag(int construct, char *id,
         int has_default_value, int default_value) {
 

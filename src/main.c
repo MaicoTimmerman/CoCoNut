@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "ast-internal.h"
 
 extern struct Config* parse(void);
 
