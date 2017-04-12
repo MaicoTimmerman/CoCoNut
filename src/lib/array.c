@@ -9,25 +9,23 @@ struct array {
     long capacity;
 };
 
-struct array *array_init(long initial_capacity)
-{
+struct array *array_init(long initial_capacity) {
     struct array *a = malloc(sizeof(struct array));
     if (a == NULL) {
         return NULL;
     }
-    a->data = (void **) malloc(initial_capacity * sizeof(void *));
+    a->data = (void **)malloc(initial_capacity * sizeof(void *));
     if (a->data == NULL) {
         return NULL;
     }
-    a->size     = 0;
+    a->size = 0;
     a->capacity = initial_capacity;
     return a;
 }
 
 static void noop(void *p) {}
 
-void array_cleanup(struct array *a, void free_func(void *))
-{
+void array_cleanup(struct array *a, void free_func(void *)) {
     void *e;
     if (free_func == NULL) {
         free_func = noop;
@@ -39,8 +37,7 @@ void array_cleanup(struct array *a, void free_func(void *))
     free(a);
 }
 
-int array_set(struct array *a, int index, void *p)
-{
+int array_set(struct array *a, int index, void *p) {
     if (index >= a->size)
         return -1;
 
@@ -48,16 +45,14 @@ int array_set(struct array *a, int index, void *p)
     return 0;
 }
 
-void *array_get(struct array *a, int index)
-{
+void *array_get(struct array *a, int index) {
     if (index < a->size)
         return a->data[index];
     else
         return NULL;
 }
 
-int array_append(struct array *a, void *p)
-{
+int array_append(struct array *a, void *p) {
     if (a->size == a->capacity) {
         a->capacity *= 2;
         a->data = realloc(a->data, a->capacity * sizeof(void *));
@@ -66,8 +61,7 @@ int array_append(struct array *a, void *p)
     return array_set(a, a->size - 1, p);
 }
 
-void *array_pop(struct array *a)
-{
+void *array_pop(struct array *a) {
     if (a->size == 0)
         return NULL;
 
@@ -76,6 +70,10 @@ void *array_pop(struct array *a)
     return last;
 }
 
-int array_size(struct array *a) { return a->size; }
+int array_size(struct array *a) {
+    return a->size;
+}
 
-void array_clear(struct array *a) { a->size = 0; }
+void array_clear(struct array *a) {
+    a->size = 0;
+}

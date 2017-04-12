@@ -60,11 +60,14 @@ int yycolumn = 1;
 
 "false" {return T_FALSE;}
 "true" {return T_TRUE;}
+"NULL" {return T_NULL;}
 
-[A-Za-z][A-Za-z_]*  {yylval.string = strdup(yytext); return T_ID;}
-[0-9]+\.[0-9]+      {yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
-[0-9]+              {yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
+[A-Za-z][A-Za-z0-9_]*  {yylval.string = strdup(yytext); return T_ID;}
+-?[0-9]+\.[0-9]+      {yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
+-?[0-9]+              {yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
 \"(\\.|[^\\"])*\"   {yylval.string = strdup(yytext); return T_STRINGVAL;}
+'(\\.|[^\\'])'   {yylval.string = strdup(yytext); return T_CHARVAL;}
+
 
 [ \t]	; // ignore all whitespace
 \n.*  { strncpy(linebuf, yytext+1, sizeof(linebuf)); /* save the next line */

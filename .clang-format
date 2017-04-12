@@ -1,11 +1,12 @@
 ---
 BasedOnStyle: LLVM
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortFunctionsOnASingleLine: Empty
+BreakBeforeBraces: Attach
+ColumnLimit: 79
+DerivePointerAlignment: false
 IndentWidth: 4
 Language: Cpp
-DerivePointerAlignment: false
 PointerAlignment: Right
-ColumnLimit: 79
-AlignTrailingComments: true
-AlignOperands: true
-BreakBeforeBraces: Attach
 ...

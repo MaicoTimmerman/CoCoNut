@@ -30,6 +30,7 @@ int yydebug = 1;
 %union {
     long long ival;
     long double fval;
+    char charval;
     char *string;
     char *str;
     int boolean;
@@ -54,33 +55,32 @@ int yydebug = 1;
 
 %token<ival> T_INTVAL "integer value"
 %token<fval> T_FLOATVAL "float value"
+%token<charval> T_CHARVAL "char value"
 %token<string> T_STRINGVAL "string value"
 %token<string> T_ID "identifier"
 
 %token T_TRUE "true"
        T_FALSE "false"
-
-%token T_ATTRIBUTES "\"attributes\""
+       T_ATTRIBUTES "attributes"
        T_CHILDREN "children"
        T_CONSTRUCT "construct"
        T_ENUM "enum"
        T_FLAGS "flags"
        T_MANDATORY "mandatory"
-%token T_NODE "node"
+       T_NODE "node"
        T_NODES "nodes"
        T_NODESET "nodeset"
        T_TO "to"
        T_TRAVERSAL "traversal"
-
-%token T_UNSIGNED "unsigned"
+       T_UNSIGNED "unsigned"
        T_CHAR "char"
        T_SHORT "short"
        T_INT "int"
        T_LONG "long"
        T_FLOAT "float"
        T_DOUBLE "double"
-%token T_STRING "string"
-
+       T_STRING "string"
+       T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
 %type<array> idlist mandatoryarglist mandatory flaglist
@@ -228,12 +228,16 @@ attrprimitivetype: T_CHAR
 
 attrval: T_STRINGVAL
        { $$ = create_attrval_string($1); }
+       | T_CHARVAL
+       { $$ = create_attrval_char($1); }
        | T_INTVAL
        { $$ = create_attrval_int($1); }
        | T_FLOATVAL
        { $$ = create_attrval_float($1); }
        | T_ID
        { $$ = create_attrval_id($1); }
+       | T_NULL
+       { $$ = NULL; }
        ;
 
 flags: T_FLAGS '{' flaglist '}'

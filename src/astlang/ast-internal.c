@@ -5,13 +5,12 @@
 #include "array.h"
 #include "ast-internal.h"
 
-
 array *create_array(void) {
     return array_init(32);
 }
 
-struct Config* create_config(array *phases, array *traversals,
-        array *enums, array *nodesets, array *nodes) {
+struct Config *create_config(array *phases, array *traversals, array *enums,
+                             array *nodesets, array *nodes) {
 
     struct Config *c = malloc(sizeof(struct Config));
     c->phases = phases;
@@ -22,13 +21,13 @@ struct Config* create_config(array *phases, array *traversals,
     return c;
 }
 
-struct Phase* create_phase(void)  {
+struct Phase *create_phase(void) {
 
     struct Phase *p = malloc(sizeof(struct Phase));
     return p;
 }
 
-struct Traversal* create_traversal(char* id, array *nodes) {
+struct Traversal *create_traversal(char *id, array *nodes) {
 
     struct Traversal *t = malloc(sizeof(struct Traversal));
     t->id = strdup(id);
@@ -36,7 +35,7 @@ struct Traversal* create_traversal(char* id, array *nodes) {
     return t;
 }
 
-struct Enum* create_enum(char* id, array *values) {
+struct Enum *create_enum(char *id, array *values) {
 
     struct Enum *e = malloc(sizeof(struct Enum));
     e->id = strdup(id);
@@ -45,7 +44,7 @@ struct Enum* create_enum(char* id, array *values) {
     return e;
 }
 
-struct Nodeset* create_nodeset(char* id, array *nodes) {
+struct Nodeset *create_nodeset(char *id, array *nodes) {
 
     struct Nodeset *n = malloc(sizeof(struct Nodeset));
     n->id = strdup(id);
@@ -54,12 +53,12 @@ struct Nodeset* create_nodeset(char* id, array *nodes) {
     return n;
 }
 
-struct Node* create_node(char *id, struct Node *nodebody) {
+struct Node *create_node(char *id, struct Node *nodebody) {
     nodebody->id = id;
     return nodebody;
 }
 
-struct Node* create_nodebody(array *children, array *attrs, array *flags) {
+struct Node *create_nodebody(array *children, array *attrs, array *flags) {
     struct Node *n = malloc(sizeof(struct Node));
     n->children = children;
     n->attrs = attrs;
@@ -68,8 +67,8 @@ struct Node* create_nodebody(array *children, array *attrs, array *flags) {
     return n;
 }
 
-struct Child* create_child(int construct, int mandatory,
-        array *mandatory_phases, char *id, char *type) {
+struct Child *create_child(int construct, int mandatory,
+                           array *mandatory_phases, char *id, char *type) {
 
     struct Child *c = malloc(sizeof(struct Child));
     c->construct = construct;
@@ -80,7 +79,7 @@ struct Child* create_child(int construct, int mandatory,
     return c;
 }
 
-struct MandatoryPhase* create_mandatory_singlephase(char* phase) {
+struct MandatoryPhase *create_mandatory_singlephase(char *phase) {
 
     struct MandatoryPhase *p = malloc(sizeof(struct MandatoryPhase));
     p->value.single = strdup(phase);
@@ -88,8 +87,8 @@ struct MandatoryPhase* create_mandatory_singlephase(char* phase) {
     return p;
 }
 
-struct MandatoryPhase* create_mandatory_phaserange(
-        char* phase_start, char* phase_end) {
+struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
+                                                   char *phase_end) {
 
     struct MandatoryPhase *p = malloc(sizeof(struct MandatoryPhase));
     struct PhaseRange *range = malloc(sizeof(struct PhaseRange));
@@ -100,15 +99,16 @@ struct MandatoryPhase* create_mandatory_phaserange(
     return p;
 }
 
-struct Attr* create_attr(struct Attr *attrhead, struct AttrValue *default_value) {
+struct Attr *create_attr(struct Attr *attrhead,
+                         struct AttrValue *default_value) {
     attrhead->default_value = default_value;
     return attrhead;
 }
 
-struct Attr* create_attrhead_primitive(int construct, enum AttrType type,
-        char *id) {
+struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
+                                       char *id) {
 
-    struct Attr* a = malloc(sizeof(struct Attr));
+    struct Attr *a = malloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = type;
     a->type_id = NULL;
@@ -116,7 +116,7 @@ struct Attr* create_attrhead_primitive(int construct, enum AttrType type,
     return a;
 }
 
-struct Attr* create_attrhead_idtype(int construct, char *type, char *id) {
+struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
 
     struct Attr *a = malloc(sizeof(struct Attr));
     a->construct = construct;
@@ -126,7 +126,7 @@ struct Attr* create_attrhead_idtype(int construct, char *type, char *id) {
     return a;
 }
 
-struct AttrValue* create_attrval_string(char* value) {
+struct AttrValue *create_attrval_string(char *value) {
     struct AttrValue *v = malloc(sizeof(struct AttrValue));
     v->type = AV_string;
     size_t len = strlen(value);
@@ -135,7 +135,16 @@ struct AttrValue* create_attrval_string(char* value) {
     return v;
 }
 
-struct AttrValue* create_attrval_int(long long value) {
+struct AttrValue *create_attrval_char(char value) {
+    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    v->type = AV_char;
+    char *l = malloc(sizeof(char));
+    *l = value;
+    v->value = l;
+    return v;
+}
+
+struct AttrValue *create_attrval_int(long long value) {
     struct AttrValue *v = malloc(sizeof(struct AttrValue));
     v->type = AV_int;
 
@@ -145,7 +154,7 @@ struct AttrValue* create_attrval_int(long long value) {
     return v;
 }
 
-struct AttrValue* create_attrval_float(long double value) {
+struct AttrValue *create_attrval_float(long double value) {
     struct AttrValue *v = malloc(sizeof(struct AttrValue));
     v->type = AV_float;
 
@@ -155,14 +164,14 @@ struct AttrValue* create_attrval_float(long double value) {
     return v;
 }
 
-struct AttrValue* create_attrval_id(char *id) {
+struct AttrValue *create_attrval_id(char *id) {
     struct AttrValue *v = malloc(sizeof(struct AttrValue));
     v->type = AV_id;
     v->value = strdup(id);
     return v;
 }
-struct Flag* create_flag(int construct, char *id,
-        int has_default_value, int default_value) {
+struct Flag *create_flag(int construct, char *id, int has_default_value,
+                         int default_value) {
 
     struct Flag *f = malloc(sizeof(struct Flag));
     f->construct = construct;

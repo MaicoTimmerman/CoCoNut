@@ -1,4 +1,11 @@
-traversal Print { nodes { asda, asd, asd, asd, a, a } };
+traversal PrintAll;
+
+traversal Print {
+    nodes {
+        asda,
+        asd, asd, asd, a, a
+    }
+};
 
 enum MyTypes {
     BT_Int, BT_Float, BT_Bool
@@ -8,17 +15,64 @@ nodeset MyNodeset {
     IdExpr, BinopExpr, MonopExpr
 };
 
+enum OtherEnum {
+    OE_one, OE_two, OE_three
+};
+
 node IdExpr {
     children {
-        mandatory[A, B, C to D] MyNodeset somechildnode
+        MyNodeset somechildnode1,
+        mandatory MyNodeset somechildnode2,
+        mandatory[A, B, C to D] MyNodeset somechildnode3,
+        mandatory[A to B, C to D] MyNodeset somechildnode4,
+        construct MyNodeset somechildnode5,
+        construct mandatory MyNodeset somechildnode6,
+        construct mandatory[A, B, C to D] MyNodeset somechildnode7,
+        construct mandatory[A to B, C to D] MyNodeset somechildnode8
     },
     attributes {
-        construct string Name,
-        string Other
+        char attr1 = -1,
+        unsigned char attr2 = 'a',
+        short attr3 = -1,
+        unsigned short attr4 = 1 ,
+        int attr5 = -12,
+        unsigned int attr6 = 12,
+        long attr7 = -1234,
+        unsigned long attr8 = 3,
+        long long attr9 = -193,
+        unsigned long long attr10 = 13,
+        float attr11 = 1.1,
+        double  attr12 = -1.1,
+        long double attr13 = 4.5,
+        string attr14 = "laksdfj",
+        SomeNode attr15 = NULL ,
+        SomeEnum attr16 = BO_add,
+
+        construct char attr17,
+        construct unsigned char attr18,
+        construct short attr19,
+        construct unsigned short attr20,
+        construct int attr21,
+        construct unsigned int attr22,
+        construct long attr23,
+        construct unsigned long attr24,
+        construct long long attr25,
+        construct unsigned long long attr26,
+        construct float attr27,
+        construct double  attr28,
+        construct long double attr29,
+        construct string attr30,
+        construct SomeNode attr31,
+        construct SomeEnum attr32
     },
     flags {
-        construct SomeMandatoryFlag,
+        SomeFlag,
+        SomeOtherFlag,
         SomeFlag = true,
-        SomeOtherFlag = false
+        SomeOtherFlag = false,
+        construct SomeFlag,
+        construct SomeOtherFlag,
+        construct SomeFlag = true,
+        construct SomeOtherFlag = false
     }
 };
