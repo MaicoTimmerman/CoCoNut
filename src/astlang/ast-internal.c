@@ -31,7 +31,7 @@ struct Phase *create_phase(void) {
 struct Traversal *create_traversal(char *id, array *nodes) {
 
     struct Traversal *t = mem_alloc(sizeof(struct Traversal));
-    t->id = strdup(id);
+    t->id = id;
     t->nodes = nodes;
     return t;
 }
@@ -39,7 +39,7 @@ struct Traversal *create_traversal(char *id, array *nodes) {
 struct Enum *create_enum(char *id, array *values) {
 
     struct Enum *e = mem_alloc(sizeof(struct Enum));
-    e->id = strdup(id);
+    e->id = id;
     e->values = values;
 
     return e;
@@ -48,7 +48,7 @@ struct Enum *create_enum(char *id, array *values) {
 struct Nodeset *create_nodeset(char *id, array *nodes) {
 
     struct Nodeset *n = mem_alloc(sizeof(struct Nodeset));
-    n->id = strdup(id);
+    n->id = id;
     n->nodes = nodes;
 
     return n;
@@ -75,7 +75,7 @@ struct Child *create_child(int construct, int mandatory,
     c->construct = construct;
     c->mandatory = mandatory;
     c->mandatory_phases = mandatory_phases;
-    c->id = strdup(id);
+    c->id = id;
     c->type = type;
     return c;
 }
@@ -83,7 +83,7 @@ struct Child *create_child(int construct, int mandatory,
 struct MandatoryPhase *create_mandatory_singlephase(char *phase) {
 
     struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
-    p->value.single = strdup(phase);
+    p->value.single = phase;
     p->type = MP_single;
     return p;
 }
@@ -93,8 +93,8 @@ struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
 
     struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
     struct PhaseRange *range = mem_alloc(sizeof(struct PhaseRange));
-    range->start = strdup(phase_start);
-    range->end = strdup(phase_end);
+    range->start = phase_start;
+    range->end = phase_end;
     p->value.range = range;
     p->type = MP_range;
     return p;
@@ -113,7 +113,7 @@ struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
     a->construct = construct;
     a->type = type;
     a->type_id = NULL;
-    a->id = strdup(id);
+    a->id = id;
     return a;
 }
 
@@ -122,8 +122,8 @@ struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
     struct Attr *a = mem_alloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = AT_link_or_enum;
-    a->type_id = strdup(type);
-    a->id = strdup(id);
+    a->type_id = type;
+    a->id = id;
     return a;
 }
 
@@ -150,6 +150,7 @@ struct AttrValue *create_attrval_char(char *value) {
     *l = value[1];
     v->value = l;
 
+    // Only the character is saved, thus remove the entire string.
     mem_free(value);
     return v;
 }
@@ -177,7 +178,7 @@ struct AttrValue *create_attrval_float(long double value) {
 struct AttrValue *create_attrval_id(char *id) {
     struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_id;
-    v->value = strdup(id);
+    v->value = id;
     return v;
 }
 struct Flag *create_flag(int construct, char *id, int default_value) {
