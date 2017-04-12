@@ -7,7 +7,7 @@ LEXER         = src/astlang/ast.lexer.c
 
 TARGET = ast
 
-.PHONY: clean test
+.PHONY: clean test format
 
 $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 	@echo "Linking executable: $@"
@@ -32,5 +32,9 @@ clean:
 
 test: $(TARGET)
 	@test/test.sh
+
+format:
+	@echo "Applying clang-format on all files"
+	@find . -name "*.h" -o -name "*.c" | xargs -n1 clang-format -i
 
 -include $(SRC:.c=.d)
