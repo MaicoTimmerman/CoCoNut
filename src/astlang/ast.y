@@ -13,6 +13,7 @@ extern int yycolumn;
 extern char* yytext;
 extern FILE* yyin;
 
+/* Array to append config entries to during reducing */
 static array *config_phases;
 static array *config_enums;
 static array *config_traversals;
@@ -22,7 +23,6 @@ static array *config_nodes;
 static struct Config* parse_result = NULL;
 
 void yyerror(const char* s);
-
 int yydebug = 1;
 
 %}
@@ -30,7 +30,6 @@ int yydebug = 1;
 %union {
     long long ival;
     long double fval;
-    char charval;
     char *string;
     char *str;
     int boolean;
@@ -55,7 +54,7 @@ int yydebug = 1;
 
 %token<ival> T_INTVAL "integer value"
 %token<fval> T_FLOATVAL "float value"
-%token<charval> T_CHARVAL "char value"
+%token<string> T_CHARVAL "char value"
 %token<string> T_STRINGVAL "string value"
 %token<string> T_ID "identifier"
 
@@ -102,13 +101,15 @@ int yydebug = 1;
 
 %%
 
-root: entry { parse_result = create_config(create_array(),
+/* Root of the config, creating the final config */
+root: entry { parse_result = create_config(config_phases,
                                  config_traversals,
                                  config_enums,
                                  config_nodesets,
                                  config_nodes); }
     ;
 
+/* For every entry in the config, append to the correct array. */
 entry: traversal entry { array_append(config_traversals, $1); }
      | enum entry { array_append(config_enums, $1); }
      | nodeset entry { array_append(config_nodesets, $1); }
@@ -134,6 +135,7 @@ node: T_NODE T_ID '{' nodebody '}' ';'
     { $$ = create_node($2, $4); }
     ;
 
+/* All possible combinations of children attrs and flags, with allowing empty. */
 nodebody: children ',' attrs ',' flags
         { $$ = create_nodebody($1, $3, $5);     }
         | attrs ',' flags
@@ -160,6 +162,7 @@ childlist: childlist ',' child
          { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
          ;
 
+/* [construct] [mandatory] ID ID */
 child: T_ID T_ID
      { $$ = create_child(0, 0, NULL, $2, $1); }
      | mandatory T_ID T_ID
@@ -186,6 +189,7 @@ attr: attrhead
     { $$ = create_attr($1, $3);  }
     ;
 
+/* Optional [construct] keyword, for adding to constructor. */
 attrhead: attrprimitivetype T_ID
         { $$ = create_attrhead_primitive(0, $1, $2); }
         | T_CONSTRUCT attrprimitivetype T_ID
@@ -229,7 +233,10 @@ attrprimitivetype: T_CHAR
 attrval: T_STRINGVAL
        { $$ = create_attrval_string($1); }
        | T_CHARVAL
-       { $$ = create_attrval_char($1); }
+       {
+
+    printf("string '%s'\n", $1);
+       $$ = create_attrval_char($1); }
        | T_INTVAL
        { $$ = create_attrval_int($1); }
        | T_FLOATVAL
@@ -251,13 +258,13 @@ flaglist: flaglist ',' flag
         ;
 
 flag: T_CONSTRUCT T_ID '=' bool
-    { $$ = create_flag(1, $2, 1, $4); }
+    { $$ = create_flag(1, $2, $4); }
     | T_CONSTRUCT T_ID
-    { $$ = create_flag(1, $2, 0, 0); }
+    { $$ = create_flag(1, $2, -1); }
     | T_ID '=' bool
-    { $$ = create_flag(0, $1, 1, $3); }
+    { $$ = create_flag(0, $1, $3); }
     | T_ID
-    { $$ = create_flag(0, $1, 0, 0); }
+    { $$ = create_flag(0, $1, -1); }
     ;
 
 mandatory: T_MANDATORY '[' mandatoryarglist ']'
@@ -272,6 +279,7 @@ mandatoryarglist: mandatoryarglist ',' mandatoryarg
                 { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
                 ;
 
+/* Allow single phase or a range of phases. */
 mandatoryarg: T_ID
             { $$ = create_mandatory_singlephase($1);    }
             | T_ID T_TO T_ID
@@ -285,6 +293,7 @@ bool: T_TRUE
     ;
 
 
+/* Comma seperated list of identifiers. */
 idlist: idlist ',' T_ID
       { array_append($1, $3); $$ = $1; }
       | T_ID
@@ -293,6 +302,7 @@ idlist: idlist ',' T_ID
 
 
 %%
+
 struct Config* parse(void) {
     yyin = stdin;
 

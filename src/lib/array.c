@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "array.h"
+#include "memory.h"
 
 struct array {
     void **data;
@@ -10,14 +11,8 @@ struct array {
 };
 
 struct array *array_init(long initial_capacity) {
-    struct array *a = malloc(sizeof(struct array));
-    if (a == NULL) {
-        return NULL;
-    }
-    a->data = (void **)malloc(initial_capacity * sizeof(void *));
-    if (a->data == NULL) {
-        return NULL;
-    }
+    struct array *a = mem_alloc(sizeof(struct array));
+    a->data = (void **)mem_alloc(initial_capacity * sizeof(void *));
     a->size = 0;
     a->capacity = initial_capacity;
     return a;

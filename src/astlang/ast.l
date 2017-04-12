@@ -27,15 +27,15 @@ int yycolumn = 1;
     "*/"                    { BEGIN(INITIAL); }
     .                       {  }
 }
-"("	{return '(';}
-")"	{return ')';}
-"["	{return '[';}
-"]"	{return ']';}
-"{"	{return '{';}
-"}"	{return '}';}
-","	{return ',';}
-"="	{return '=';}
-";"	{return ';';}
+"(" {return '(';}
+")" {return ')';}
+"[" {return '[';}
+"]" {return ']';}
+"{" {return '{';}
+"}" {return '}';}
+"," {return ',';}
+"=" {return '=';}
+";" {return ';';}
 
 "attributes" {return T_ATTRIBUTES;}
 "children" {return T_CHILDREN;}
@@ -62,24 +62,35 @@ int yycolumn = 1;
 "true" {return T_TRUE;}
 "NULL" {return T_NULL;}
 
-[A-Za-z][A-Za-z0-9_]*  {yylval.string = strdup(yytext); return T_ID;}
--?[0-9]+\.[0-9]+      {yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
--?[0-9]+              {yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
-\"(\\.|[^\\"])*\"   {yylval.string = strdup(yytext); return T_STRINGVAL;}
-'(\\.|[^\\'])'   {yylval.string = strdup(yytext); return T_CHARVAL;}
+[A-Za-z][A-Za-z0-9_]*  {
+    // Identifier start with an letter and can have numbers and underscores.
+    yylval.string = strdup(yytext); return T_ID; }
+-?[0-9]+\.[0-9]+ {
+    // (negative) floating point numbers
+    yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
+-?[0-9]+              {
+    // (negative) integer numbers
+    yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
+\"(\\.|[^\\"])*\"   {
+    yylval.string = strdup(yytext); return T_STRINGVAL;}
+'(\\.|[^\\'])'   {
+    yylval.string = strdup(yytext); return T_CHARVAL;}
 
-
-[ \t]	; // ignore all whitespace
-\n.*  { strncpy(linebuf, yytext+1, sizeof(linebuf)); /* save the next line */
-        yycolumn = 0;
-        yyless(1);      /* give back all but the \n to rescan */
-      }
-. { printf("%s: Normaal. Doen.\n", yytext); exit(1); }
+[ \t]   ; // ignore all whitespace
+\n.*  {
+    // Save the next line in a buffer, however does keep track of first line.
+    strncpy(linebuf, yytext+1, sizeof(linebuf));
+    // yylineno is set automatically to 0, however the column needs to be reset.
+    yycolumn = 0;
+    // give back all but the \n to rescan
+    yyless(1);
+}
+. { printf("Unexpected token found: %s, quit parsing\n", yytext); exit(1); }
 %%
 
 
 int yywrap() {
-	return (1);
+    return (1);
 }
 
 void yyerror(const char* s) {

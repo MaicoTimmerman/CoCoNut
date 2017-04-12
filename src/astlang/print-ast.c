@@ -150,12 +150,17 @@ static void printAttr(struct Attr *a) {
             printf("%Lf", *((long double *)(a->default_value->value)));
             break;
         case AV_char:
-            printf("%c", *((char *)(a->default_value->value)));
+            printf("'%c'", *((char *)(a->default_value->value)));
             break;
         case AV_id:
             printf("%s", (char *)(a->default_value->value));
             break;
         }
+        return;
+    }
+
+    if (a->type == AT_link_or_enum) {
+        printf(" = NULL");
     }
 }
 
@@ -165,7 +170,7 @@ static void printFlag(struct Flag *f) {
         printf("construct ");
 
     printf("%s", f->id);
-    if (f->has_default_value) {
+    if (f->default_value != -1) {
         printf(" = %s", f->default_value ? "true" : "false");
     }
 }

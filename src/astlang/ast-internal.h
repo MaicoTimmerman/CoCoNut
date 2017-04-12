@@ -106,10 +106,11 @@ struct AttrValue {
     void *value;
 };
 
+// Flag can have a default value of 0 and 1, if no default value has been set
+// default_value will be -1.
 struct Flag {
     int construct;
     char *id;
-    int has_default_value;
     int default_value;
 };
 
@@ -148,7 +149,7 @@ struct Attr *create_attrhead_idtype(int construct, char *type, char *id);
 
 struct AttrValue *create_attrval_string(char *value);
 
-struct AttrValue *create_attrval_char(char value);
+struct AttrValue *create_attrval_char(char *value);
 
 struct AttrValue *create_attrval_int(long long value);
 
@@ -156,7 +157,6 @@ struct AttrValue *create_attrval_float(long double value);
 
 struct AttrValue *create_attrval_id(char *id);
 
-struct Flag *create_flag(int construct, char *id, int has_default_value,
-                         int default_value);
+struct Flag *create_flag(int construct, char *id, int default_value);
 
 #endif

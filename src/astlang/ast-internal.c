@@ -4,6 +4,7 @@
 
 #include "array.h"
 #include "ast-internal.h"
+#include "memory.h"
 
 array *create_array(void) {
     return array_init(32);
@@ -12,7 +13,7 @@ array *create_array(void) {
 struct Config *create_config(array *phases, array *traversals, array *enums,
                              array *nodesets, array *nodes) {
 
-    struct Config *c = malloc(sizeof(struct Config));
+    struct Config *c = mem_alloc(sizeof(struct Config));
     c->phases = phases;
     c->traversals = traversals;
     c->enums = enums;
@@ -23,13 +24,13 @@ struct Config *create_config(array *phases, array *traversals, array *enums,
 
 struct Phase *create_phase(void) {
 
-    struct Phase *p = malloc(sizeof(struct Phase));
+    struct Phase *p = mem_alloc(sizeof(struct Phase));
     return p;
 }
 
 struct Traversal *create_traversal(char *id, array *nodes) {
 
-    struct Traversal *t = malloc(sizeof(struct Traversal));
+    struct Traversal *t = mem_alloc(sizeof(struct Traversal));
     t->id = strdup(id);
     t->nodes = nodes;
     return t;
@@ -37,7 +38,7 @@ struct Traversal *create_traversal(char *id, array *nodes) {
 
 struct Enum *create_enum(char *id, array *values) {
 
-    struct Enum *e = malloc(sizeof(struct Enum));
+    struct Enum *e = mem_alloc(sizeof(struct Enum));
     e->id = strdup(id);
     e->values = values;
 
@@ -46,7 +47,7 @@ struct Enum *create_enum(char *id, array *values) {
 
 struct Nodeset *create_nodeset(char *id, array *nodes) {
 
-    struct Nodeset *n = malloc(sizeof(struct Nodeset));
+    struct Nodeset *n = mem_alloc(sizeof(struct Nodeset));
     n->id = strdup(id);
     n->nodes = nodes;
 
@@ -59,7 +60,7 @@ struct Node *create_node(char *id, struct Node *nodebody) {
 }
 
 struct Node *create_nodebody(array *children, array *attrs, array *flags) {
-    struct Node *n = malloc(sizeof(struct Node));
+    struct Node *n = mem_alloc(sizeof(struct Node));
     n->children = children;
     n->attrs = attrs;
     n->flags = flags;
@@ -70,7 +71,7 @@ struct Node *create_nodebody(array *children, array *attrs, array *flags) {
 struct Child *create_child(int construct, int mandatory,
                            array *mandatory_phases, char *id, char *type) {
 
-    struct Child *c = malloc(sizeof(struct Child));
+    struct Child *c = mem_alloc(sizeof(struct Child));
     c->construct = construct;
     c->mandatory = mandatory;
     c->mandatory_phases = mandatory_phases;
@@ -81,7 +82,7 @@ struct Child *create_child(int construct, int mandatory,
 
 struct MandatoryPhase *create_mandatory_singlephase(char *phase) {
 
-    struct MandatoryPhase *p = malloc(sizeof(struct MandatoryPhase));
+    struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
     p->value.single = strdup(phase);
     p->type = MP_single;
     return p;
@@ -90,8 +91,8 @@ struct MandatoryPhase *create_mandatory_singlephase(char *phase) {
 struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
                                                    char *phase_end) {
 
-    struct MandatoryPhase *p = malloc(sizeof(struct MandatoryPhase));
-    struct PhaseRange *range = malloc(sizeof(struct PhaseRange));
+    struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
+    struct PhaseRange *range = mem_alloc(sizeof(struct PhaseRange));
     range->start = strdup(phase_start);
     range->end = strdup(phase_end);
     p->value.range = range;
@@ -108,7 +109,7 @@ struct Attr *create_attr(struct Attr *attrhead,
 struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
                                        char *id) {
 
-    struct Attr *a = malloc(sizeof(struct Attr));
+    struct Attr *a = mem_alloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = type;
     a->type_id = NULL;
@@ -118,7 +119,7 @@ struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
 
 struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
 
-    struct Attr *a = malloc(sizeof(struct Attr));
+    struct Attr *a = mem_alloc(sizeof(struct Attr));
     a->construct = construct;
     a->type = AT_link_or_enum;
     a->type_id = strdup(type);
@@ -127,56 +128,63 @@ struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
 }
 
 struct AttrValue *create_attrval_string(char *value) {
-    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_string;
+
+    // Calculate the position of the quotes remove it by overwriting it with
+    // the null char '\0'.
     size_t len = strlen(value);
     value[len - 1] = '\0';
+
+    // strdup creates a new pointer, thus free the old value.
     v->value = strdup(value + 1);
+    mem_free(value);
     return v;
 }
 
-struct AttrValue *create_attrval_char(char value) {
-    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+struct AttrValue *create_attrval_char(char *value) {
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_char;
-    char *l = malloc(sizeof(char));
-    *l = value;
+
+    char *l = mem_alloc(sizeof(char));
+    *l = value[1];
     v->value = l;
+
+    mem_free(value);
     return v;
 }
 
 struct AttrValue *create_attrval_int(long long value) {
-    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_int;
 
-    long long *l = malloc(sizeof(long long));
+    long long *l = mem_alloc(sizeof(long long));
     *l = value;
     v->value = l;
     return v;
 }
 
 struct AttrValue *create_attrval_float(long double value) {
-    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_float;
 
-    long double *f = malloc(sizeof(long double));
+    long double *f = mem_alloc(sizeof(long double));
     *f = value;
     v->value = f;
     return v;
 }
 
 struct AttrValue *create_attrval_id(char *id) {
-    struct AttrValue *v = malloc(sizeof(struct AttrValue));
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_id;
     v->value = strdup(id);
     return v;
 }
-struct Flag *create_flag(int construct, char *id, int has_default_value,
-                         int default_value) {
+struct Flag *create_flag(int construct, char *id, int default_value) {
 
-    struct Flag *f = malloc(sizeof(struct Flag));
+    struct Flag *f = mem_alloc(sizeof(struct Flag));
     f->construct = construct;
     f->id = id;
-    f->has_default_value = has_default_value;
     f->default_value = default_value;
     return f;
 }
