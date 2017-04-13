@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "array.h"
 #include "ast-internal.h"
@@ -35,7 +36,6 @@ int yydebug = 1;
     long double fval;
     char *string;
     char *str;
-    int boolean;
     struct array *array;
     struct Config *config;
     struct Phase *phase;
@@ -49,7 +49,6 @@ int yydebug = 1;
     enum AttrType attrtype;
     struct Attr *attr;
     struct AttrValue *attrval;
-    struct Flag *flag;
 }
 
 %error-verbose
@@ -74,6 +73,7 @@ int yydebug = 1;
 %token T_UINT32 "uint32"
 %token T_UINT64 "uint64"
 
+%token T_BOOL "bool"
 %token T_TRUE "true"
 %token T_FALSE "false"
 
@@ -82,7 +82,6 @@ int yydebug = 1;
 %token T_CHILD "child"
 %token T_CONSTRUCT "construct"
 %token T_ENUM "enum"
-%token T_FLAGS "flags"
 %token T_MANDATORY "mandatory"
 %token T_NODE "node"
 %token T_NODES "nodes"
@@ -95,11 +94,9 @@ int yydebug = 1;
 %token T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
-%type<array> idlist mandatoryarglist mandatory flaglist
-             flags attrlist attrs childlist children
-%type<boolean> bool
+%type<array> idlist mandatoryarglist mandatory
+             attrlist attrs childlist children
 %type<mandatoryphase> mandatoryarg
-%type<flag> flag
 %type<attrval> attrval
 %type<attrtype> attrprimitivetype
 %type<attr> attr attrhead
@@ -149,20 +146,12 @@ node: T_NODE T_ID '{' nodebody '}' ';'
     ;
 
 /* All possible combinations of children attrs and flags, with allowing empty. */
-nodebody: children ',' attrs ',' flags
-        { $$ = create_nodebody($1, $3, $5);     }
-        | attrs ',' flags
-        { $$ = create_nodebody(NULL, $1, $3);   }
-        | children ',' flags
-        { $$ = create_nodebody($1, NULL, $3);   }
-        | children ',' attrs
+nodebody: children ',' attrs
         { $$ = create_nodebody($1, $3, NULL);   }
         | children
         { $$ = create_nodebody($1, NULL, NULL); }
         | attrs
         { $$ = create_nodebody(NULL, $1, NULL); }
-        | flags
-        { $$ = create_nodebody(NULL, NULL, $1); }
         ;
 
 children: T_CHILDREN '{' childlist '}'
@@ -237,6 +226,8 @@ attrprimitivetype: T_INT
                  { $$ = AT_float;  }
                  | T_DOUBLE
                  { $$ = AT_double; }
+                 | T_BOOL
+                 { $$ = AT_bool; }
                  | T_STRING
                  { $$ = AT_string; }
                  ;
@@ -251,29 +242,13 @@ attrval: T_STRINGVAL
        { $$ = create_attrval_float($1); }
        | T_ID
        { $$ = create_attrval_id($1); }
+       |  T_TRUE
+       { $$ = create_attrval_bool(true); }
+       | T_FALSE
+       { $$ = create_attrval_bool(false); }
        | T_NULL
        { $$ = NULL; }
        ;
-
-flags: T_FLAGS '{' flaglist '}'
-     { $$ = $3; }
-     ;
-
-flaglist: flaglist ',' flag
-        { array_append($1, $3); $$ = $1; }
-        | flag
-        { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
-        ;
-
-flag: T_CONSTRUCT T_ID '=' bool
-    { $$ = create_flag(1, $2, $4); }
-    | T_CONSTRUCT T_ID
-    { $$ = create_flag(1, $2, -1); }
-    | T_ID '=' bool
-    { $$ = create_flag(0, $1, $3); }
-    | T_ID
-    { $$ = create_flag(0, $1, -1); }
-    ;
 
 mandatory: T_MANDATORY '[' mandatoryarglist ']'
          { $$ = $3;      }
@@ -293,13 +268,6 @@ mandatoryarg: T_ID
             | T_ID T_TO T_ID
             { $$ = create_mandatory_phaserange($1, $3); }
             ;
-
-bool: T_TRUE
-    { $$ = 1; }
-    | T_FALSE
-    { $$ = 0; }
-    ;
-
 
 /* Comma seperated list of identifiers. */
 idlist: idlist ',' T_ID

@@ -42,7 +42,6 @@ int yycolumn = 1;
 "children" {return T_CHILDREN;}
 "construct" {return T_CONSTRUCT;}
 "enum" {return T_ENUM;}
-"flags" {return T_FLAGS;}
 "mandatory" {return T_MANDATORY;}
 "node" {return T_NODE;}
 "nodes" {return T_NODES;}
@@ -63,6 +62,7 @@ int yycolumn = 1;
 "uint32" {return T_UINT32;}
 "uint64" {return T_UINT64;}
 "string" {return T_STRING;}
+"bool" {return T_BOOL;}
 
 "false" {return T_FALSE;}
 "true" {return T_TRUE;}

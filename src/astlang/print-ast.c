@@ -1,5 +1,8 @@
 #include "array.h"
 #include "ast-internal.h"
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 static void printPhase(struct Phase *phase) {}
@@ -87,47 +90,47 @@ static void printAttr(struct Attr *a) {
         printf("construct ");
 
     switch (a->type) {
-    case AT_char:
-        printf("char ");
-        break;
-    case AT_uchar:
-        printf("unsigned char ");
-        break;
-    case AT_short:
-        printf("short ");
-        break;
-    case AT_ushort:
-        printf("unsigned short ");
-        break;
     case AT_int:
-        printf("int ");
+        printf("int");
         break;
     case AT_uint:
-        printf("unsigned int ");
+        printf("uint");
         break;
-    case AT_long:
-        printf("long ");
+    case AT_int8:
+        printf("int8");
         break;
-    case AT_ulong:
-        printf("unsigned long ");
+    case AT_int16:
+        printf("int16");
         break;
-    case AT_longlong:
-        printf("long long ");
+    case AT_int32:
+        printf("int32");
         break;
-    case AT_ulonglong:
-        printf("unsigned long long ");
+    case AT_int64:
+        printf("int64");
+        break;
+    case AT_uint8:
+        printf("uint8");
+        break;
+    case AT_uint16:
+        printf("uint16");
+        break;
+    case AT_uint32:
+        printf("uint32");
+        break;
+    case AT_uint64:
+        printf("uint64");
         break;
     case AT_float:
-        printf("float ");
+        printf("float");
         break;
     case AT_double:
-        printf("double ");
+        printf("double");
         break;
-    case AT_longdouble:
-        printf("long double ");
+    case AT_bool:
+        printf("bool");
         break;
     case AT_string:
-        printf("string ");
+        printf("string");
         break;
     case AT_link_or_enum:
         printf("%s ", a->type_id);
@@ -141,19 +144,25 @@ static void printAttr(struct Attr *a) {
 
         switch (a->default_value->type) {
         case AV_string:
-            printf("\"%s\"", (char *)(a->default_value->value));
-            break;
-        case AV_int:
-            printf("%lld", *((long long *)(a->default_value->value)));
-            break;
-        case AV_float:
-            printf("%Lf", *((long double *)(a->default_value->value)));
-            break;
-        case AV_char:
-            printf("'%c'", *((char *)(a->default_value->value)));
+            printf("\"%s\"", a->default_value->value.string_value);
             break;
         case AV_id:
-            printf("%s", (char *)(a->default_value->value));
+            printf("%s", a->default_value->value.string_value);
+            break;
+        case AV_int:
+            printf("%" PRId64, a->default_value->value.int_value);
+            break;
+        case AV_uint:
+            printf("%" PRIu64, a->default_value->value.uint_value);
+            break;
+        case AV_float:
+            printf("%f", a->default_value->value.float_value);
+            break;
+        case AV_double:
+            printf("%f", a->default_value->value.double_value);
+            break;
+        case AV_bool:
+            printf(a->default_value->value.bool_value ? "true" : "false");
             break;
         }
         return;
@@ -161,17 +170,6 @@ static void printAttr(struct Attr *a) {
 
     if (a->type == AT_link_or_enum) {
         printf(" = NULL");
-    }
-}
-
-static void printFlag(struct Flag *f) {
-    printf("        ");
-    if (f->construct)
-        printf("construct ");
-
-    printf("%s", f->id);
-    if (f->default_value != -1) {
-        printf(" = %s", f->default_value ? "true" : "false");
     }
 }
 
@@ -213,33 +211,7 @@ static void printNode(struct Node *node) {
         }
 
         printf("    }");
-
-        previous_block = 1;
     }
-
-    if (node->flags) {
-        if (previous_block)
-            printf(",\n");
-
-        printf("    flags {\n");
-
-        int num_flags = array_size(node->flags);
-        for (int i = 0; i < num_flags; i++) {
-            struct Flag *f = array_get(node->flags, i);
-            printFlag(f);
-            if (i < num_flags - 1)
-                printf(",\n");
-            else
-                printf("\n");
-        }
-
-        printf("    }");
-
-        previous_block = 1;
-    }
-
-    if (previous_block)
-        printf("\n");
 
     printf("};\n\n");
 }

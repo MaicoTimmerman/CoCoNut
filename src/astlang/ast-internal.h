@@ -2,30 +2,43 @@
 #define _AST_H
 
 #include "array.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 enum NodeType { NT_node, NT_nodeset };
 
 enum MandatoryPhaseType { MP_single, MP_range };
 
 enum AttrType {
-    AT_char,
-    AT_uchar,
-    AT_short,
-    AT_ushort,
     AT_int,
     AT_uint,
-    AT_long,
-    AT_ulong,
-    AT_longlong,
-    AT_ulonglong,
+    AT_int8,
+    AT_int16,
+    AT_int32,
+    AT_int64,
+    AT_uint8,
+    AT_uint16,
+    AT_uint32,
+    AT_uint64,
+
     AT_float,
     AT_double,
-    AT_longdouble,
+
+    AT_bool,
     AT_string,
     AT_link_or_enum
 };
 
-enum AttrValueType { AV_string, AV_char, AV_int, AV_float, AV_id };
+enum AttrValueType {
+    AV_string,
+    AV_char,
+    AV_int,
+    AV_uint,
+    AV_float,
+    AV_double,
+    AV_bool,
+    AV_id
+};
 
 struct Config {
     array *phases;
@@ -35,7 +48,9 @@ struct Config {
     array *nodes;
 };
 
-struct Phase {};
+struct Phase {
+    // int dummy;
+};
 
 struct Traversal {
     char *id;
@@ -103,15 +118,14 @@ struct Attr {
 
 struct AttrValue {
     enum AttrValueType type;
-    void *value;
-};
-
-// Flag can have a default value of 0 and 1, if no default value has been set
-// default_value will be -1.
-struct Flag {
-    int construct;
-    char *id;
-    int default_value;
+    union {
+        uint64_t uint_value;
+        int64_t int_value;
+        float float_value;
+        double double_value;
+        char *string_value;
+        bool bool_value;
+    } value;
 };
 
 array *create_array(void);
@@ -149,14 +163,14 @@ struct Attr *create_attrhead_idtype(int construct, char *type, char *id);
 
 struct AttrValue *create_attrval_string(char *value);
 
-struct AttrValue *create_attrval_char(char *value);
+struct AttrValue *create_attrval_int(int64_t value);
 
-struct AttrValue *create_attrval_int(long long value);
+struct AttrValue *create_attrval_uint(uint64_t value);
 
-struct AttrValue *create_attrval_float(long double value);
+struct AttrValue *create_attrval_float(float value);
+
+struct AttrValue *create_attrval_double(double value);
 
 struct AttrValue *create_attrval_id(char *id);
-
-struct Flag *create_flag(int construct, char *id, int default_value);
 
 #endif

@@ -137,55 +137,49 @@ struct AttrValue *create_attrval_string(char *value) {
     value[len - 1] = '\0';
 
     // strdup creates a new pointer, thus free the old value.
-    v->value = strdup(value + 1);
+    v->value.string_value = strdup(value + 1);
     mem_free(value);
     return v;
 }
 
-struct AttrValue *create_attrval_char(char *value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
-    v->type = AV_char;
-
-    char *l = mem_alloc(sizeof(char));
-    *l = value[1];
-    v->value = l;
-
-    // Only the character is saved, thus remove the entire string.
-    mem_free(value);
-    return v;
-}
-
-struct AttrValue *create_attrval_int(long long value) {
+struct AttrValue *create_attrval_int(int64_t value) {
     struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_int;
-
-    long long *l = mem_alloc(sizeof(long long));
-    *l = value;
-    v->value = l;
+    v->value.int_value = value;
     return v;
 }
 
-struct AttrValue *create_attrval_float(long double value) {
+struct AttrValue *create_attrval_uint(uint64_t value) {
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+    v->type = AV_uint;
+    v->value.uint_value = value;
+    return v;
+}
+
+struct AttrValue *create_attrval_float(float value) {
     struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_float;
+    v->value.float_value = value;
+    return v;
+}
 
-    long double *f = mem_alloc(sizeof(long double));
-    *f = value;
-    v->value = f;
+struct AttrValue *create_attrval_double(double value) {
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+    v->type = AV_double;
+    v->value.double_value = value;
+    return v;
+}
+
+struct AttrValue *create_attrval_bool(bool value) {
+    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+    v->type = AV_bool;
+    v->value.bool_value = value;
     return v;
 }
 
 struct AttrValue *create_attrval_id(char *id) {
     struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_id;
-    v->value = id;
+    v->value.string_value = id;
     return v;
-}
-struct Flag *create_flag(int construct, char *id, int default_value) {
-
-    struct Flag *f = mem_alloc(sizeof(struct Flag));
-    f->construct = construct;
-    f->id = id;
-    f->default_value = default_value;
-    return f;
 }

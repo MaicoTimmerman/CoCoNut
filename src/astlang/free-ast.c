@@ -67,17 +67,12 @@ static void freeAttr(void *p) {
         mem_free(a->type_id);
 
     if (a->default_value != NULL) {
-        mem_free(a->default_value->value);
+
+        // TODO: free possible string
         mem_free(a->default_value);
     }
 
     mem_free(a);
-}
-
-static void freeFlag(void *p) {
-    struct Flag *f = p;
-    mem_free(f->id);
-    mem_free(f);
 }
 
 static void freeNode(void *p) {
@@ -88,9 +83,6 @@ static void freeNode(void *p) {
 
     if (node->attrs != NULL)
         array_cleanup(node->attrs, freeAttr);
-
-    if (node->flags != NULL)
-        array_cleanup(node->flags, freeFlag);
 
     mem_free(node->id);
     mem_free(node);
