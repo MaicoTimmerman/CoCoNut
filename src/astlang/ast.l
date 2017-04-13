@@ -35,8 +35,10 @@ int yycolumn = 1;
 "," {return ',';}
 "=" {return '=';}
 ";" {return ';';}
+"!" {return '!';}
 
 "attributes" {return T_ATTRIBUTES;}
+"child" {return T_CHILD;}
 "children" {return T_CHILDREN;}
 "construct" {return T_CONSTRUCT;}
 "enum" {return T_ENUM;}
@@ -48,18 +50,24 @@ int yycolumn = 1;
 "to" {return T_TO;}
 "traversal" {return T_TRAVERSAL;}
 
-"char" {return T_CHAR;}
 "double" {return T_DOUBLE;}
 "float" {return T_FLOAT;}
-"int " {return T_INT ;}
-"long" {return T_LONG;}
-"short" {return T_SHORT;}
+"int" {return T_INT;}
+"uint" {return T_UINT;}
+"int8" {return T_INT8;}
+"int16" {return T_INT16;}
+"int32" {return T_INT32;}
+"int64" {return T_INT64;}
+"uint8" {return T_UINT8;}
+"uint16" {return T_UINT16;}
+"uint32" {return T_UINT32;}
+"uint64" {return T_UINT64;}
 "string" {return T_STRING;}
-"unsigned" {return T_UNSIGNED;}
 
 "false" {return T_FALSE;}
 "true" {return T_TRUE;}
 "NULL" {return T_NULL;}
+
 
 [A-Za-z][A-Za-z0-9_]*  {
     // Identifier start with an letter and can have numbers and underscores.
@@ -67,13 +75,14 @@ int yycolumn = 1;
 -?[0-9]+\.[0-9]+ {
     // (negative) floating point numbers
     yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
--?[0-9]+              {
+-[0-9]+ {
     // (negative) integer numbers
-    yylval.ival = strtoll(yytext, NULL, 10); return T_INTVAL;}
+    yylval.intval = (int64_t)strtoll(yytext, NULL, 10); return T_UINTVAL;}
+[0-9]+ {
+    // (negative) integer numbers
+    yylval.uintval = (uint64_t)strtoull(yytext, NULL, 10); return T_INTVAL;}
 \"(\\.|[^\\"])*\"   {
     yylval.string = strdup(yytext); return T_STRINGVAL;}
-'(\\.|[^\\'])'   {
-    yylval.string = strdup(yytext); return T_CHARVAL;}
 
 [ \t]   ; // ignore all whitespace
 \n.*  {

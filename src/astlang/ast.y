@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "array.h"
 #include "ast-internal.h"
@@ -29,7 +30,8 @@ int yydebug = 1;
 %}
 
 %union {
-    long long ival;
+    int64_t intval;
+    uint64_t uintval;
     long double fval;
     char *string;
     char *str;
@@ -53,34 +55,44 @@ int yydebug = 1;
 %error-verbose
 %locations
 
-%token<ival> T_INTVAL "integer value"
+%token<intval> T_INTVAL "integer value"
+%token<uintval> T_UINTVAL "unsigned integer value"
 %token<fval> T_FLOATVAL "float value"
 %token<string> T_CHARVAL "char value"
 %token<string> T_STRINGVAL "string value"
 %token<string> T_ID "identifier"
 
+%token T_INT "int"
+%token T_UINT "uint"
+
+%token T_INT8 "int8"
+%token T_INT16 "int16"
+%token T_INT32 "int32"
+%token T_INT64 "int64"
+%token T_UINT8 "uint8"
+%token T_UINT16 "uint16"
+%token T_UINT32 "uint32"
+%token T_UINT64 "uint64"
+
 %token T_TRUE "true"
-       T_FALSE "false"
-       T_ATTRIBUTES "attributes"
-       T_CHILDREN "children"
-       T_CONSTRUCT "construct"
-       T_ENUM "enum"
-       T_FLAGS "flags"
-       T_MANDATORY "mandatory"
-       T_NODE "node"
-       T_NODES "nodes"
-       T_NODESET "nodeset"
-       T_TO "to"
-       T_TRAVERSAL "traversal"
-       T_UNSIGNED "unsigned"
-       T_CHAR "char"
-       T_SHORT "short"
-       T_INT "int"
-       T_LONG "long"
-       T_FLOAT "float"
-       T_DOUBLE "double"
-       T_STRING "string"
-       T_NULL "NULL"
+%token T_FALSE "false"
+
+%token T_ATTRIBUTES "attributes"
+%token T_CHILDREN "children"
+%token T_CHILD "child"
+%token T_CONSTRUCT "construct"
+%token T_ENUM "enum"
+%token T_FLAGS "flags"
+%token T_MANDATORY "mandatory"
+%token T_NODE "node"
+%token T_NODES "nodes"
+%token T_NODESET "nodeset"
+%token T_TO "to"
+%token T_TRAVERSAL "traversal"
+%token T_FLOAT "float"
+%token T_DOUBLE "double"
+%token T_STRING "string"
+%token T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
 %type<array> idlist mandatoryarglist mandatory flaglist
@@ -201,42 +213,40 @@ attrhead: attrprimitivetype T_ID
         { $$ = create_attrhead_idtype(1, $2, $3);    }
         ;
 
-attrprimitivetype: T_CHAR
-                 { $$ = AT_char;   }
-                 | T_UNSIGNED T_CHAR
-                 { $$ = AT_uchar;  }
-                 | T_SHORT
-                 { $$ = AT_short;  }
-                 | T_UNSIGNED T_SHORT
-                 { $$ = AT_ushort; }
-                 | T_INT
-                 { $$ = AT_int;    }
-                 | T_UNSIGNED T_INT
+attrprimitivetype: T_INT
+                 { $$ = AT_int;   }
+                 | T_INT8
+                 { $$ = AT_int8;   }
+                 | T_INT16
+                 { $$ = AT_int16;   }
+                 | T_INT32
+                 { $$ = AT_int32;   }
+                 | T_INT64
+                 { $$ = AT_int64;   }
+                 | T_UINT
                  { $$ = AT_uint;   }
-                 | T_LONG
-                 { $$ = AT_long;   }
-                 | T_UNSIGNED T_LONG
-                 { $$ = AT_ulong;  }
-                 | T_LONG T_LONG
-                 { $$ = AT_longlong;  }
-                 | T_UNSIGNED T_LONG T_LONG
-                 { $$ = AT_ulonglong; }
+                 | T_UINT8
+                 { $$ = AT_uint8;   }
+                 | T_UINT16
+                 { $$ = AT_uint16;   }
+                 | T_UINT32
+                 { $$ = AT_uint32;   }
+                 | T_UINT64
+                 { $$ = AT_uint64;   }
                  | T_FLOAT
                  { $$ = AT_float;  }
                  | T_DOUBLE
                  { $$ = AT_double; }
-                 | T_LONG T_DOUBLE
-                 { $$ = AT_longdouble; }
                  | T_STRING
                  { $$ = AT_string; }
                  ;
 
 attrval: T_STRINGVAL
        { $$ = create_attrval_string($1); }
-       | T_CHARVAL
-       { $$ = create_attrval_char($1); }
        | T_INTVAL
        { $$ = create_attrval_int($1); }
+       | T_UINTVAL
+       { $$ = create_attrval_uint($1); }
        | T_FLOATVAL
        { $$ = create_attrval_float($1); }
        | T_ID

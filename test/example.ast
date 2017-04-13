@@ -7,8 +7,13 @@ traversal Print {
     }
 };
 
+//const char *str_mytypes(MyEnum val) ..
+
 enum MyTypes {
-    BT_Int, BT_Float, BT_Bool
+    prefix = BT,
+    values {
+        Int, Float, Bool
+    }
 };
 
 nodeset MyNodeset {
@@ -21,32 +26,52 @@ enum OtherEnum {
 
 node IdExpr {
     children {
-        MyNodeset somechildnode1,
-        mandatory MyNodeset somechildnode2,
-        mandatory[A, B, C to D] MyNodeset somechildnode3,
-        mandatory[A to B, C to D] MyNodeset somechildnode4,
-        construct MyNodeset somechildnode5,
-        construct mandatory MyNodeset somechildnode6,
-        construct mandatory[A, B, C to D] MyNodeset somechildnode7,
-        construct mandatory[A to B, C to D] MyNodeset somechildnode8
+        child MyNodeSet somename;
+        child MyNodeSet somename {
+            // Random order
+            constructor,
+            mandatory {
+                !A,
+                B,
+                C,
+                !(C to D),
+            }
+        }
+
+        child MyNodeSet somename {
+            // Random order
+            constructor,
+            mandatory {
+                !A,
+                B,
+                C,
+                !(C to D),
+            }
+        }
+
     },
     attributes {
-        char attr1 = -1,
-        unsigned char attr2 = 'a',
-        short attr3 = -1,
-        unsigned short attr4 = 1 ,
-        int attr5 = -12,
-        unsigned int attr6 = 12,
-        long attr7 = -1234,
-        unsigned long attr8 = 3,
-        long long attr9 = -193,
-        unsigned long long attr10 = 13,
+        int someattr1;
+        uint someattr2;
+
+        int8
+        int16
+        int32
+        int32
+        uint8
+        uint16
+        uint32
+        uint32
+
+        double
+
         float attr11 = 1.1,
         double  attr12 = -1.1,
-        long double attr13 = 4.5,
+
         string attr14 = "laksdfj",
         SomeNode attr15 = NULL ,
         SomeEnum attr16 = BO_add,
+        flag attr166 = true,
 
         construct char attr17,
         construct unsigned char attr18,
@@ -65,6 +90,7 @@ node IdExpr {
         construct SomeNode attr31,
         construct SomeEnum attr32
     },
+    // TODO flags as attributes.
     flags {
         SomeFlag,
         SomeOtherFlag,
