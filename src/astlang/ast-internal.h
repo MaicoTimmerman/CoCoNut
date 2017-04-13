@@ -31,7 +31,6 @@ enum AttrType {
 
 enum AttrValueType {
     AV_string,
-    AV_char,
     AV_int,
     AV_uint,
     AV_float,
@@ -137,7 +136,7 @@ struct Phase *create_phase(void);
 
 struct Traversal *create_traversal(char *id, array *nodes);
 
-struct Enum *create_enum(char *id, array *values);
+struct Enum *create_enum(char *id, char *prefix, array *values);
 
 struct Nodeset *create_nodeset(char *id, array *nodes);
 
@@ -162,6 +161,8 @@ struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
 struct Attr *create_attrhead_idtype(int construct, char *type, char *id);
 
 struct AttrValue *create_attrval_string(char *value);
+
+struct AttrValue *create_attrval_bool(bool value);
 
 struct AttrValue *create_attrval_int(int64_t value);
 

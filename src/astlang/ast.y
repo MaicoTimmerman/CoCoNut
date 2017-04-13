@@ -86,11 +86,13 @@ int yydebug = 1;
 %token T_NODE "node"
 %token T_NODES "nodes"
 %token T_NODESET "nodeset"
+%token T_PREFIX "prefix"
 %token T_TO "to"
 %token T_TRAVERSAL "traversal"
 %token T_FLOAT "float"
 %token T_DOUBLE "double"
 %token T_STRING "string"
+%token T_VALUES "values"
 %token T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
@@ -133,8 +135,10 @@ traversal: T_TRAVERSAL T_ID ';'
          { $$ = create_traversal($2, $6);   }
          ;
 
-enum: T_ENUM T_ID '{' idlist '}' ';'
-    { $$ = create_enum($2, $4); }
+enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' T_VALUES '{' idlist  '}' '}' ';'
+    { $$ = create_enum($2, $6, $10); }
+    | T_ENUM T_ID '{' T_VALUES '{' idlist  '}' ',' T_PREFIX '=' T_ID '}' ';'
+    { $$ = create_enum($2, $11, $6); }
     ;
 
 nodeset: T_NODESET T_ID '{' idlist '}' ';'
@@ -165,14 +169,16 @@ childlist: childlist ',' child
          ;
 
 /* [construct] [mandatory] ID ID */
-child: T_ID T_ID
-     { $$ = create_child(0, 0, NULL, $2, $1); }
-     | mandatory T_ID T_ID
-     { $$ = create_child(0, 1, $1, $3, $2);   }
-     | T_CONSTRUCT T_ID T_ID
+child: T_CHILD T_ID T_ID
+     { $$ = create_child(0, 0, NULL, $3, $2); }
+     | T_CHILD T_ID T_ID '{' T_CONSTRUCT ',' mandatory '}'
+     { $$ = create_child(1, 1, $7, $3, $2); }
+     | T_CHILD T_ID T_ID '{' mandatory ',' T_CONSTRUCT '}'
+     { $$ = create_child(1, 1, $5, $3, $2); }
+     | T_CHILD T_ID T_ID '{' T_CONSTRUCT '}'
      { $$ = create_child(1, 0, NULL, $3, $2); }
-     | T_CONSTRUCT mandatory T_ID T_ID
-     { $$ = create_child(1, 1, $2, $4, $3);   }
+     | T_CHILD T_ID T_ID '{' mandatory '}'
+     { $$ = create_child(0, 1, $5, $3, $2); }
      ;
 
 attrs: T_ATTRIBUTES '{' attrlist '}'
@@ -250,7 +256,7 @@ attrval: T_STRINGVAL
        { $$ = NULL; }
        ;
 
-mandatory: T_MANDATORY '[' mandatoryarglist ']'
+mandatory: T_MANDATORY '{' mandatoryarglist '}'
          { $$ = $3;      }
          | T_MANDATORY
          { $$ = NULL;    }
@@ -265,8 +271,12 @@ mandatoryarglist: mandatoryarglist ',' mandatoryarg
 /* Allow single phase or a range of phases. */
 mandatoryarg: T_ID
             { $$ = create_mandatory_singlephase($1);    }
+            | '!' T_ID
+            { $$ = create_mandatory_singlephase($2);    }
             | T_ID T_TO T_ID
             { $$ = create_mandatory_phaserange($1, $3); }
+            | '!' '(' T_ID T_TO T_ID ')'
+            { $$ = create_mandatory_phaserange($3, $5); }
             ;
 
 /* Comma seperated list of identifiers. */

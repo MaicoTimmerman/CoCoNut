@@ -21,49 +21,51 @@ nodeset MyNodeset {
 };
 
 enum OtherEnum {
-    OE_one, OE_two, OE_three
+    prefix = OE,
+    values {
+        OE_one, OE_two, OE_three
+    }
 };
 
 node IdExpr {
     children {
-        child MyNodeSet somename;
+        child MyNodeSet somename,
         child MyNodeSet somename {
             // Random order
-            constructor,
+            construct,
             mandatory {
                 !A,
                 B,
                 C,
-                !(C to D),
+                !(C to D)
             }
-        }
-
+        },
         child MyNodeSet somename {
             // Random order
-            constructor,
+            construct,
             mandatory {
                 !A,
                 B,
                 C,
-                !(C to D),
+                !(C to D)
             }
         }
 
     },
     attributes {
-        int someattr1;
-        uint someattr2;
+        int someattr1,
+        uint someattr2,
 
-        int8
-        int16
-        int32
-        int32
-        uint8
-        uint16
-        uint32
-        uint32
+        int8 intattr1,
+        int16 intattr2,
+        int32 intattr3,
+        int32 intattr3,
+        uint8 intattr3,
+        uint16 intattr3,
+        uint32 intattr3,
+        uint32 intattr3,
 
-        double
+        double doubleattr,
 
         float attr11 = 1.1,
         double  attr12 = -1.1,
@@ -73,32 +75,12 @@ node IdExpr {
         SomeEnum attr16 = BO_add,
         flag attr166 = true,
 
-        construct char attr17,
-        construct unsigned char attr18,
-        construct short attr19,
-        construct unsigned short attr20,
         construct int attr21,
-        construct unsigned int attr22,
-        construct long attr23,
-        construct unsigned long attr24,
-        construct long long attr25,
-        construct unsigned long long attr26,
+        construct uint attr22,
         construct float attr27,
         construct double  attr28,
-        construct long double attr29,
         construct string attr30,
         construct SomeNode attr31,
         construct SomeEnum attr32
-    },
-    // TODO flags as attributes.
-    flags {
-        SomeFlag,
-        SomeOtherFlag,
-        SomeFlag = true,
-        SomeOtherFlag = false,
-        construct SomeFlag,
-        construct SomeOtherFlag,
-        construct SomeFlag = true,
-        construct SomeOtherFlag = false
     }
 };

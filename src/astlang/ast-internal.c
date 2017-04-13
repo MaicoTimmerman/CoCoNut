@@ -36,9 +36,13 @@ struct Traversal *create_traversal(char *id, array *nodes) {
     return t;
 }
 
-struct Enum *create_enum(char *id, array *values) {
+struct Enum *create_enum(char *id, char *prefix, array *values) {
 
     struct Enum *e = mem_alloc(sizeof(struct Enum));
+
+    for (int i = 0; i < array_size(values); i++) {
+        // TODO fix prefixes
+    }
     e->id = id;
     e->values = values;
 

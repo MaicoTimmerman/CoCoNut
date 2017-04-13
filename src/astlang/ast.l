@@ -38,16 +38,18 @@ int yycolumn = 1;
 "!" {return '!';}
 
 "attributes" {return T_ATTRIBUTES;}
-"child" {return T_CHILD;}
 "children" {return T_CHILDREN;}
+"child" {return T_CHILD;}
 "construct" {return T_CONSTRUCT;}
 "enum" {return T_ENUM;}
 "mandatory" {return T_MANDATORY;}
 "node" {return T_NODE;}
-"nodes" {return T_NODES;}
 "nodeset" {return T_NODESET;}
+"nodes" {return T_NODES;}
+"prefix" {return T_PREFIX;}
 "to" {return T_TO;}
 "traversal" {return T_TRAVERSAL;}
+"values" {return T_VALUES;}
 
 "double" {return T_DOUBLE;}
 "float" {return T_FLOAT;}
@@ -104,6 +106,6 @@ int yywrap() {
 void yyerror(const char* s) {
     fprintf(stderr, "Parse error at line %d, col %d: %s\n",
         yylineno, yycolumn, s);
-    fprintf(stderr, "%s", linebuf);
+    fprintf(stderr, "%s\n", linebuf);
     exit(1);
 }
