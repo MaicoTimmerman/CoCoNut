@@ -10,8 +10,7 @@ void *mem_alloc(size_t size) {
     return ptr;
 }
 
-void *mem_free(void *ptr) {
+void mem_free(void *ptr) {
     if (ptr != NULL)
         free(ptr);
-    return NULL;
 }

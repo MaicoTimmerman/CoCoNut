@@ -7,7 +7,7 @@ LEXER         = src/astlang/ast.lexer.c
 
 TARGET = ast
 
-.PHONY: clean test format
+.PHONY: clean test forma
 
 $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 	@echo "Linking executable: $@"
@@ -16,17 +16,21 @@ $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 
 clean:
 	@rm -f bin/$(TARGET) $(SRC:.c=.o) $(SRC:.c=.d) $(LEXER) $(LEXER:.c=.o) $(LEXER:.c=.d) \
-		$(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) $(PARSER:.c=.h) $(PARSER:.c=.d)
+		$(LEXER:.c=.h) $(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) \
+		$(PARSER:.c=.h) $(PARSER:.c=.d)
 
 %.o: %.c
 	@echo "Compiling source code: $(notdir $@)"
 	@$(CC) $(CFLAGS) $(patsubst %,-I%,$(SOURCE_DIRS)) -o $@ -c $<
 
+%.lexer.h: %.lexer.c
+	@echo "Generating header from LEX specification $(notdir $@)"
+
 %.lexer.c: $(LEXER:.lexer.c=.l)
 	@echo "Generating source code from LEX specification: $(notdir $@)"
-	@flex -o $@ $<
+	@flex -o $@ --header-file=$(LEXER:.c=.h) $<
 
-%.parser.c: $(PARSER:.parser.c=.y)
+%.parser.c: $(PARSER:.parser.c=.y) $(LEXER:.c=.h)
 	@echo "Generating source code from YACC specification: $(notdir $@)"
 	@bison -dv -o $@ $<
 

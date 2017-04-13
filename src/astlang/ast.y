@@ -5,6 +5,7 @@
 
 #include "array.h"
 #include "ast-internal.h"
+#include "ast.lexer.h"
 
 extern int yylex();
 extern int yyparse();
@@ -233,10 +234,7 @@ attrprimitivetype: T_CHAR
 attrval: T_STRINGVAL
        { $$ = create_attrval_string($1); }
        | T_CHARVAL
-       {
-
-    printf("string '%s'\n", $1);
-       $$ = create_attrval_char($1); }
+       { $$ = create_attrval_char($1); }
        | T_INTVAL
        { $$ = create_attrval_int($1); }
        | T_FLOATVAL
@@ -313,6 +311,7 @@ struct Config* parse(void) {
     config_nodes = create_array();
 
     yyparse();
+    yylex_destroy();
 
     return parse_result;;
 }
