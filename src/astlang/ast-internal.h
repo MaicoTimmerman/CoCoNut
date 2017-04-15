@@ -60,6 +60,7 @@ struct Traversal {
 
 struct Enum {
     char *id;
+    char *prefix;
 
     array *values;
 };
@@ -101,6 +102,8 @@ struct PhaseRange {
 
 struct MandatoryPhase {
     enum MandatoryPhaseType type;
+    int negation;
+
     union {
         struct PhaseRange *range;
         char *single;
@@ -147,10 +150,10 @@ struct Node *create_nodebody(array *children, array *attrs, array *flags);
 struct Child *create_child(int construct, int mandatory,
                            array *mandatory_phases, char *id, char *type);
 
-struct MandatoryPhase *create_mandatory_singlephase(char *phase);
+struct MandatoryPhase *create_mandatory_singlephase(char *phase, int negation);
 
-struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
-                                                   char *phase_end);
+struct MandatoryPhase *
+create_mandatory_phaserange(char *phase_start, char *phase_end, int negation);
 
 struct Attr *create_attr(struct Attr *attrhead,
                          struct AttrValue *default_value);

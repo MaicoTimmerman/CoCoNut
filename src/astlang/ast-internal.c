@@ -40,11 +40,9 @@ struct Enum *create_enum(char *id, char *prefix, array *values) {
 
     struct Enum *e = mem_alloc(sizeof(struct Enum));
 
-    for (int i = 0; i < array_size(values); i++) {
-        // TODO fix prefixes
-    }
     e->id = id;
     e->values = values;
+    e->prefix = prefix;
 
     return e;
 }
@@ -84,16 +82,18 @@ struct Child *create_child(int construct, int mandatory,
     return c;
 }
 
-struct MandatoryPhase *create_mandatory_singlephase(char *phase) {
+struct MandatoryPhase *create_mandatory_singlephase(char *phase,
+                                                    int negation) {
 
     struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
     p->value.single = phase;
     p->type = MP_single;
+    p->negation = negation;
     return p;
 }
 
-struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
-                                                   char *phase_end) {
+struct MandatoryPhase *
+create_mandatory_phaserange(char *phase_start, char *phase_end, int negation) {
 
     struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
     struct PhaseRange *range = mem_alloc(sizeof(struct PhaseRange));
@@ -101,6 +101,7 @@ struct MandatoryPhase *create_mandatory_phaserange(char *phase_start,
     range->end = phase_end;
     p->value.range = range;
     p->type = MP_range;
+    p->negation = negation;
     return p;
 }
 

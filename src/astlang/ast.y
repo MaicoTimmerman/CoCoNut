@@ -270,13 +270,13 @@ mandatoryarglist: mandatoryarglist ',' mandatoryarg
 
 /* Allow single phase or a range of phases. */
 mandatoryarg: T_ID
-            { $$ = create_mandatory_singlephase($1);    }
+            { $$ = create_mandatory_singlephase($1, 0);    }
             | '!' T_ID
-            { $$ = create_mandatory_singlephase($2);    }
+            { $$ = create_mandatory_singlephase($2, 1);    }
             | T_ID T_TO T_ID
-            { $$ = create_mandatory_phaserange($1, $3); }
+            { $$ = create_mandatory_phaserange($1, $3, 0); }
             | '!' '(' T_ID T_TO T_ID ')'
-            { $$ = create_mandatory_phaserange($3, $5); }
+            { $$ = create_mandatory_phaserange($3, $5, 1); }
             ;
 
 /* Comma seperated list of identifiers. */

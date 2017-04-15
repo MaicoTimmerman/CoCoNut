@@ -22,6 +22,7 @@ static void freeEnum(void *p) {
         array_cleanup(attr_enum->values, mem_free);
 
     mem_free(attr_enum->id);
+    mem_free(attr_enum->prefix);
     mem_free(attr_enum);
 }
 
@@ -67,8 +68,10 @@ static void freeAttr(void *p) {
         mem_free(a->type_id);
 
     if (a->default_value != NULL) {
+        if (a->default_value->type == AV_string ||
+            a->default_value->type == AV_id)
+            mem_free(a->default_value->value.string_value);
 
-        // TODO: free possible string
         mem_free(a->default_value);
     }
 
