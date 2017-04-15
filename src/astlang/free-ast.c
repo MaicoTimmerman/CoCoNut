@@ -3,11 +3,11 @@
 #include "memory.h"
 #include <stdio.h>
 
-static void freePhase(void *p) {
+static void free_phase(void *p) {
     struct Phase *phase = p;
 }
 
-static void freeTraversal(void *p) {
+static void free_traversal(void *p) {
     struct Traversal *traversal = p;
     if (traversal->nodes != NULL)
         array_cleanup(traversal->nodes, mem_free);
@@ -16,7 +16,7 @@ static void freeTraversal(void *p) {
     mem_free(traversal);
 }
 
-static void freeEnum(void *p) {
+static void free_enum(void *p) {
     struct Enum *attr_enum = p;
     if (attr_enum->values != NULL)
         array_cleanup(attr_enum->values, mem_free);
@@ -26,7 +26,7 @@ static void freeEnum(void *p) {
     mem_free(attr_enum);
 }
 
-static void freeNodeset(void *p) {
+static void free_nodeset(void *p) {
     struct Nodeset *nodeset = p;
     if (nodeset->nodes != NULL)
         array_cleanup(nodeset->nodes, mem_free);
@@ -35,7 +35,7 @@ static void freeNodeset(void *p) {
     mem_free(nodeset);
 }
 
-static void freeMandatory(void *p) {
+static void free_mandatory(void *p) {
     struct MandatoryPhase *ph = p;
 
     if (ph->type == MP_single) {
@@ -49,10 +49,10 @@ static void freeMandatory(void *p) {
     mem_free(ph);
 }
 
-static void freeChild(void *p) {
+static void free_child(void *p) {
     struct Child *c = p;
     if (c->mandatory_phases != NULL)
-        array_cleanup(c->mandatory_phases, freeMandatory);
+        array_cleanup(c->mandatory_phases, free_mandatory);
 
     mem_free(c->id);
     if (c->type != NULL)
@@ -61,7 +61,7 @@ static void freeChild(void *p) {
     mem_free(c);
 }
 
-static void freeAttr(void *p) {
+static void free_attr(void *p) {
     struct Attr *a = p;
     mem_free(a->id);
     if (a->type_id != NULL)
@@ -78,25 +78,25 @@ static void freeAttr(void *p) {
     mem_free(a);
 }
 
-static void freeNode(void *p) {
+static void free_node(void *p) {
     struct Node *node = p;
 
     if (node->children != NULL)
-        array_cleanup(node->children, freeChild);
+        array_cleanup(node->children, free_child);
 
     if (node->attrs != NULL)
-        array_cleanup(node->attrs, freeAttr);
+        array_cleanup(node->attrs, free_attr);
 
     mem_free(node->id);
     mem_free(node);
 }
 
-void freeConfigAST(struct Config *config) {
-    array_cleanup(config->phases, freePhase);
-    array_cleanup(config->traversals, freeTraversal);
-    array_cleanup(config->enums, freeEnum);
-    array_cleanup(config->nodesets, freeNodeset);
-    array_cleanup(config->nodes, freeNode);
+void free_config(struct Config *config) {
+    array_cleanup(config->phases, free_phase);
+    array_cleanup(config->traversals, free_traversal);
+    array_cleanup(config->enums, free_enum);
+    array_cleanup(config->nodesets, free_nodeset);
+    array_cleanup(config->nodes, free_node);
 
     mem_free(config);
 }

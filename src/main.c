@@ -6,9 +6,9 @@ extern struct Config *parse(void);
 
 int main() {
     struct Config *parse_result = parse();
-    printConfigAST(parse_result);
 
-    freeConfigAST(parse_result);
+    print_config(parse_result);
+    free_config(parse_result);
 
     return 0;
 }

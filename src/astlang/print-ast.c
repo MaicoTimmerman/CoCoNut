@@ -238,7 +238,7 @@ static void print_node(struct Node *node) {
     printf("};\n\n");
 }
 
-void printConfigAST(struct Config *config) {
+void print_config(struct Config *config) {
     for (int i = 0; i < array_size(config->phases); i++) {
         print_phase(array_get(config->phases, i));
     }

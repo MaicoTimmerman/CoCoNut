@@ -1,6 +1,6 @@
 #ifndef _FREE_AST_H
 #define _FREE_AST_H
 
-void freeConfigAST(struct Config *config);
+void free_config(struct Config *config);
 
 #endif
