@@ -5,6 +5,8 @@ struct array;
 
 typedef struct array array;
 
+array *create_array(void);
+
 /* Return a pointer to an empty dynamic array with 'initial capacity'
  * of storage allocated.
  * Return NULL if an error occured. */

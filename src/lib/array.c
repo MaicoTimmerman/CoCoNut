@@ -10,6 +10,10 @@ struct array {
     long capacity;
 };
 
+array *create_array(void) {
+    return array_init(32);
+}
+
 struct array *array_init(long initial_capacity) {
     struct array *a = mem_alloc(sizeof(struct array));
     a->data = (void **)mem_alloc(initial_capacity * sizeof(void *));

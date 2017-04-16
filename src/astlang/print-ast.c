@@ -1,9 +1,10 @@
-#include "array.h"
-#include "ast-internal.h"
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#include "array.h"
+#include "ast.h"
 
 #define IND "    "
 #define IND2 IND IND

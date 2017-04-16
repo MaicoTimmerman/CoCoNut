@@ -6,7 +6,8 @@
 #include <stdbool.h>
 
 #include "array.h"
-#include "ast-internal.h"
+#include "ast.h"
+#include "create-ast.h"
 #include "ast.lexer.h"
 
 extern int yylex();

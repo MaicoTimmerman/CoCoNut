@@ -3,12 +3,9 @@
 #include <string.h>
 
 #include "array.h"
-#include "ast-internal.h"
+#include "ast.h"
+#include "create-ast.h"
 #include "memory.h"
-
-array *create_array(void) {
-    return array_init(32);
-}
 
 struct Config *create_config(array *phases, array *traversals, array *enums,
                              array *nodesets, array *nodes) {

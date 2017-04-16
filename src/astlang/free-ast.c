@@ -1,5 +1,5 @@
 #include "array.h"
-#include "ast-internal.h"
+#include "ast.h"
 #include "memory.h"
 #include <stdio.h>
 

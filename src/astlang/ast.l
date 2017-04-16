@@ -1,6 +1,6 @@
 %{
 #include <stdio.h>
-#include "ast-internal.h"
+#include "ast.h"
 #include "ast.parser.h"
 
 #define YY_DECL int yylex()

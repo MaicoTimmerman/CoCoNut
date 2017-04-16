@@ -1,4 +1,5 @@
-#include "ast-internal.h"
+#include "ast.h"
+#include "create-ast.h"
 #include "free-ast.h"
 #include "print-ast.h"
 
