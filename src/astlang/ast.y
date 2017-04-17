@@ -10,6 +10,7 @@
 #include "create-ast.h"
 #include "ast.lexer.h"
 
+extern void lexer_init();
 extern int yylex();
 extern int yyparse();
 extern int yylineno;
@@ -299,6 +300,7 @@ struct Config* parse(void) {
     config_nodesets = create_array();
     config_nodes = create_array();
 
+    lexer_init();
     yyparse();
     yylex_destroy();
 

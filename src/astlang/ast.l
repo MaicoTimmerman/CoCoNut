@@ -8,23 +8,55 @@
 char linebuf[500];
 int yycolumn = 1;
 
-#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
-    yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
-    yycolumn += yyleng;
+static inline void token_action();
+#define YY_USER_ACTION token_action();
 
 %}
 
 %option yylineno
 %option nounput
 %option noinput
+
+%option stack
+%option noyy_top_state
+
 %x COMMENT
+%x SAVELINE
 
 %%
-\/\/[^\n]*                  {  }
-"/*"                        { BEGIN(COMMENT); }
+<SAVELINE>{
+    
+    .* {
+        // Save the whole line         
+        strncpy(linebuf, yytext, sizeof(linebuf));
+
+        // yylineno is set automatically to 0, 
+        // however the column needs to be reset.
+        yycolumn = 0;
+
+        // give back the line for the real lexing state
+        yyless(0);
+
+        // Continue to the previous lexing state
+        yy_pop_state();
+    }
+    \n {
+        // Save the empty line
+        strncpy(linebuf, "", sizeof(linebuf));
+        // yylineno is set automatically to 0, 
+        // however the column needs to be reset.
+        yycolumn = 0;
+
+        // Stay in the SAVELINE state, to save the next line
+    }
+}
+
+\/\/[^\n]*      {  }
+"/*"            { yy_push_state(COMMENT); }
 <COMMENT>{
-    "*/"                    { BEGIN(INITIAL); }
-    .                       {  }
+    "*/"        { yy_push_state(INITIAL); }
+    \n          { yy_push_state(SAVELINE); }
+    .           {  }
 }
 "(" {return '(';}
 ")" {return ')';}
@@ -81,23 +113,31 @@ int yycolumn = 1;
     // (negative) integer numbers
     yylval.intval = (int64_t)strtoll(yytext, NULL, 10); return T_UINTVAL;}
 [0-9]+ {
-    // (negative) integer numbers
+    // (positive) integer numbers
     yylval.uintval = (uint64_t)strtoull(yytext, NULL, 10); return T_INTVAL;}
 \"(\\.|[^\\"])*\"   {
     yylval.string = strdup(yytext); return T_STRINGVAL;}
 
-[ \t]   ; // ignore all whitespace
-\n.*  {
-    // Save the next line in a buffer, however does keep track of first line.
-    strncpy(linebuf, yytext+1, sizeof(linebuf));
-    // yylineno is set automatically to 0, however the column needs to be reset.
-    yycolumn = 0;
-    // give back all but the \n to rescan
-    yyless(1);
+[ \t\r]   ; // ignore all whitespace
+
+\n  {
+    // Switch to the SAVELINE state to read the whole line first
+    yy_push_state(SAVELINE);
 }
 . { printf("Unexpected token found: %s, quit parsing\n", yytext); exit(1); }
 %%
 
+void lexer_init(void) {
+    // We start by reading the whole first line, and then continue lexing it 
+    yy_push_state(SAVELINE);
+}
+
+static inline void token_action() {
+    yylloc.first_line = yylloc.last_line = yylineno; 
+    yylloc.first_column = yycolumn;
+    yylloc.last_column = yycolumn + yyleng - 1; 
+    yycolumn += yyleng;
+}
 
 int yywrap() {
     return (1);
