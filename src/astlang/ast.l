@@ -3,13 +3,19 @@
 #include "ast.h"
 #include "ast.parser.h"
 #include "print.h"
+#include "array.h"
 
 #define YY_DECL int yylex()
 
-char linebuf[500];
+static char yy_linebuf[500];
 int yycolumn = 1;
 
+array *yy_lines;
+
 static inline void token_action();
+static inline void lexer_init();
+
+#define YY_USER_INIT lexer_init();
 #define YY_USER_ACTION token_action();
 
 %}
@@ -26,12 +32,14 @@ static inline void token_action();
 
 %%
 <SAVELINE>{
-    
-    .* {
-        // Save the whole line         
-        strncpy(linebuf, yytext, sizeof(linebuf));
 
-        // yylineno is set automatically to 0, 
+    .* {
+        // Save the whole line
+        strncpy(yy_linebuf, yytext, sizeof(yy_linebuf));
+
+        array_append(yy_lines, strdup(yy_linebuf));
+
+        // yylineno is set automatically to 0,
         // however the column needs to be reset.
         yycolumn = 0;
 
@@ -43,8 +51,11 @@ static inline void token_action();
     }
     \n {
         // Save the empty line
-        strncpy(linebuf, "", sizeof(linebuf));
-        // yylineno is set automatically to 0, 
+        strncpy(yy_linebuf, "", sizeof(yy_linebuf));
+
+        array_append(yy_lines, strdup(yy_linebuf));
+
+        // yylineno is set automatically to 0,
         // however the column needs to be reset.
         yycolumn = 0;
 
@@ -128,16 +139,18 @@ static inline void token_action();
 . { printf("Unexpected token found: %s, quit parsing\n", yytext); exit(1); }
 %%
 
-void lexer_init(void) {
-    // We start by reading the whole first line, and then continue lexing it 
+static inline void lexer_init(void) {
+    // We start by reading the whole first line, and then continue lexing it
     yy_push_state(SAVELINE);
+
+    yy_lines = array_init(32);
 }
 
 static inline void token_action() {
     if (YY_START != SAVELINE) {
-        yylloc.first_line = yylloc.last_line = yylineno; 
+        yylloc.first_line = yylloc.last_line = yylineno;
         yylloc.first_column = yycolumn;
-        yylloc.last_column = yycolumn + yyleng - 1; 
+        yylloc.last_column = yycolumn + yyleng - 1;
         yycolumn += yyleng;
     }
 }
@@ -147,6 +160,6 @@ int yywrap() {
 }
 
 void yyerror(const char* s) {
-    print_error_at(yylineno, yycolumn, linebuf, "Parse error: %s", s);    
+    print_error_at(yylineno, yycolumn, yy_linebuf, "Parse error: %s", s);
     exit(1);
 }

@@ -7,7 +7,7 @@ LEXER         = src/astlang/ast.lexer.c
 
 TARGET = ast
 
-.PHONY: clean test forma
+.PHONY: clean test format
 
 $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 	@echo "Linking executable: $@"

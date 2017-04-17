@@ -7,10 +7,10 @@
 #include "array.h"
 
 struct NodeCommonInfo {
-    int lineno;
+    int line_start;
+    int line_end;
     int column_start;
     int column_end;
-    char *line;
 };
 
 enum NodeType { NT_node, NT_nodeset };

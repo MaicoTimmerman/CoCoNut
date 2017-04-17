@@ -13,7 +13,7 @@ int main() {
     struct Config *parse_result = parse();
 
     if (check_config(parse_result)) {
-        printf("\n\nFound errors\n");
+        fprintf(stderr, "\n\nFound errors\n");
         exit(1);
     }
 

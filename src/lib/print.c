@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "array.h"
 #include "ast.h"
+
+extern array *yy_lines;
 
 #define RED "\x1B[31m"
 #define GREEN "\x1B[32m"
@@ -82,7 +85,8 @@ void print_error_at(int lineno, int column, char *line, char *format, ...) {
 void print_error(struct NodeCommonInfo *c, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    do_print(PT_error, c->lineno, c->column_start, c->column_end, c->line,
+    char *line = array_get(yy_lines, c->line_start - 1);
+    do_print(PT_error, c->line_start, c->column_start, c->column_end, line,
              format, ap);
 }
 
@@ -95,7 +99,8 @@ void print_warning_at(int lineno, int column, char *line, char *format, ...) {
 void print_warning(struct NodeCommonInfo *c, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    do_print(PT_warning, c->lineno, c->column_start, c->column_end, c->line,
+    char *line = array_get(yy_lines, c->line_start - 1);
+    do_print(PT_warning, c->line_start, c->column_start, c->column_end, line,
              format, ap);
 }
 
@@ -108,6 +113,7 @@ void print_note_at(int lineno, int column, char *line, char *format, ...) {
 void print_note(struct NodeCommonInfo *c, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    do_print(PT_note, c->lineno, c->column_start, c->column_end, c->line,
+    char *line = array_get(yy_lines, c->line_start - 1);
+    do_print(PT_note, c->line_start, c->column_start, c->column_end, line,
              format, ap);
 }

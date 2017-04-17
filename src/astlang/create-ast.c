@@ -8,14 +8,14 @@
 #include "create-ast.h"
 #include "memory.h"
 
-extern char linebuf[500];
+extern struct ParserLocation yy_parser_location;
 
 static struct NodeCommonInfo *create_commoninfo() {
     struct NodeCommonInfo *info = malloc(sizeof(struct NodeCommonInfo));
-    info->lineno = yylloc.first_line;
-    info->column_start = yylloc.first_column + 1;
-    info->column_end = yylloc.last_column + 1;
-    info->line = strdup(linebuf);
+    info->line_start = yy_parser_location.first_line;
+    info->line_end = yy_parser_location.last_line;
+    info->column_start = yy_parser_location.first_column + 1;
+    info->column_end = yy_parser_location.last_column + 1;
     return info;
 }
 
@@ -74,6 +74,7 @@ struct Nodeset *create_nodeset(char *id, array *nodes) {
 }
 
 struct Node *create_node(char *id, struct Node *nodebody) {
+
     nodebody->id = id;
     nodebody->common_info = create_commoninfo();
     return nodebody;

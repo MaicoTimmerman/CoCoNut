@@ -30,6 +30,27 @@ static struct Config* parse_result = NULL;
 void yyerror(const char* s);
 int yydebug = 1;
 
+#define YYLTYPE YYLTYPE
+typedef struct ParserLocation YYLTYPE;
+
+struct ParserLocation yy_parser_location;
+
+// Override YYLLOC_DEFAULT so we can set yy_parser_location
+// to the current location
+#define YYLLOC_DEFAULT(Cur, Rhs, N)                         \
+    if (N) {                                                \
+        (Cur).first_line   = YYRHSLOC(Rhs, 1).first_line;   \
+        (Cur).first_column = YYRHSLOC(Rhs, 1).first_column; \
+        (Cur).last_line    = YYRHSLOC(Rhs, N).last_line;    \
+        (Cur).last_column  = YYRHSLOC(Rhs, N).last_column;  \
+    } else {                                                \
+        (Cur).first_line   = (Cur).last_line   =            \
+          YYRHSLOC(Rhs, 0).last_line;                       \
+        (Cur).first_column = (Cur).last_column =            \
+          YYRHSLOC(Rhs, 0).last_column;                     \
+    }                                                       \
+    yy_parser_location = (Cur);
+
 %}
 
 %union {
@@ -300,7 +321,6 @@ struct Config* parse(void) {
     config_nodesets = create_array();
     config_nodes = create_array();
 
-    lexer_init();
     yyparse();
     yylex_destroy();
 
