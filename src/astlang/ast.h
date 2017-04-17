@@ -6,6 +6,13 @@
 
 #include "array.h"
 
+struct NodeCommonInfo {
+    int lineno;
+    int column_start;
+    int column_end;
+    char *line;
+};
+
 enum NodeType { NT_node, NT_nodeset };
 
 enum MandatoryPhaseType { MP_single, MP_range };
@@ -46,10 +53,14 @@ struct Config {
     array *enums;
     array *nodesets;
     array *nodes;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Phase {
     // int dummy;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Traversal {
@@ -57,6 +68,8 @@ struct Traversal {
 
     // Array of strings (after parsing) or struct node's
     array *nodes;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Enum {
@@ -64,6 +77,8 @@ struct Enum {
     char *prefix;
 
     array *values;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Nodeset {
@@ -71,6 +86,8 @@ struct Nodeset {
 
     // Array of strings (after parsing) or struct node's
     array *nodes;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Node {
@@ -79,6 +96,8 @@ struct Node {
     array *children;
     array *attrs;
     array *flags;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Child {
@@ -94,11 +113,15 @@ struct Child {
     } node;
 
     enum NodeType nodetype;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct PhaseRange {
     char *start;
     char *end;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct MandatoryPhase {
@@ -109,6 +132,8 @@ struct MandatoryPhase {
         struct PhaseRange *range;
         char *single;
     } value;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct Attr {
@@ -117,6 +142,8 @@ struct Attr {
     char *type_id;
     char *id;
     struct AttrValue *default_value;
+
+    struct NodeCommonInfo *common_info;
 };
 
 struct AttrValue {
@@ -129,6 +156,8 @@ struct AttrValue {
         char *string_value;
         bool bool_value;
     } value;
+
+    struct NodeCommonInfo *common_info;
 };
 
 #endif

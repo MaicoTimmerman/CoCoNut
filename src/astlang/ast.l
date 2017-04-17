@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "ast.h"
 #include "ast.parser.h"
+#include "print.h"
 
 #define YY_DECL int yylex()
 
@@ -133,10 +134,12 @@ void lexer_init(void) {
 }
 
 static inline void token_action() {
-    yylloc.first_line = yylloc.last_line = yylineno; 
-    yylloc.first_column = yycolumn;
-    yylloc.last_column = yycolumn + yyleng - 1; 
-    yycolumn += yyleng;
+    if (YY_START != SAVELINE) {
+        yylloc.first_line = yylloc.last_line = yylineno; 
+        yylloc.first_column = yycolumn;
+        yylloc.last_column = yycolumn + yyleng - 1; 
+        yycolumn += yyleng;
+    }
 }
 
 int yywrap() {
@@ -144,8 +147,6 @@ int yywrap() {
 }
 
 void yyerror(const char* s) {
-    fprintf(stderr, "Parse error at line %d, col %d: %s\n",
-        yylineno, yycolumn, s);
-    fprintf(stderr, "%s\n", linebuf);
+    print_error_at(yylineno, yycolumn, linebuf, "Parse error: %s", s);    
     exit(1);
 }
