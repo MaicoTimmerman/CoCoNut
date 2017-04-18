@@ -4,8 +4,9 @@
 #include "array.h"
 #include "ast.h"
 #include "check-ast.h"
-#include "smap.h"
 #include "memory.h"
+#include "print.h"
+#include "smap.h"
 
 static struct Info *create_info(void) {
 
@@ -115,13 +116,14 @@ static int check_traversals(array *traversals, struct Info *info) {
             error = 1;
         } else {
             smap_insert(info->traversal_name, cur_traversal->id,
-                          cur_traversal);
+                        cur_traversal);
         }
     }
     return error;
 }
 
-static int check_mandatory_phase(struct MandatoryPhase *phase, struct Info *info) {
+static int check_mandatory_phase(struct MandatoryPhase *phase,
+                                 struct Info *info) {
     int error = 0;
     // TODO
     return error;
@@ -133,35 +135,36 @@ static int check_node(struct Node *node, struct Info *info) {
     smap_t *child_name = smap_init(16);
 
     for (int i = 0; i < array_size(node->children); ++i) {
-        struct Child *child = (struct Child*)array_get(node->children, i);
+        struct Child *child = (struct Child *)array_get(node->children, i);
 
         // Check if there is no duplicate naming.
         if (smap_retrieve(child_name, child->id)) {
-            printf("Duplicate name '%s' in children of node '%s'\n",
-                    child->id, node->id);
+            printf("Duplicate name '%s' in children of node '%s'\n", child->id,
+                   node->id);
             error = 1;
         } else {
             smap_insert(child_name, child->id, child);
         }
 
         struct Node *child_node =
-            (struct Node*)smap_retrieve(info->node_name, child->type);
+            (struct Node *)smap_retrieve(info->node_name, child->type);
         struct Nodeset *child_nodeset =
-            (struct Nodeset*)smap_retrieve(info->nodeset_name, child->type);
+            (struct Nodeset *)smap_retrieve(info->nodeset_name, child->type);
 
         if (!child_node && !child_nodeset) {
-                printf("Unknown type '%s' of child '%s' of node '%s'\n",
-                        child->type, child->id, node->id);
-                error = 1;
+            printf("Unknown type '%s' of child '%s' of node '%s'\n",
+                   child->type, child->id, node->id);
+            error = 1;
         }
 
         // Test if there are mandatory phases to be checked, if not go
         // to next child.
-        if (!child->mandatory_phases) continue;
+        if (!child->mandatory_phases)
+            continue;
 
         for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
             struct MandatoryPhase *phase =
-                (struct MandatoryPhase*) array_get(child->mandatory_phases, i);
+                (struct MandatoryPhase *)array_get(child->mandatory_phases, i);
 
             error = check_mandatory_phase(phase, info);
         }
@@ -178,26 +181,26 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
     smap_t *node_name = smap_init(16);
 
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        char *node = (char*)array_get(nodeset->nodes, i);
+        char *node = (char *)array_get(nodeset->nodes, i);
 
         // Check if there is no duplicate naming.
         if (smap_retrieve(node_name, node)) {
-            printf("Duplicate name '%s' in nodes of nodeset '%s'\n",
-                    node, nodeset->id);
+            printf("Duplicate name '%s' in nodes of nodeset '%s'\n", node,
+                   nodeset->id);
             error = 1;
         } else {
             smap_insert(node_name, node, node);
         }
 
         struct Node *nodeset_node =
-            (struct Node*)smap_retrieve(info->node_name, node);
+            (struct Node *)smap_retrieve(info->node_name, node);
         struct Nodeset *nodeset_nodeset =
-            (struct Nodeset*)smap_retrieve(info->nodeset_name, node);
+            (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
 
         if (!nodeset_node && !nodeset_nodeset) {
-                printf("Unknown type of node '%s' of nodeset '%s'\n",
-                        node, nodeset->id);
-                error = 1;
+            printf("Unknown type of node '%s' of nodeset '%s'\n", node,
+                   nodeset->id);
+            error = 1;
         }
     }
 
@@ -212,12 +215,12 @@ static int check_enum(struct Enum *arg_enum, struct Info *info) {
     smap_t *value_name = smap_init(16);
 
     for (int i = 0; i < array_size(arg_enum->values); ++i) {
-        char *cur_value = (char*)array_get(arg_enum->values, i);
+        char *cur_value = (char *)array_get(arg_enum->values, i);
 
         // Check if there is no duplicate naming.
         if (smap_retrieve(value_name, cur_value)) {
-            printf("Duplicate name '%s' in values of enum '%s'\n",
-                    cur_value, arg_enum->id);
+            printf("Duplicate name '%s' in values of enum '%s'\n", cur_value,
+                   arg_enum->id);
             error = 1;
         } else {
             smap_insert(value_name, cur_value, cur_value);
@@ -231,37 +234,38 @@ static int check_enum(struct Enum *arg_enum, struct Info *info) {
 static int check_traversal(struct Traversal *traversal, struct Info *info) {
 
     int error = 0;
+
+    if (traversal->nodes == NULL)
+        return 0;
+
     smap_t *node_name = smap_init(16);
 
     for (int i = 0; i < array_size(traversal->nodes); ++i) {
-        char *node = (char*)array_get(traversal->nodes, i);
+        char *node = (char *)array_get(traversal->nodes, i);
         //
         // Check if there is no duplicate naming.
         if (smap_retrieve(node_name, node)) {
-            printf("Duplicate name '%s' in nodes of traversal '%s'\n",
-                    node, traversal->id);
+            printf("Duplicate name '%s' in nodes of traversal '%s'\n", node,
+                   traversal->id);
             error = 1;
         } else {
             smap_insert(node_name, node, node);
         }
 
         struct Node *traversal_node =
-            (struct Node*)smap_retrieve(info->node_name, node);
+            (struct Node *)smap_retrieve(info->node_name, node);
         struct Nodeset *traversal_nodeset =
-            (struct Nodeset*)smap_retrieve(info->nodeset_name, node);
+            (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
 
         if (!traversal_node && !traversal_nodeset) {
-                printf("Unknown type of node '%s' in traversal '%s'\n",
-                        node, traversal->id);
-                error = 1;
+            printf("Unknown type of node '%s' in traversal '%s'\n", node,
+                   traversal->id);
+            error = 1;
         }
     }
 
     return error;
 }
-
-
-
 
 int check_config(struct Config *config) {
 
@@ -289,9 +293,9 @@ int check_config(struct Config *config) {
     for (int i = 0; i < array_size(config->traversals); ++i) {
         success += check_traversal(array_get(config->traversals, i), info);
     }
-    for (int i = 0; i < array_size(config->traversals); ++i) {
-        success += check_traversal(array_get(config->traversals, i), info);
-    }
+    /*for (int i = 0; i < array_size(config->traversals); ++i) {*/
+    /*success += check_traversal(array_get(config->traversals, i), info);*/
+    /*}*/
 
     free_info(info);
 

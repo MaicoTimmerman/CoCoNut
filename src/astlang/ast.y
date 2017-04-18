@@ -453,6 +453,7 @@ struct Config* parse(void) {
     config_traversals = create_array();
     config_nodesets = create_array();
     config_nodes = create_array();
+    yy_parser_locations = imap_init(128);
 
     yyparse();
     yylex_destroy();
