@@ -5,15 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// We define the type for YYLTYPE here,
-// to avoid a circular dependency between this header and the parser
-struct ParserLocation {
-    int first_line;
-    int first_column;
-    int last_line;
-    int last_column;
-};
-
 struct Config *create_config(array *phases, array *traversals,
                              array *attr_enums, array *nodesets, array *nodes);
 

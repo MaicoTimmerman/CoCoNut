@@ -47,6 +47,16 @@ enum AttrValueType {
     AV_id
 };
 
+
+// We define the type for YYLTYPE here,
+// to avoid a circular dependency between this header and the parser
+struct ParserLocation {
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+};
+
 struct Config {
     array *phases;
     array *traversals;
