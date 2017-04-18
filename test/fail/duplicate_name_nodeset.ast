@@ -1,0 +1,13 @@
+node SomeNode {
+    children {
+        child SomeNodeSet somename
+    }
+};
+
+nodeset SomeNodeSet {
+    SomeNode
+};
+nodeset SomeNodeSet {
+    SomeNode
+};
+
