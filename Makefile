@@ -35,7 +35,7 @@ clean:
 	@bison -dv -o $@ $<
 
 test: $(TARGET)
-	@test/test.sh
+	@test/test.sh test
 
 format:
 	@echo "Applying clang-format on all files"
