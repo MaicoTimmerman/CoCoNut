@@ -66,7 +66,7 @@ struct Phase {
 struct Traversal {
     char *id;
 
-    // Array of strings (after parsing) or struct node's
+    // Array of strings
     array *nodes;
 
     struct NodeCommonInfo *common_info;
@@ -84,7 +84,7 @@ struct Enum {
 struct Nodeset {
     char *id;
 
-    // Array of strings (after parsing) or struct node's
+    // Array of strings
     array *nodes;
 
     struct NodeCommonInfo *common_info;

@@ -1,0 +1,11 @@
+traversal Print {
+    nodes {
+        IdExpr, IdExpr
+    }
+};
+
+node IdExpr {
+    children {
+        child IdExpr somename
+    }
+};
