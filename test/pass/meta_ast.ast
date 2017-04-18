@@ -1,0 +1,25 @@
+enum BasicType {
+    prefix = BT,
+    values {
+        BT_int, BT_float, BT_bool
+    }
+};
+
+enum BinOp {
+    prefix = BO,
+    values {
+        pow, div, mul, sub, add, or, and, le, leq, ge, geq, eq, neq
+    }
+};
+
+enum MonOp {
+    prefix = MO,
+    values {
+        neg, not
+    }
+};
+
+
+
+
+// vim: ft=ast

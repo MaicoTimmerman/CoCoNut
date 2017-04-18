@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-BIN=${CIVAS-../bin/ast}
+BIN=${BIN-./bin/ast}
 CFLAGS=${CFLAGS-}
 # RUN_FUNCTIONAL=${RUN_FUNCTIONAL-1}
 
 VALGRIND=${VALGRIND-0}
 
-ALIGN=50
+ALIGN=60
 
 total_tests=0
 fail_tests=0
