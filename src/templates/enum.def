@@ -1,0 +1,19 @@
+autogen definitions enum;
+
+enum = {
+    name = SomeEnum2;
+    prefix = OE;
+    value = one;
+    value = two;
+    value = three;
+    value = four;
+};
+
+enum = {
+    name = SomeEnum;
+    prefix = BT;
+    value = one;
+    value = two;
+    value = three;
+    value = four;
+};
