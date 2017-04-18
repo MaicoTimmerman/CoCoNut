@@ -1,14 +1,14 @@
 #pragma once
 
-#include "htable.h"
+#include "smap.h"
 
 struct Info {
-    htable_t *enum_name;
-    htable_t *enum_prefix;
-    htable_t *node_name;
-    htable_t *nodeset_name;
-    htable_t *traversal_name;
-    htable_t *phase_name;
+    smap_t *enum_name;
+    smap_t *enum_prefix;
+    smap_t *node_name;
+    smap_t *nodeset_name;
+    smap_t *traversal_name;
+    smap_t *phase_name;
 };
 
 int check_config(struct Config *config);
