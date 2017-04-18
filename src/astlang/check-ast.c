@@ -125,7 +125,33 @@ static int check_traversals(array *traversals, struct Info *info) {
 static int check_mandatory_phase(struct MandatoryPhase *phase,
                                  struct Info *info) {
     int error = 0;
-    // TODO
+
+    switch (phase->type) {
+    case MP_single:
+        if (smap_retrieve(info->phase_name, phase->value.single) == NULL) {
+            printf("Unknown mandatory phase '%s'\n", phase->value.single);
+            error = 1;
+        }
+        break;
+
+    case MP_range:; // Crazy GCC won't allow declaration behind statement.
+
+        struct PhaseRange *phase_range = phase->value.range;
+        if (smap_retrieve(info->phase_name, phase_range->start) == NULL) {
+            printf("Unknown mandatory phase range start '%s'\n",
+                    phase_range->start);
+            error = 1;
+        }
+        if (smap_retrieve(info->phase_name, phase_range->end) == NULL) {
+            printf("Unknown mandatory phase range end '%s'\n",
+                    phase_range->end);
+            error = 1;
+        }
+        break;
+    }
+
+    // TODO: Check if there are no overlapping/duplicate phases.
+
     return error;
 }
 
