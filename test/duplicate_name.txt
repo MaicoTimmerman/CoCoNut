@@ -1,0 +1,37 @@
+traversal PrintAll;
+traversal PrintAll;
+
+nodeset MyNodeSet {
+    IdExpr
+};
+
+nodeset MyNodeSet {
+    IdExpr
+};
+
+enum MyTypes {
+    prefix = BT,
+    values {
+        Int, Float, Bool
+    }
+};
+enum MyTypes {
+    prefix = BT,
+    values {
+        Int, Float, Bool
+    }
+};
+
+node IdExpr {
+    children {
+        child MyNodeSet somename
+    }
+};
+
+
+node IdExpr {
+    children {
+        child MyNodeSet somename
+    }
+};
+
