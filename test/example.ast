@@ -41,7 +41,7 @@ nodeset MyNodeset {
 enum OtherEnum {
     prefix = OE,
     values {
-        OE_one, OE_two, OE_three
+        OE_one, OE_one, OE_one, OE_one, OE_two, OE_three
     }
 };
 

@@ -20,7 +20,7 @@ struct Nodeset *create_nodeset(char *id, array *nodes);
 
 struct Node *create_node(char *id, struct Node *nodebody);
 
-struct Node *create_nodebody(array *children, array *attrs, array *flags);
+struct Node *create_nodebody(array *children, array *attrs);
 
 struct Child *create_child(int construct, int mandatory,
                            array *mandatory_phases, char *id, char *type);

@@ -113,9 +113,11 @@ struct Nodeset {
 struct Node {
     char *id;
 
+    // array of (struct Child *)
     array *children;
+
+    // array of (struct Attr *)
     array *attrs;
-    array *flags;
 
     struct NodeCommonInfo *common_info;
 };
@@ -126,13 +128,6 @@ struct Child {
     array *mandatory_phases;
     char *id;
     char *type;
-
-    union {
-        struct Node *node;
-        struct Nodeset *nodeset;
-    } node;
-
-    enum NodeType nodetype;
 
     struct NodeCommonInfo *common_info;
 };
