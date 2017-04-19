@@ -1,4 +1,5 @@
 #include "imap.h"
+#include "memory.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,15 +18,14 @@ void imap_entry_free(imap_entry_t *entry) {
         return;
 
     imap_entry_free(entry->next);
-    free(entry->key);
-    free(entry);
+    mem_free(entry);
 }
 
 void imap_free(imap_t *t) {
     for (int i = 0; i < t->size; i++)
         imap_entry_free(t->slots[i]);
-    free(t->slots);
-    free(t);
+    mem_free(t->slots);
+    mem_free(t);
 }
 
 unsigned int imap_hash_fun(void *key) {
