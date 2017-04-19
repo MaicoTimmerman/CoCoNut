@@ -69,6 +69,7 @@ static int check_enums(array *enums, struct Info *info) {
         struct Enum *cur_enum = (struct Enum *)array_get(enums, i);
         void *orig_def;
 
+        // TODO check if name of enum overlaps with autogen enum.
         if ((orig_def = check_name_exists(info, cur_enum->id)) != NULL) {
             print_error(cur_enum->id, "Redefinition of name '%s'",
                         cur_enum->id);
@@ -79,6 +80,7 @@ static int check_enums(array *enums, struct Info *info) {
         }
 
         char *orig_prefix;
+        // TODO check if prefix is not forbidden: NS_.
         if ((orig_prefix =
                  smap_retrieve(info->enum_prefix, cur_enum->prefix)) != NULL) {
             print_error(cur_enum->prefix, "Redefinition of prefix '%s'",
@@ -215,42 +217,48 @@ static int check_node(struct Node *node, struct Info *info) {
 
     smap_t *child_name = smap_init(16);
 
-    for (int i = 0; i < array_size(node->children); ++i) {
-        struct Child *child = (struct Child *)array_get(node->children, i);
-        struct Child *orig_child;
+    if (node->children) {
+        for (int i = 0; i < array_size(node->children); ++i) {
+            struct Child *child = (struct Child *)array_get(node->children, i);
+            struct Child *orig_child;
 
-        // Check if there is no duplicate naming.
-        if ((orig_child = smap_retrieve(child_name, child->id)) != NULL) {
-            print_error(child, "Duplicate name '%s' in children of node '%s'",
+            // Check if there is no duplicate naming.
+            if ((orig_child = smap_retrieve(child_name, child->id)) != NULL) {
+                print_error(child, "Duplicate name '%s' in children of node '%s'",
                         child->id, node->id);
-            print_note(orig_child, "Previously declared here");
-            error = 1;
-        } else {
-            smap_insert(child_name, child->id, child);
-        }
+                print_note(orig_child, "Previously declared here");
+                error = 1;
+            } else {
+                smap_insert(child_name, child->id, child);
+            }
 
-        struct Node *child_node =
-            (struct Node *)smap_retrieve(info->node_name, child->type);
-        struct Nodeset *child_nodeset =
-            (struct Nodeset *)smap_retrieve(info->nodeset_name, child->type);
+            struct Node *child_node =
+                (struct Node *)smap_retrieve(info->node_name, child->type);
+            struct Nodeset *child_nodeset =
+                (struct Nodeset *)smap_retrieve(info->nodeset_name, child->type);
 
-        if (!child_node && !child_nodeset) {
-            print_error(child, "Unknown type '%s' of child '%s' of node '%s'",
+            if (!child_node && !child_nodeset) {
+                print_error(child, "Unknown type '%s' of child '%s' of node '%s'",
                         child->type, child->id, node->id);
-            error = 1;
+                error = 1;
+
+                // Test if there are mandatory phases to be checked, if not go
+                // to next child.
+                if (!child->mandatory_phases)
+                    continue;
+
+                for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
+                    struct MandatoryPhase *phase =
+                        (struct MandatoryPhase *)array_get(child->mandatory_phases, i);
+
+                    error = check_mandatory_phase(phase, info);
+                }
+            }
         }
+    }
 
-        // Test if there are mandatory phases to be checked, if not go
-        // to next child.
-        if (!child->mandatory_phases)
-            continue;
-
-        for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
-            struct MandatoryPhase *phase =
-                (struct MandatoryPhase *)array_get(child->mandatory_phases, i);
-
-            error = check_mandatory_phase(phase, info);
-        }
+    if (node->attrs) {
+        // TODO test if naming collision and check if link/enum exists.
     }
 
     smap_free(child_name);

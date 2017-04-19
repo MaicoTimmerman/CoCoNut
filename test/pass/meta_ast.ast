@@ -5,21 +5,80 @@ enum BasicType {
     }
 };
 
-enum BinOp {
+enum BinOpEnum {
     prefix = BO,
     values {
         pow, div, mul, sub, add, or, and, le, leq, ge, geq, eq, neq
     }
 };
 
-enum MonOp {
+enum MonOpEnum {
     prefix = MO,
     values {
         neg, not
     }
 };
 
+node BinOp {
+    children {
+        child BinOp left,
+        child BinOp right
+    }
+};
 
+node MonOp {
+    children {
+        child Expr expr
+    },
+    attributes {
+        construct MonOpEnum op
+    }
+};
+
+
+node VarLet {
+    children {
+        child Expr expr {
+            construct
+        }
+    },
+    attributes {
+        string id
+    }
+};
+
+node Var {
+    attributes {
+        string id
+    }
+};
+
+node IfElse {
+    children {
+        child Expr condition { construct, mandatory },
+        child Stmt trueblock { construct, mandatory },
+        child Stmt falseblock { construct, mandatory }
+    }
+};
+
+node For {
+    children {
+        child Expr initexpr { construct, mandatory },
+        child Expr stepexpr { construct, mandatory },
+        child Expr boundexpr { construct, mandatory },
+        child Stmt blockexpr { construct, mandatory }
+    }
+};
+
+
+
+nodeset Expr {
+    BinOp, MonOp
+};
+
+nodeset Stmt {
+    IfElse, For
+};
 
 
 // vim: ft=ast

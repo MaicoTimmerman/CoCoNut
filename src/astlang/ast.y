@@ -241,17 +241,17 @@ node: T_NODE T_ID '{' nodebody '}' ';'
 /* All possible combinations of children attrs and flags, with allowing empty. */
 nodebody: children ',' attrs
         {
-            $$ = create_nodebody($1, $3, NULL);
+            $$ = create_nodebody($1, $3);
             new_location($$, &@$);
         }
         | children
         {
-            $$ = create_nodebody($1, NULL, NULL);
+            $$ = create_nodebody($1, NULL);
             new_location($$, &@$);
         }
         | attrs
         {
-            $$ = create_nodebody(NULL, $1, NULL);
+            $$ = create_nodebody(NULL, $1);
             new_location($$, &@$);
         }
         ;

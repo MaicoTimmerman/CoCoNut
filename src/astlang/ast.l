@@ -120,6 +120,7 @@ static inline void lexer_init();
 
 
 [A-Za-z][A-Za-z0-9_]*  {
+    // TODO: Make identifiers start with an uppercase letter?
     // Identifier start with an letter and can have numbers and underscores.
     yylval.string = strdup(yytext); return T_ID; }
 -?[0-9]+\.[0-9]+ {

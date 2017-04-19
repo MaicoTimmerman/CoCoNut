@@ -95,11 +95,10 @@ struct Node *create_node(char *id, struct Node *nodebody) {
     return nodebody;
 }
 
-struct Node *create_nodebody(array *children, array *attrs, array *flags) {
+struct Node *create_nodebody(array *children, array *attrs) {
     struct Node *n = mem_alloc(sizeof(struct Node));
     n->children = children;
     n->attrs = attrs;
-    n->flags = flags;
 
     n->common_info = create_commoninfo();
     return n;
