@@ -5,24 +5,24 @@
 
 static void free_phase(void *p) {
     struct Phase *phase = p;
-    
+
     if (phase->traversals != NULL)
         array_cleanup(phase->traversals, mem_free);
     if (phase->cycles != NULL)
         array_cleanup(phase->cycles, mem_free);
-    
+
     mem_free(phase->id);
     mem_free(phase);
 }
 
 static void free_cycle(void *c) {
     struct Cycle *cycle = c;
-    
+
     if (cycle->traversals != NULL)
         array_cleanup(cycle->traversals, mem_free);
     if (cycle->cycles != NULL)
         array_cleanup(cycle->cycles, mem_free);
-    
+
     mem_free(cycle->id);
     mem_free(cycle);
 }

@@ -34,10 +34,11 @@ void yyerror(const char* s);
 int yydebug = 1;
 
 #define YYLTYPE YYLTYPE
-#define new_location(a, b) imap_insert(yy_parser_locations, a, b)
 typedef struct ParserLocation YYLTYPE;
 
 struct ParserLocation yy_parser_location;
+
+static void new_location(void *ptr, struct ParserLocation *loc);
 
 // Override YYLLOC_DEFAULT so we can set yy_parser_location
 // to the current location
@@ -167,23 +168,45 @@ entry: phase entry { array_append(config_phases, $1); }
      ;
 
 phase: T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_phase($2, $6, NULL);}
+     {
+         $$ = create_phase($2, $6, NULL);
+         new_location($$, &@$);
+         new_location($2, &@2);
+     }
      | T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_phase($2, $6, $11);}
+     {
+         $$ = create_phase($2, $6, $11);
+         new_location($$, &@$);
+         new_location($2, &@2);
+     }
      ;
 
 cycle: T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_cycle($2, $6, NULL);}
+     {
+         $$ = create_cycle($2, $6, NULL);
+         new_location($$, &@$);
+         new_location($2, &@2);
+     }
      | T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_cycle($2, $6, $11);}
+     {
+         $$ = create_cycle($2, $6, $11);
+         new_location($$, &@$);
+         new_location($2, &@2);
+     }
      ;
 
 traversal: T_TRAVERSAL T_ID ';'
-         { $$ = create_traversal($2, NULL);
-           new_location($$, &@$);
+         {
+             $$ = create_traversal($2, NULL);
+             new_location($$, &@$);
+             new_location($2, &@2);
          }
          | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'
-         { $$ = create_traversal($2, $6);   }
+         {
+             $$ = create_traversal($2, $6);
+             new_location($$, &@$);
+             new_location($2, &@2);
+         }
          ;
 
 enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' T_VALUES '{' idlist  '}' '}' ';'
@@ -447,6 +470,14 @@ idlist: idlist ',' T_ID
       }
       ;
 %%
+
+static void new_location(void *ptr, struct ParserLocation *loc) {
+    struct ParserLocation *loc_copy = malloc(sizeof(struct ParserLocation));
+    memcpy(loc_copy, loc, sizeof(struct ParserLocation));
+
+    imap_insert(yy_parser_locations, ptr, loc_copy);
+}
+
 struct Config* parse(void) {
     yyin = stdin;
     config_phases = create_array();
