@@ -128,8 +128,8 @@ struct ParserLocation yy_parser_location;
 %token T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
-%type<array> idlist mandatoryarglist mandatory cycles
-             attrlist attrs childlist children traversals
+%type<array> idlist mandatoryarglist mandatory
+             attrlist attrs childlist children
 %type<mandatoryphase> mandatoryarg
 %type<attrval> attrval
 %type<attrtype> attrprimitivetype
@@ -167,15 +167,15 @@ entry: phase entry { array_append(config_phases, $1); }
      ;
 
 phase: T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_phase($2,$6,NULL);}
+     {$$ = create_phase($2, $6, NULL);}
      | T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_phase($2,$6,$11);}
+     {$$ = create_phase($2, $6, $11);}
      ;
 
 cycle: T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_phase($2,$6,NULL);}
+     {$$ = create_cycle($2, $6, NULL);}
      | T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_phase($2,$6,$11);}
+     {$$ = create_cycle($2, $6, $11);}
      ;
 
 traversal: T_TRAVERSAL T_ID ';'
