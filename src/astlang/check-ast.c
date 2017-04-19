@@ -113,6 +113,25 @@ static int check_nodesets(array *nodesets, struct Info *info) {
     return error;
 }
 
+static int check_phases(array *phases, struct Info *info) {
+
+    int error = 0;
+
+    for (int i = 0; i < array_size(phases); ++i) {
+        struct Phase *cur_phase =
+            (struct Phase *)array_get(phases, i);
+
+        if (check_name_exists(info, cur_phase->id)) {
+            printf("Redefinition of name: %s\n", cur_phase->id);
+            error = 1;
+        } else {
+            smap_insert(info->traversal_name, cur_phase->id,
+                        cur_phase);
+        }
+    }
+    return error;
+}
+
 static int check_traversals(array *traversals, struct Info *info) {
 
     int error = 0;
@@ -312,7 +331,7 @@ int check_config(struct Config *config) {
     success += check_nodesets(config->nodesets, info);
     success += check_enums(config->enums, info);
     success += check_traversals(config->traversals, info);
-    /* success += check_phases(config->traversals, info); */
+    success += check_phases(config->traversals, info);
 
     for (int i = 0; i < array_size(config->nodes); ++i) {
         success += check_node(array_get(config->nodes, i), info);
