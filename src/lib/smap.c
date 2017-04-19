@@ -1,4 +1,5 @@
 #include "smap.h"
+#include "memory.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,15 +18,15 @@ void smap_entry_free(smap_entry_t *entry) {
         return;
 
     smap_entry_free(entry->next);
-    free(entry->key);
-    free(entry);
+    mem_free(entry->key);
+    mem_free(entry);
 }
 
 void smap_free(smap_t *t) {
     for (int i = 0; i < t->size; i++)
         smap_entry_free(t->slots[i]);
-    free(t->slots);
-    free(t);
+    mem_free(t->slots);
+    mem_free(t);
 }
 
 unsigned int smap_hash_fun(char *key) {
