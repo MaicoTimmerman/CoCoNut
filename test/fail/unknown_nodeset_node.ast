@@ -1,0 +1,4 @@
+nodeset SomeNodeSet {
+    SomeNode, SomeOtherNode
+};
+

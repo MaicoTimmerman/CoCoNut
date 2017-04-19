@@ -5,6 +5,7 @@
 #include "check-ast.h"
 #include "create-ast.h"
 #include "free-ast.h"
+#include "template-ast.h"
 #include "print-ast.h"
 
 extern struct Config *parse(void);
@@ -18,6 +19,8 @@ int main() {
     }
 
     print_config(parse_result);
+
+    generate_definitions(parse_result);
     free_config(parse_result);
 
     return 0;

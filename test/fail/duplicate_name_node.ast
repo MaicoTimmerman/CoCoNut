@@ -1,0 +1,10 @@
+node SomeNode {
+    children {
+        child SomeNode a
+    }
+};
+node SomeNode {
+    children {
+        child SomeNode a
+    }
+};

@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 #include "array.h"
+#include "imap.h"
 #include "ast.h"
 #include "create-ast.h"
 #include "ast.lexer.h"
@@ -28,10 +29,12 @@ static array *config_nodes;
 
 static struct Config* parse_result = NULL;
 
+imap_t *yy_parser_locations;
 void yyerror(const char* s);
 int yydebug = 1;
 
 #define YYLTYPE YYLTYPE
+#define new_location(a, b) imap_insert(yy_parser_locations, a, b)
 typedef struct ParserLocation YYLTYPE;
 
 struct ParserLocation yy_parser_location;
@@ -176,106 +179,194 @@ cycle: T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
      ;
 
 traversal: T_TRAVERSAL T_ID ';'
-         { $$ = create_traversal($2, NULL); }
+         { $$ = create_traversal($2, NULL);
+           new_location($$, &@$);
+         }
          | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'
          { $$ = create_traversal($2, $6);   }
          ;
 
 enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' T_VALUES '{' idlist  '}' '}' ';'
-    { $$ = create_enum($2, $6, $10); }
+    {
+        $$ = create_enum($2, $6, $10);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($6, &@6);
+    }
     | T_ENUM T_ID '{' T_VALUES '{' idlist  '}' ',' T_PREFIX '=' T_ID '}' ';'
-    { $$ = create_enum($2, $11, $6); }
+    {
+        $$ = create_enum($2, $11, $6);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($6, &@6);
+    }
     ;
-
 nodeset: T_NODESET T_ID '{' idlist '}' ';'
-       { $$ = create_nodeset($2, $4); }
+       {
+           $$ = create_nodeset($2, $4);
+           new_location($$, &@$);
+           new_location($2, &@2);
+       }
        ;
-
 node: T_NODE T_ID '{' nodebody '}' ';'
-    { $$ = create_node($2, $4); }
+    {
+        $$ = create_node($2, $4);
+        new_location($$, &@$);
+        new_location($2, &@2);
+    }
     ;
-
 /* All possible combinations of children attrs and flags, with allowing empty. */
 nodebody: children ',' attrs
-        { $$ = create_nodebody($1, $3, NULL);   }
+        {
+            $$ = create_nodebody($1, $3, NULL);
+            new_location($$, &@$);
+        }
         | children
-        { $$ = create_nodebody($1, NULL, NULL); }
+        {
+            $$ = create_nodebody($1, NULL, NULL);
+            new_location($$, &@$);
+        }
         | attrs
-        { $$ = create_nodebody(NULL, $1, NULL); }
+        {
+            $$ = create_nodebody(NULL, $1, NULL);
+            new_location($$, &@$);
+        }
         ;
-
 children: T_CHILDREN '{' childlist '}'
-        { $$ = $3; }
+        {
+            $$ = $3;
+            new_location($$, &@$);
+        }
         ;
-
 childlist: childlist ',' child
-         {  array_append($1, $3); $$ = $1; }
+         {
+             array_append($1, $3);
+             $$ = $1;
+             // $$ is an array and should not be in the locations list
+         }
          | child
-         { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
+         {
+             array *tmp = create_array();
+             array_append(tmp, $1);
+             $$ = tmp;
+             // $$ is an array and should not be in the locations list
+         }
          ;
-
 /* [construct] [mandatory] ID ID */
 child: T_CHILD T_ID T_ID
-     { $$ = create_child(0, 0, NULL, $3, $2); }
+     {
+         $$ = create_child(0, 0, NULL, $3, $2);
+         new_location($$, &@$);
+         new_location($2, &@2);
+         new_location($3, &@3);
+     }
      | T_CHILD T_ID T_ID '{' T_CONSTRUCT ',' mandatory '}'
-     { $$ = create_child(1, 1, $7, $3, $2); }
+     {
+         $$ = create_child(1, 1, $7, $3, $2);
+         new_location($$, &@$);
+         new_location($2, &@2);
+         new_location($3, &@3);
+     }
      | T_CHILD T_ID T_ID '{' mandatory ',' T_CONSTRUCT '}'
-     { $$ = create_child(1, 1, $5, $3, $2); }
+     {
+         $$ = create_child(1, 1, $5, $3, $2);
+         new_location($$, &@$);
+         new_location($2, &@2);
+         new_location($3, &@3);
+     }
      | T_CHILD T_ID T_ID '{' T_CONSTRUCT '}'
-     { $$ = create_child(1, 0, NULL, $3, $2); }
+     {
+         $$ = create_child(1, 0, NULL, $3, $2);
+         new_location($$, &@$);
+         new_location($2, &@2);
+         new_location($3, &@3);
+     }
      | T_CHILD T_ID T_ID '{' mandatory '}'
-     { $$ = create_child(0, 1, $5, $3, $2); }
+     {
+         $$ = create_child(0, 1, $5, $3, $2);
+         new_location($$, &@$);
+         new_location($2, &@2);
+         new_location($3, &@3);
+     }
      ;
-
 attrs: T_ATTRIBUTES '{' attrlist '}'
      { $$ = $3; }
      ;
-
 attrlist: attrlist ',' attr
-        { array_append($1, $3); $$ = $1; }
+        {
+            array_append($1, $3);
+            $$ = $1;
+            // $$ is an array and should not be in the locations list
+        }
         | attr
-        { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
+        {
+            array *tmp = create_array();
+            array_append(tmp, $1);
+            $$ = tmp;
+            // $$ is an array and should not be in the locations list
+        }
         ;
-
 attr: attrhead
-    { $$ = create_attr($1, NULL);}
+    {
+        $$ = create_attr($1, NULL);
+        new_location($$, &@$);
+    }
     | attrhead '=' attrval
-    { $$ = create_attr($1, $3);  }
+    {
+        $$ = create_attr($1, $3);
+        new_location($$, &@$);
+    }
     ;
-
 /* Optional [construct] keyword, for adding to constructor. */
 attrhead: attrprimitivetype T_ID
-        { $$ = create_attrhead_primitive(0, $1, $2); }
+        {
+            $$ = create_attrhead_primitive(0, $1, $2);
+            new_location($$, &@$);
+            new_location($2, &@2);
+        }
         | T_CONSTRUCT attrprimitivetype T_ID
-        { $$ = create_attrhead_primitive(1, $2, $3); }
+        {
+            $$ = create_attrhead_primitive(1, $2, $3);
+            new_location($$, &@$);
+            new_location($3, &@3);
+        }
         | T_ID T_ID
-        { $$ = create_attrhead_idtype(0, $1, $2);    }
+        {
+            $$ = create_attrhead_idtype(0, $1, $2);
+            new_location($$, &@$);
+            new_location($1, &@1);
+            new_location($2, &@2);
+        }
         | T_CONSTRUCT T_ID T_ID
-        { $$ = create_attrhead_idtype(1, $2, $3);    }
+        {
+            $$ = create_attrhead_idtype(1, $2, $3);
+            new_location($$, &@$);
+            new_location($2, &@2);
+            new_location($3, &@3);
+        }
         ;
-
 attrprimitivetype: T_INT
-                 { $$ = AT_int;   }
+                 { $$ = AT_int; }
                  | T_INT8
-                 { $$ = AT_int8;   }
+                 { $$ = AT_int8; }
                  | T_INT16
-                 { $$ = AT_int16;   }
+                 { $$ = AT_int16; }
                  | T_INT32
-                 { $$ = AT_int32;   }
+                 { $$ = AT_int32; }
                  | T_INT64
-                 { $$ = AT_int64;   }
+                 { $$ = AT_int64; }
                  | T_UINT
-                 { $$ = AT_uint;   }
+                 { $$ = AT_uint; }
                  | T_UINT8
-                 { $$ = AT_uint8;   }
+                 { $$ = AT_uint8; }
                  | T_UINT16
-                 { $$ = AT_uint16;   }
+                 { $$ = AT_uint16; }
                  | T_UINT32
-                 { $$ = AT_uint32;   }
+                 { $$ = AT_uint32; }
                  | T_UINT64
-                 { $$ = AT_uint64;   }
+                 { $$ = AT_uint64; }
                  | T_FLOAT
-                 { $$ = AT_float;  }
+                 { $$ = AT_float; }
                  | T_DOUBLE
                  { $$ = AT_double; }
                  | T_BOOL
@@ -283,7 +374,6 @@ attrprimitivetype: T_INT
                  | T_STRING
                  { $$ = AT_string; }
                  ;
-
 attrval: T_STRINGVAL
        { $$ = create_attrval_string($1); }
        | T_INTVAL
@@ -301,52 +391,72 @@ attrval: T_STRINGVAL
        | T_NULL
        { $$ = NULL; }
        ;
-
 mandatory: T_MANDATORY '{' mandatoryarglist '}'
          { $$ = $3;      }
          | T_MANDATORY
          { $$ = NULL;    }
          ;
-
 mandatoryarglist: mandatoryarglist ',' mandatoryarg
                 { array_append($1, $3); $$ = $1; }
                 | mandatoryarg
                 { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
                 ;
-
 /* Allow single phase or a range of phases. */
 mandatoryarg: T_ID
-            { $$ = create_mandatory_singlephase($1, 0);    }
+            {
+                $$ = create_mandatory_singlephase($1, 0);
+                new_location($$, &@$);
+                new_location($1, &@1);
+            }
             | '!' T_ID
-            { $$ = create_mandatory_singlephase($2, 1);    }
+            {
+                $$ = create_mandatory_singlephase($2, 1);
+                new_location($$, &@$);
+                new_location($2, &@2);
+            }
             | T_ID T_TO T_ID
-            { $$ = create_mandatory_phaserange($1, $3, 0); }
+            {
+                $$ = create_mandatory_phaserange($1, $3, 0);
+                new_location($$, &@$);
+                new_location($1, &@1);
+                new_location($3, &@3);
+            }
             | '!' '(' T_ID T_TO T_ID ')'
-            { $$ = create_mandatory_phaserange($3, $5, 1); }
+            {
+                $$ = create_mandatory_phaserange($3, $5, 1);
+                new_location($$, &@$);
+                new_location($3, &@3);
+                new_location($5, &@5);
+            }
             ;
-
 /* Comma seperated list of identifiers. */
 idlist: idlist ',' T_ID
-      { array_append($1, $3); $$ = $1; }
+      {
+          array_append($1, $3);
+          $$ = $1;
+          // $$ is an array and should not be added to location list.
+          new_location($3, &@3);
+      }
       | T_ID
-      { array *tmp = create_array(); array_append(tmp, $1); $$ = tmp; }
+      {
+          array *tmp = create_array();
+          array_append(tmp, $1);
+          $$ = tmp;
+          // $$ is an array and should not be added to location list.
+          new_location($1, &@1);
+      }
       ;
-
-
 %%
-
 struct Config* parse(void) {
     yyin = stdin;
-
     config_phases = create_array();
     config_cycles = create_array();
     config_enums = create_array();
     config_traversals = create_array();
     config_nodesets = create_array();
     config_nodes = create_array();
-
+    yy_parser_locations = imap_init(128);
     yyparse();
     yylex_destroy();
-
     return parse_result;;
 }
