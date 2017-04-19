@@ -1,0 +1,105 @@
+phase FirstPhase {
+    traversals {
+        aa, bb
+    },
+    cycles {
+        cc, nn
+    }
+};
+
+cycle MyCycle {
+    traversals {
+        aa, bb
+    },
+    cycles {
+        cc, nn
+    }
+};
+
+traversal PrintAll;
+
+traversal Print {
+    nodes {
+        asda,
+        asd, asd, asd, a, a
+    }
+};
+
+//const char *str_mytypes(MyEnum val) ..
+
+enum MyTypes {
+    prefix = BT,
+    values {
+        Int, Float, Bool
+    }
+};
+
+nodeset MyNodeset {
+    IdExpr, BinopExpr, MonopExpr
+};
+
+enum OtherEnum {
+    prefix = OE,
+    values {
+        OE_one, OE_two, OE_three
+    }
+};
+
+node IdExpr {
+    children {
+        child MyNodeSet somename,
+        child MyNodeSet somename {
+            // Random order
+            construct,
+            mandatory {
+                !A,
+                B,
+                C,
+                !(C to D)
+            }
+        },
+        child MyNodeSet somename {
+            // Random order
+            construct,
+            mandatory {
+                !A,
+                B,
+                C,
+                !(C to D)
+            }
+        }
+
+    },
+    attributes {
+        int someattr1,
+        uint someattr2,
+
+        int8 intattr1,
+        int16 intattr2,
+        int32 intattr3,
+        int32 intattr3,
+        uint8 intattr3,
+        uint16 intattr3,
+        uint32 intattr3,
+        uint32 intattr3,
+
+        double doubleattr,
+
+        float attr11 = 1.1,
+        double  attr12 = -1.1,
+
+        string attr14 = "laksdfj",
+        SomeNode attr15 = NULL ,
+        SomeEnum attr16 = BO_add,
+        flag attr166 = true,
+
+        construct int attr21,
+        construct uint attr22,
+        construct float attr27,
+        construct double  attr28,
+        construct string attr30,
+        construct SomeNode attr31,
+        construct SomeEnum attr32
+    }
+};
+
