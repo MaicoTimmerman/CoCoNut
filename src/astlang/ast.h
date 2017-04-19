@@ -1,5 +1,4 @@
-#ifndef _AST_H_
-#define _AST_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -69,7 +68,7 @@ struct Config {
 
 struct Phase {
     char *id;
-    
+
     array *traversals;
     array *cycles;
 
@@ -78,10 +77,10 @@ struct Phase {
 
 struct Cycle {
     char *id;
-    
+
     array *traversals;
     array *cycles;
-    
+
     struct NodeCommonInfo *common_info;
 };
 
@@ -180,5 +179,3 @@ struct AttrValue {
 
     struct NodeCommonInfo *common_info;
 };
-
-#endif

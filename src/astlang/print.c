@@ -1,11 +1,14 @@
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #include "array.h"
 #include "ast.h"
+#include "imap.h"
 
 extern array *yy_lines;
+extern imap_t *yy_parser_locations;
 
 #define RED "\x1B[31m"
 #define GREEN "\x1B[32m"
@@ -36,17 +39,22 @@ static void do_print(enum PrintType type, int lineno, int column_start,
 
     PRINT_COLOR(RESET_COLOR);
 
+    char *color = "";
+
     switch (type) {
     case PT_error:
-        PRINT_COLOR(RED BOLD);
+        color = RED BOLD;
+        PRINT_COLOR(color);
         fprintf(stderr, "error: ");
         break;
     case PT_warning:
-        PRINT_COLOR(MAGENTA BOLD);
+        color = MAGENTA BOLD;
+        PRINT_COLOR(color);
         fprintf(stderr, "warning: ");
         break;
     case PT_note:
-        PRINT_COLOR(CYAN BOLD);
+        color = CYAN BOLD;
+        PRINT_COLOR(color);
         fprintf(stderr, "note: ");
         break;
     }
@@ -62,12 +70,13 @@ static void do_print(enum PrintType type, int lineno, int column_start,
         c++;
     }
 
-    PRINT_COLOR(RED BOLD);
+    PRINT_COLOR(color);
 
     fputc('^', stderr);
+
     c++;
 
-    while (c < column_end) {
+    while (c <= column_end) {
         fputc('~', stderr);
         c++;
     }
@@ -76,18 +85,29 @@ static void do_print(enum PrintType type, int lineno, int column_start,
     fputc('\n', stderr);
 }
 
+static void do_print_at_loc(enum PrintType type, void *loc_obj, char *format,
+                            va_list ap) {
+    struct ParserLocation *loc = imap_retrieve(yy_parser_locations, loc_obj);
+    assert(loc != NULL);
+
+    char *line = array_get(yy_lines, loc->first_line - 1);
+
+    do_print(type, loc->first_line, loc->first_column,
+             loc->last_line == loc->first_line ? loc->last_column
+                                               : loc->first_column,
+             line, format, ap);
+}
+
 void print_error_at(int lineno, int column, char *line, char *format, ...) {
     va_list ap;
     va_start(ap, format);
     do_print(PT_error, lineno, column, column, line, format, ap);
 }
 
-void print_error(struct NodeCommonInfo *c, char *format, ...) {
+void print_error(void *loc_obj, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *line = array_get(yy_lines, c->line_start - 1);
-    do_print(PT_error, c->line_start, c->column_start, c->column_end, line,
-             format, ap);
+    do_print_at_loc(PT_error, loc_obj, format, ap);
 }
 
 void print_warning_at(int lineno, int column, char *line, char *format, ...) {
@@ -96,12 +116,10 @@ void print_warning_at(int lineno, int column, char *line, char *format, ...) {
     do_print(PT_warning, lineno, column, column, line, format, ap);
 }
 
-void print_warning(struct NodeCommonInfo *c, char *format, ...) {
+void print_warning(void *loc_obj, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *line = array_get(yy_lines, c->line_start - 1);
-    do_print(PT_warning, c->line_start, c->column_start, c->column_end, line,
-             format, ap);
+    do_print_at_loc(PT_warning, loc_obj, format, ap);
 }
 
 void print_note_at(int lineno, int column, char *line, char *format, ...) {
@@ -110,10 +128,8 @@ void print_note_at(int lineno, int column, char *line, char *format, ...) {
     do_print(PT_note, lineno, column, column, line, format, ap);
 }
 
-void print_note(struct NodeCommonInfo *c, char *format, ...) {
+void print_note(void *loc_obj, char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *line = array_get(yy_lines, c->line_start - 1);
-    do_print(PT_note, c->line_start, c->column_start, c->column_end, line,
-             format, ap);
+    do_print_at_loc(PT_note, loc_obj, format, ap);
 }

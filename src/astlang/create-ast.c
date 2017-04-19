@@ -19,7 +19,7 @@ static struct NodeCommonInfo *create_commoninfo() {
     return info;
 }
 
-struct Config *create_config(array *phases, array *cycles, array *traversals, 
+struct Config *create_config(array *phases, array *cycles, array *traversals,
                              array *enums, array *nodesets, array *nodes) {
 
     struct Config *c = mem_alloc(sizeof(struct Config));

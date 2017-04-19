@@ -14,7 +14,7 @@
 
 static void print_phase(struct Phase *phase) {
     printf("phase %s", phase->id);
-    
+
     printf(" {\n" IND "traversals {\n");
     int num_traversals = array_size(phase->traversals);
     for (int i = 0; i < num_traversals; i++) {
@@ -24,7 +24,7 @@ static void print_phase(struct Phase *phase) {
         else
             printf("\n");
     }
-    
+
     printf(" {\n" IND "cycles {\n");
     int num_cycles = array_size(phase->cycles);
     for (int i = 0; i < num_cycles; i++) {
@@ -34,13 +34,13 @@ static void print_phase(struct Phase *phase) {
         else
             printf("\n");
     }
-    
+
     printf(IND "}\n};\n\n");
 }
 
 static void print_cycle(struct Cycle *cycle) {
     printf("cycle %s", cycle->id);
-    
+
     printf(" {\n" IND "cycles {\n");
     int num_traversals = array_size(cycle->traversals);
     for (int i = 0; i < num_traversals; i++) {
@@ -50,7 +50,7 @@ static void print_cycle(struct Cycle *cycle) {
         else
             printf("\n");
     }
-    
+
     printf(" {\n" IND "cycles {\n");
     int num_cycles = array_size(cycle->cycles);
     for (int i = 0; i < num_cycles; i++) {
@@ -60,7 +60,7 @@ static void print_cycle(struct Cycle *cycle) {
         else
             printf("\n");
     }
-    
+
     printf(IND "}\n};\n\n");
 }
 
@@ -293,7 +293,7 @@ void print_config(struct Config *config) {
     for (int i = 0; i < array_size(config->phases); i++) {
         print_phase(array_get(config->phases, i));
     }
-    
+
     for (int i = 0; i < array_size(config->cycles); i++) {
         print_cycle(array_get(config->cycles, i));
     }

@@ -41,7 +41,7 @@ static inline void lexer_init();
 
         // yylineno is set automatically to 0,
         // however the column needs to be reset.
-        yycolumn = 0;
+        yycolumn = 1;
 
         // give back the line for the real lexing state
         yyless(0);
