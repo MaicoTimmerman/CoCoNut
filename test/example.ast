@@ -102,4 +102,3 @@ node IdExpr {
         construct SomeEnum attr32
     }
 };
-

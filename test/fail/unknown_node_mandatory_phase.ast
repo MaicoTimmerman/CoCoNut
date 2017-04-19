@@ -1,0 +1,9 @@
+node SomeNode {
+    children {
+        child SomeNode name {
+            mandatory {
+                A
+            }
+        }
+    }
+};

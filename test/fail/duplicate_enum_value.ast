@@ -1,0 +1,6 @@
+enum SomeEnum {
+    prefix = BT,
+    values {
+        one, one
+    }
+};
