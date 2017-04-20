@@ -1,6 +1,6 @@
 CC           := gcc
 CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD
-SOURCE_DIRS   = src/lib/ src/astlang/ src/
+SOURCE_DIRS   = src/ src/lib/ src/astlang/ src/astlang/filegen/
 SRC           = $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)*.c))
 PARSER        = src/astlang/ast.parser.c
 LEXER         = src/astlang/ast.lexer.c
