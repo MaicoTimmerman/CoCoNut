@@ -88,7 +88,7 @@ static int check_enums(array *enums, struct Info *info) {
             print_note(orig_prefix, "Previously declared here");
             error = 1;
         } else {
-            smap_insert(info->enum_prefix, cur_enum->prefix, cur_enum);
+            smap_insert(info->enum_prefix, cur_enum->prefix, cur_enum->prefix);
         }
     }
     return error;
@@ -224,9 +224,10 @@ static int check_node(struct Node *node, struct Info *info) {
 
             // Check if there is no duplicate naming.
             if ((orig_child = smap_retrieve(child_name, child->id)) != NULL) {
-                print_error(child, "Duplicate name '%s' in children of node '%s'",
-                        child->id, node->id);
-                print_note(orig_child, "Previously declared here");
+                print_error(child->id,
+                            "Duplicate name '%s' in children of node '%s'",
+                            child->id, node->id);
+                print_note(orig_child->id, "Previously declared here");
                 error = 1;
             } else {
                 smap_insert(child_name, child->id, child);
@@ -234,12 +235,13 @@ static int check_node(struct Node *node, struct Info *info) {
 
             struct Node *child_node =
                 (struct Node *)smap_retrieve(info->node_name, child->type);
-            struct Nodeset *child_nodeset =
-                (struct Nodeset *)smap_retrieve(info->nodeset_name, child->type);
+            struct Nodeset *child_nodeset = (struct Nodeset *)smap_retrieve(
+                info->nodeset_name, child->type);
 
             if (!child_node && !child_nodeset) {
-                print_error(child, "Unknown type '%s' of child '%s' of node '%s'",
-                        child->type, child->id, node->id);
+                print_error(child->type,
+                            "Unknown type '%s' of child '%s' of node '%s'",
+                            child->type, child->id, node->id);
                 error = 1;
 
                 // Test if there are mandatory phases to be checked, if not go
@@ -249,7 +251,8 @@ static int check_node(struct Node *node, struct Info *info) {
 
                 for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
                     struct MandatoryPhase *phase =
-                        (struct MandatoryPhase *)array_get(child->mandatory_phases, i);
+                        (struct MandatoryPhase *)array_get(
+                            child->mandatory_phases, i);
 
                     error = check_mandatory_phase(phase, info);
                 }
@@ -375,7 +378,7 @@ int check_config(struct Config *config) {
     success += check_nodesets(config->nodesets, info);
     success += check_enums(config->enums, info);
     success += check_traversals(config->traversals, info);
-    success += check_phases(config->traversals, info);
+    success += check_phases(config->phases, info);
 
     for (int i = 0; i < array_size(config->nodes); ++i) {
         success += check_node(array_get(config->nodes, i), info);
