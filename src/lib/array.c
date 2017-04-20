@@ -70,7 +70,8 @@ void *array_pop(struct array *a) {
 }
 
 int array_size(struct array *a) {
-    if (a == NULL) return 0;
+    if (a == NULL)
+        return 0;
     return a->size;
 }
 
