@@ -1,11 +1,8 @@
-#include <stdio.h>
 #include "ast.h"
+#include "filegen-driver.h"
 #include "memory.h"
-#include "template-ast.h"
 #include "str-ast.h"
-
-#define out(...) fprintf(info->fp, __VA_ARGS__)
-
+#include <stdio.h>
 
 struct Info {
     FILE *fp;
@@ -23,23 +20,11 @@ static void free_info(struct Info *info) {
     mem_free(info);
 }
 
-static void set_fp(struct Info *info, const char *filename) {
-    if (info->fp != NULL) {
-        fclose(info->fp);
-    }
-
-    info->fp = fopen(filename, "w");
-    if (info->fp == NULL) {
-        printf("could not open file for writing: %s", filename);
-    }
-}
-
 static void template_enum(struct Enum *arg_enum, struct Info *info) {
     out("typedef enum {\n");
     for (int i = 0; i < array_size(arg_enum->values); i++) {
-        out("    %s_%s,\n",
-                arg_enum->prefix,
-                (char*)array_get(arg_enum->values, i));
+        out("    %s_%s,\n", arg_enum->prefix,
+            (char *)array_get(arg_enum->values, i));
     }
     out("} %s;\n\n", arg_enum->id);
 }
@@ -48,11 +33,12 @@ static void template_ast_h(struct Config *config, struct Info *info) {
     // First do forward declaration of all the structs.
     out("\n// Forward declarations of nodes\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        out("struct %s;\n", ((struct Node*)array_get(config->nodes, i))->id);
+        out("struct %s;\n", ((struct Node *)array_get(config->nodes, i))->id);
     }
     out("\n// Forward declarations of nodesets\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        out("struct %s;\n", ((struct Nodeset*)array_get(config->nodesets, i))->id);
+        out("struct %s;\n",
+            ((struct Nodeset *)array_get(config->nodesets, i))->id);
     }
 
     // Print node structs
@@ -63,17 +49,19 @@ static void template_ast_h(struct Config *config, struct Info *info) {
 
         if (node->children) {
             for (int j = 0; j < array_size(node->children); ++j) {
-                struct Child *child = (struct Child *)array_get(node->children, j);
+                struct Child *child =
+                    (struct Child *)array_get(node->children, j);
                 out("    struct %s *%s;\n", child->type, child->id);
             }
         }
         if (node->attrs) {
             for (int j = 0; j < array_size(node->attrs); ++j) {
                 struct Attr *attr = (struct Attr *)array_get(node->attrs, j);
-                out("    %s %s;\n", str_attr_type(attr->type, attr->type_id), attr->id);
+                out("    %s %s;\n", str_attr_type(attr->type, attr->type_id),
+                    attr->id);
             }
         }
-        out("} %s;\n", node->id);
+        out("} %s;\n\n", node->id);
     }
 
     // typedef enum {
@@ -81,42 +69,47 @@ static void template_ast_h(struct Config *config, struct Info *info) {
     // } expr;
     out("\n// Definitons of nodesets\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        struct Nodeset *nodeset = (struct Nodeset *)array_get(config->nodesets, i);
+        struct Nodeset *nodeset =
+            (struct Nodeset *)array_get(config->nodesets, i);
         out("// Nodeset %s\n", nodeset->id);
         out("typedef enum { ");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
-            out("NS_%s_%s, ", nodeset->id, (char*)array_get(nodeset->nodes, j));
+            out("NS_%s_%s, ", nodeset->id,
+                (char *)array_get(nodeset->nodes, j));
         }
         out("} NS_%s_enum;\n", nodeset->id);
 
         out("typedef struct %s {\n", nodeset->id);
         out("    union {\n");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
-            char *node_name = (char*)array_get(nodeset->nodes, j);
+            char *node_name = (char *)array_get(nodeset->nodes, j);
             out("        struct %s *val_%s;\n", node_name, node_name);
         }
         out("    } value;\n");
         out("    NS_%s_enum type;\n", nodeset->id);
         out("} %s;\n\n", nodeset->id);
     }
-
 }
 
-void generate_definitions(struct Config *config) {
+void generate_enum_definitions(struct Config *config, FILE *fp) {
     struct Info *info = create_info();
+    info->fp = fp;
 
-    set_fp(info, "./src/generated/enum.h");
     out("#pragma once\n");
     for (int i = 0; i < array_size(config->enums); i++) {
         template_enum((struct Enum *)array_get(config->enums, i), info);
     }
 
-    set_fp(info, "./src/generated/ast.h");
+    free_info(info);
+}
+
+void generate_ast_definitions(struct Config *config, FILE *fp) {
+    struct Info *info = create_info();
+    info->fp = fp;
+
     out("#pragma once\n");
     out("#include \"enum.h\"\n");
     template_ast_h(config, info);
-
-    fclose(info->fp);
 
     free_info(info);
 }
