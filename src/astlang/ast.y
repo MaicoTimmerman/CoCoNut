@@ -158,12 +158,12 @@ root: entry { parse_result = create_config(config_phases,
     ;
 
 /* For every entry in the config, append to the correct array. */
-entry: phase entry { array_append(config_phases, $1); }
-     | cycle entry { array_append(config_cycles, $1); }
-     | traversal entry { array_append(config_traversals, $1); }
-     | enum entry { array_append(config_enums, $1); }
-     | nodeset entry { array_append(config_nodesets, $1); }
-     | node entry{ array_append(config_nodes, $1);  }
+entry: entry phase { array_append(config_phases, $2); }
+     | entry cycle { array_append(config_cycles, $2); }
+     | entry traversal { array_append(config_traversals, $2); }
+     | entry enum { array_append(config_enums, $2); }
+     | entry nodeset { array_append(config_nodesets, $2); }
+     | entry node { array_append(config_nodes, $2);  }
      | %empty
      ;
 
