@@ -11,12 +11,13 @@
 extern struct ParserLocation yy_parser_location;
 
 static struct NodeCommonInfo *create_commoninfo() {
-    struct NodeCommonInfo *info = malloc(sizeof(struct NodeCommonInfo));
-    info->line_start = yy_parser_location.first_line;
-    info->line_end = yy_parser_location.last_line;
-    info->column_start = yy_parser_location.first_column + 1;
-    info->column_end = yy_parser_location.last_column + 1;
-    return info;
+    /*struct NodeCommonInfo *info = malloc(sizeof(struct NodeCommonInfo));*/
+    /*info->line_start = yy_parser_location.first_line;*/
+    /*info->line_end = yy_parser_location.last_line;*/
+    /*info->column_start = yy_parser_location.first_column + 1;*/
+    /*info->column_end = yy_parser_location.last_column + 1;*/
+    /*return info;*/
+    return NULL;
 }
 
 struct Config *create_config(array *phases, array *cycles, array *traversals,
