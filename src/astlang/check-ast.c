@@ -243,12 +243,9 @@ static int check_node(struct Node *node, struct Info *info) {
                             "Unknown type '%s' of child '%s' of node '%s'",
                             child->type, child->id, node->id);
                 error = 1;
+            }
 
-                // Test if there are mandatory phases to be checked, if not go
-                // to next child.
-                if (!child->mandatory_phases)
-                    continue;
-
+            if (!child->mandatory_phases) {
                 for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
                     struct MandatoryPhase *phase =
                         (struct MandatoryPhase *)array_get(
@@ -260,11 +257,46 @@ static int check_node(struct Node *node, struct Info *info) {
         }
     }
 
+    smap_t *attr_name = smap_init(16);
+
     if (node->attrs) {
-        // TODO test if naming collision and check if link/enum exists.
+        for (int i = 0; i < array_size(node->attrs); i++) {
+            struct Attr *attr = (struct Attr *)array_get(node->attrs, i);
+            struct Attr *orig_attr;
+
+            if ((orig_attr = smap_retrieve(attr_name, attr->id)) != NULL) {
+                print_error(attr->id,
+                            "Duplicate name '%s' in atributes of node '%s'",
+                            attr->id, node->id);
+                print_note(orig_attr->id, "Previously declared here");
+                error = 1;
+            } else {
+                smap_insert(attr_name, attr->id, attr);
+            }
+
+            if (attr->type == AT_link_or_enum) {
+                struct Node *attr_node = (struct Node *)smap_retrieve(
+                    info->node_name, attr->type_id);
+                struct Enum *attr_enum = (struct Enum *)smap_retrieve(
+                    info->enum_name, attr->type_id);
+
+                if (attr_node) {
+                    attr->type = AT_link;
+                } else if (attr_enum) {
+                    attr->type = AT_enum;
+                } else {
+                    print_error(
+                        attr->type_id,
+                        "Unknown type '%s' of attribute '%s' of node '%s'",
+                        attr->type_id, attr->id, node->id);
+                    error = 1;
+                }
+            }
+        }
     }
 
     smap_free(child_name);
+    smap_free(attr_name);
 
     return error;
 }

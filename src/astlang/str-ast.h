@@ -1,3 +1,5 @@
 #pragma once
 
-char *str_attr_type(enum AttrType, char *);
+#include "ast.h"
+
+char *str_attr_type(struct Attr *attr);

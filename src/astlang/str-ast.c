@@ -1,8 +1,13 @@
 #include "ast.h"
+#include "memory.h"
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-char *str_attr_type(enum AttrType val, char *type_id) {
-    switch (val) {
+char *str_attr_type(struct Attr *attr) {
+    char *link_type;
+
+    switch (attr->type) {
     case AT_int:
         return "int";
     case AT_uint:
@@ -32,11 +37,12 @@ char *str_attr_type(enum AttrType val, char *type_id) {
     case AT_string:
         return "char *";
     case AT_link_or_enum:
-        if (type_id == NULL) {
-            return "TYPE_ID MISSING";
-        } else {
-            return type_id;
-        }
+    case AT_enum:
+        return attr->type_id;
+    case AT_link:
+        link_type = mem_alloc(strlen(attr->type_id) + 10);
+        sprintf(link_type, "struct %s *", attr->type_id);
+        return link_type;
     }
     return "";
 }
