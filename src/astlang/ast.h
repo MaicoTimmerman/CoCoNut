@@ -33,7 +33,9 @@ enum AttrType {
 
     AT_bool,
     AT_string,
-    AT_link_or_enum
+    AT_link_or_enum,
+    AT_link,
+    AT_enum,
 };
 
 enum AttrValueType {

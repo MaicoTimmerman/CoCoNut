@@ -1,0 +1,12 @@
+enum SomeEnum {
+    prefix = SO,
+    values { a, b, c }
+};
+
+node IdExpr {
+    attributes {
+        int a,
+        SomeEnum a
+    }
+};
+

@@ -4,14 +4,16 @@
 #include "str-ast.h"
 #include <stdio.h>
 
+#define out(...) fprintf(info->fp, __VA_ARGS__)
+
 struct Info {
     FILE *fp;
 };
 
-static struct Info *create_info(void) {
+static struct Info *create_info(FILE *fp) {
 
     struct Info *info = (struct Info *)mem_alloc(sizeof(struct Info));
-    info->fp = NULL;
+    info->fp = fp;
 
     return info;
 }
@@ -57,8 +59,7 @@ static void template_ast_h(struct Config *config, struct Info *info) {
         if (node->attrs) {
             for (int j = 0; j < array_size(node->attrs); ++j) {
                 struct Attr *attr = (struct Attr *)array_get(node->attrs, j);
-                out("    %s %s;\n", str_attr_type(attr->type, attr->type_id),
-                    attr->id);
+                out("    %s %s;\n", str_attr_type(attr), attr->id);
             }
         }
         out("} %s;\n\n", node->id);
@@ -92,8 +93,7 @@ static void template_ast_h(struct Config *config, struct Info *info) {
 }
 
 void generate_enum_definitions(struct Config *config, FILE *fp) {
-    struct Info *info = create_info();
-    info->fp = fp;
+    struct Info *info = create_info(fp);
 
     out("#pragma once\n");
     for (int i = 0; i < array_size(config->enums); i++) {
@@ -104,8 +104,7 @@ void generate_enum_definitions(struct Config *config, FILE *fp) {
 }
 
 void generate_ast_definitions(struct Config *config, FILE *fp) {
-    struct Info *info = create_info();
-    info->fp = fp;
+    struct Info *info = create_info(fp);
 
     out("#pragma once\n");
     out("#include \"enum.h\"\n");

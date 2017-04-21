@@ -205,6 +205,8 @@ static void print_attr(struct Attr *a) {
     case AT_string:
         printf("string");
         break;
+    case AT_link:
+    case AT_enum:
     case AT_link_or_enum:
         printf("%s", a->type_id);
         break;
