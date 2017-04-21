@@ -1,4 +1,6 @@
+#pragma once
 #include "ast.h"
+#include <stdio.h>
 
 #define out(...) fprintf(info->fp, __VA_ARGS__)
 

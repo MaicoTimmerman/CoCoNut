@@ -7,6 +7,7 @@
 #include "filegen-driver.h"
 #include "free-ast.h"
 #include "gen-ast-definition.h"
+#include "gen-free-functions.h"
 #include "print-ast.h"
 
 extern struct Config *parse(void);
@@ -26,6 +27,8 @@ int main() {
     filegen_init(out_dir);
     filegen_add("enum.h", generate_enum_definitions);
     filegen_add("ast.h", generate_ast_definitions);
+    filegen_add("free-ast.h", generate_free_header);
+    filegen_add("free-ast.c", generate_free_definitions);
 
     int ret = filegen_generate(parse_result);
     filegen_cleanup();

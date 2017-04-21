@@ -67,6 +67,9 @@ node For {
         child Expr stepexpr { construct, mandatory },
         child Expr boundexpr { construct, mandatory },
         child Stmt blockexpr { construct, mandatory }
+    },
+    attributes {
+        construct string id
     }
 };
 
