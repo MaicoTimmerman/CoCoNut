@@ -1,6 +1,6 @@
 #pragma once
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ast.h"
 void generate_free_header(struct Config *, FILE *);

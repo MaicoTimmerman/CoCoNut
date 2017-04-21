@@ -26,7 +26,8 @@ static void generate_free_node_header(struct Node *node, struct Info *info) {
     out(" // skip children.\n");
 }
 
-static void generate_free_nodeset_header(struct Nodeset *nodeset, struct Info *info) {
+static void generate_free_nodeset_header(struct Nodeset *nodeset,
+                                         struct Info *info) {
     out("void free_%s_tree(struct %s*);", nodeset->id, nodeset->id);
     out(" // free children.\n");
 
@@ -34,30 +35,31 @@ static void generate_free_nodeset_header(struct Nodeset *nodeset, struct Info *i
     out(" // skip children.\n");
 }
 
-static void generate_free_nodeset_definition(struct Nodeset *nodeset, struct Info *info) {
+static void generate_free_nodeset_definition(struct Nodeset *nodeset,
+                                             struct Info *info) {
 
     out("void free_%s_tree(struct %s *nodeset) {", nodeset->id, nodeset->id);
     out(" // free children. \n");
 
     out("    switch(nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        char *node = (char*)array_get(nodeset->nodes, i);
+        char *node = (char *)array_get(nodeset->nodes, i);
         out("    case NS_%s_%s:\n", nodeset->id, node);
-        out("        free_%s_tree(nodeset->val_%s);\n", node, node);
+        out("        free_%s_tree(nodeset->value.val_%s);\n", node, node);
         out("        break;\n");
     }
     out("    }\n");
     out("    mem_free(nodeset);\n");
     out("}\n");
 
-    out("void free_%s_node(struct %s*) {", nodeset->id, nodeset->id);
+    out("void free_%s_node(struct %s* nodeset) {", nodeset->id, nodeset->id);
     out(" // skip children. \n");
     out("    mem_free(nodeset);\n");
     out("}\n");
 }
 
-
-static void generate_free_node_definition(struct Node *node, struct Info *info) {
+static void generate_free_node_definition(struct Node *node,
+                                          struct Info *info) {
     out("void free_%s_tree(struct %s* node) {\n", node->id, node->id);
 
     for (int i = 0; i < array_size(node->children); ++i) {
@@ -93,7 +95,6 @@ static void generate_free_node_definition(struct Node *node, struct Info *info) 
     out("}\n");
 }
 
-
 void generate_free_definitions(struct Config *config, FILE *fp) {
     struct Info *info = create_info();
     info->fp = fp;
@@ -104,12 +105,12 @@ void generate_free_definitions(struct Config *config, FILE *fp) {
     out("// NODES\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
         generate_free_node_definition(
-                (struct Node *)array_get(config->nodes, i), info);
+            (struct Node *)array_get(config->nodes, i), info);
     }
     out("// NODESETS\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
         generate_free_nodeset_definition(
-                (struct Nodeset *)array_get(config->nodesets, i), info);
+            (struct Nodeset *)array_get(config->nodesets, i), info);
     }
 
     free_info(info);
@@ -123,13 +124,13 @@ void generate_free_header(struct Config *config, FILE *fp) {
     out("\n");
     out("// NODES\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        generate_free_node_header(
-                (struct Node *)array_get(config->nodes, i), info);
+        generate_free_node_header((struct Node *)array_get(config->nodes, i),
+                                  info);
     }
     out("// NODESETS\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
         generate_free_nodeset_header(
-                (struct Nodeset *)array_get(config->nodesets, i), info);
+            (struct Nodeset *)array_get(config->nodesets, i), info);
     }
 
     free_info(info);
