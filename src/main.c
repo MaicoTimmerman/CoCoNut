@@ -6,9 +6,11 @@
 #include "create-ast.h"
 #include "filegen-driver.h"
 #include "free-ast.h"
-#include "gen-ast-definition.h"
-#include "gen-free-functions.h"
 #include "print-ast.h"
+
+#include "gen-ast-definition.h"
+#include "gen-create-functions.h"
+#include "gen-free-functions.h"
 
 extern struct Config *parse(void);
 
@@ -29,6 +31,8 @@ int main() {
     filegen_add("ast.h", generate_ast_definitions);
     filegen_add("free-ast.h", generate_free_header);
     filegen_add("free-ast.c", generate_free_definitions);
+    filegen_add("create-ast.c", generate_create_functions);
+    filegen_add("create-ast.h", generate_create_function_headers);
 
     int ret = filegen_generate(parse_result);
     filegen_cleanup();

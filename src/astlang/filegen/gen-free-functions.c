@@ -4,6 +4,8 @@
 #include "str-ast.h"
 #include <stdio.h>
 
+#define out(...) fprintf(info->fp, __VA_ARGS__)
+
 struct Info {
     FILE *fp;
 };
