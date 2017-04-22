@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,16 +20,75 @@
 
 extern struct Config *parse(FILE *fp);
 
-int main(int argc, char *argv[]) {
+static void usage(char *program) {
+    char *program_bin = strrchr(program, '/');
+    if (program_bin)
+        program = program_bin + 1;
 
-    if (argc != 2) {
-        printf("Usage: %s [file]\n", argv[0]);
+    printf("Usage: %s [options] [file]\n", program);
+    printf("Options:\n");
+    printf("  --output-dir/-o <directory>       Directory to write generated "
+           "files to.\n");
+    printf("  --verbose/-v                      Enable verbose mode.\n");
+}
+
+static void version(void) {
+    printf("CoCoNut AST-gen 0.1\n");
+}
+
+int main(int argc, char *argv[]) {
+    int verbose_flag;
+    int option_index;
+    int c = 0;
+    char *input_fn, *output_dir = NULL;
+
+    struct option long_options[] = {{"verbose", no_argument, &verbose_flag, 1},
+                                    {"output-dir", required_argument, 0, 'o'},
+                                    {"help", no_argument, 0, 'h'},
+                                    {"version", no_argument, 0, 0},
+                                    {0, 0, 0, 0}};
+
+    while (1) {
+        c = getopt_long(argc, argv, "vo:", long_options, &option_index);
+
+        // End of options
+        if (c == -1)
+            break;
+
+        switch (c) {
+        case 0:
+            version();
+            return 0;
+        case 'v':
+            verbose_flag = 1;
+            break;
+        case 'o':
+            output_dir = optarg;
+            break;
+        case 'h':
+            usage(argv[0]);
+            return 0;
+        case '?':
+            usage(argv[0]);
+            return 1;
+        }
+    }
+
+    if (optind == argc - 1) {
+        input_fn = argv[optind];
+    } else {
+        usage(argv[0]);
         return 1;
     }
 
-    FILE *f = fopen(argv[1], "r");
+    if (output_dir == NULL) {
+        printf("Missing required --output-dir/-o option\n");
+        return 1;
+    }
+
+    FILE *f = fopen(input_fn, "r");
     if (f == NULL) {
-        fprintf(stderr, "%s: cannot open file: %s\n", argv[1],
+        fprintf(stderr, "%s: cannot open file: %s\n", input_fn,
                 strerror(errno));
         return 1;
     }
@@ -43,10 +103,7 @@ int main(int argc, char *argv[]) {
     }
     /*print_config(parse_result);*/
 
-    // TODO read from command line
-    char *out_dir = "src/generated/";
-
-    filegen_init(out_dir);
+    filegen_init(output_dir);
     filegen_add("enum.h", generate_enum_definitions);
     filegen_add("ast.h", generate_ast_definitions);
 
