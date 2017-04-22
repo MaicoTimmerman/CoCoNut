@@ -8,7 +8,8 @@
 #define out(...) fprintf(fp, __VA_ARGS__)
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
-    out("struct %s *copy_%s(struct %s *node, imap_t *imap)", node->id, node->id, node->id);
+    out("struct %s *copy_%s(struct %s *node, imap_t *imap)", node->id,
+        node->id, node->id);
 
     if (header) {
         out(";\n\n");
@@ -29,7 +30,8 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
 
         for (int i = 0; i < array_size(node->children); i++) {
             struct Child *c = array_get(node->children, i);
-            out("    res->%s = copy_%s(node->%s, imap);\n", c->id, c->type, c->id);
+            out("    res->%s = copy_%s(node->%s, imap);\n", c->id, c->type,
+                c->id);
         }
 
         for (int i = 0; i < array_size(node->attrs); i++) {
@@ -37,7 +39,8 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
             if (attr->type == AT_string) {
                 out("    res->%s = strdup(node->%s);\n", attr->id, attr->id);
             } else if (attr->type == AT_link) {
-                out("    res->%s = imap_retrieve(node->%s);", attr->id, attr->id);
+                out("    res->%s = imap_retrieve(node->%s);", attr->id,
+                    attr->id);
             } else {
                 out("    res->%s = node->%s;\n", attr->id, attr->id);
             }
@@ -50,8 +53,8 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
 
 static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
 
-    out("struct %s *copy_%s(struct %s *nodeset, imap_t *imap)", nodeset->id, nodeset->id,
-        nodeset->id);
+    out("struct %s *copy_%s(struct %s *nodeset, imap_t *imap)", nodeset->id,
+        nodeset->id, nodeset->id);
 
     if (header) {
 
