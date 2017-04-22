@@ -123,6 +123,7 @@ void generate_free_header(struct Config *config, FILE *fp) {
 
     out("#pragma once\n");
     out("#include \"ast.h\"\n");
+    out("#include \"memory.h\"\n");
     out("\n");
     out("// NODES\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
