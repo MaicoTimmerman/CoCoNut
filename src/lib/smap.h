@@ -1,7 +1,5 @@
 #pragma once
 
-#define HTABLE_SIZE 20
-
 typedef struct smap_entry_t {
     char *key;
     void *value;
