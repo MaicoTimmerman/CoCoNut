@@ -68,7 +68,7 @@ static void template_ast_h(struct Config *config, struct Info *info) {
     // typedef enum {
     //     NS_expr_binop, NS_expr_monop, NS_expr_assign
     // } expr;
-    out("\n// Definitons of nodesets\n");
+    out("\n// Definitions of nodesets\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
         struct Nodeset *nodeset =
             (struct Nodeset *)array_get(config->nodesets, i);

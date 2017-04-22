@@ -1,5 +1,5 @@
 CC           := gcc
-CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD
+CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD -Werror=implicit-function-declaration
 SOURCE_DIRS   = src/ src/lib/ src/astlang/ src/astlang/filegen/
 SRC           = $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)*.c))
 PARSER        = src/astlang/ast.parser.c
