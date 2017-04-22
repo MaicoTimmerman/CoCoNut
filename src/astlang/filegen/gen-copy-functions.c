@@ -39,7 +39,7 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
             if (attr->type == AT_string) {
                 out("    res->%s = strdup(node->%s);\n", attr->id, attr->id);
             } else if (attr->type == AT_link) {
-                out("    res->%s = imap_retrieve(node->%s);", attr->id,
+                out("    res->%s = imap_retrieve(imap, node->%s);\n", attr->id,
                     attr->id);
             } else {
                 out("    res->%s = node->%s;\n", attr->id, attr->id);
@@ -70,7 +70,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("\n");
         out("    struct %s *res = mem_alloc(sizeof(struct %s));\n",
             nodeset->id, nodeset->id);
-        out("    imap_insert(imap, node, res);\n");
+        out("    imap_insert(imap, nodeset, res);\n");
 
         out("    res->type = nodeset->type;\n");
         out("    switch (nodeset->type) {\n");
