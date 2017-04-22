@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #include "ast.h"
 #include "check-ast.h"
@@ -12,10 +14,24 @@
 #include "gen-create-functions.h"
 #include "gen-free-functions.h"
 
-extern struct Config *parse(void);
+extern struct Config *parse(FILE *fp);
 
-int main() {
-    struct Config *parse_result = parse();
+int main(int argc, char *argv[]) {
+
+    if (argc != 2) {
+        printf("Usage: %s [file]\n", argv[0]);
+        return 1;
+    }
+
+    FILE *f = fopen(argv[1], "r");
+    if (f == NULL) {
+        fprintf(stderr, "%s: cannot open file: %s\n", argv[1], strerror(errno));
+        return 1;
+    }
+
+    struct Config *parse_result = parse(f);
+
+    fclose(f);
 
     if (check_config(parse_result)) {
         fprintf(stderr, "\n\nFound errors\n");
