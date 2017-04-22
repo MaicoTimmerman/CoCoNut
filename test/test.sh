@@ -40,7 +40,7 @@ function check_return {
         cmd=$BIN
     fi
 
-    if $cmd $CFLAGS < $file > tmp.out 2>&1
+    if $cmd $CFLAGS $file > tmp.out 2>&1
     then
         if [ $expect_failure -eq 1 ]; then
             echo_fail
