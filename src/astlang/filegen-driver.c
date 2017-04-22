@@ -19,7 +19,14 @@ static char *output_directory = NULL;
 
 void filegen_init(char *out_dir) {
     file_generations = array_init(4);
-    output_directory = strdup(out_dir);
+
+    size_t out_dir_len = strlen(out_dir);
+    if (out_dir[out_dir_len - 1] != '/') {
+        output_directory = mem_alloc(out_dir_len + 2);
+        sprintf(output_directory, "%s/", out_dir);
+    } else {
+        output_directory = strdup(out_dir);
+    }
 }
 
 void filegen_add(char *filename,
