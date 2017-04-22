@@ -478,8 +478,8 @@ static void new_location(void *ptr, struct ParserLocation *loc) {
     imap_insert(yy_parser_locations, ptr, loc_copy);
 }
 
-struct Config* parse(void) {
-    yyin = stdin;
+struct Config* parse(FILE *fp) {
+    yyin = fp;
     config_phases = create_array();
     config_cycles = create_array();
     config_enums = create_array();
