@@ -6,6 +6,7 @@
 
 #define out(...) fprintf(fp, __VA_ARGS__)
 
+// TODO Merge functions for header and definition.
 static void generate_trav_node_header(struct Node *node, FILE *fp) {
     out("struct %s *trav_%s(struct %s *, struct Info *);\n", node->id,
         node->id, node->id);

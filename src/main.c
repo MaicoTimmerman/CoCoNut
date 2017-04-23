@@ -12,9 +12,9 @@
 #include "print-ast.h"
 
 #include "gen-ast-definition.h"
+#include "gen-consistency-functions.h"
 #include "gen-copy-functions.h"
 #include "gen-create-functions.h"
-#include "gen-consistency-functions.h"
 #include "gen-free-functions.h"
 #include "gen-trav-functions.h"
 #include "print-ast.h"

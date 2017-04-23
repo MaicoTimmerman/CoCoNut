@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdio.h>
 #include "ast.h"
+#include <stdio.h>
 
 void generate_consistency_definition(struct Config *c, FILE *fp);
 
