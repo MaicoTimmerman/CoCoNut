@@ -1,12 +1,20 @@
 %{
 #include <stdio.h>
+#include <stdbool.h>
 #include "ast.h"
 #include "ast.parser.h"
 #include "print.h"
 #include "array.h"
 
 #define YY_DECL int yylex()
+#define LEX_KEYWORD(k) if (yy_lex_keywords) \
+                                return k;   \
+                            else {          \
+                                yylval.string = strdup(yytext); \
+                                return T_ID; \
+                            } \
 
+bool yy_lex_keywords = true;
 static char yy_linebuf[500];
 int yycolumn = 1;
 
@@ -81,42 +89,51 @@ static inline void lexer_init();
 ";" {return ';';}
 "!" {return '!';}
 
-"attributes" {return T_ATTRIBUTES;}
-"children" {return T_CHILDREN;}
-"child" {return T_CHILD;}
-"construct" {return T_CONSTRUCT;}
-"cycle" {return T_CYCLE;}
-"cycles" {return T_CYCLES;}
-"enum" {return T_ENUM;}
-"mandatory" {return T_MANDATORY;}
-"node" {return T_NODE;}
-"nodeset" {return T_NODESET;}
-"nodes" {return T_NODES;}
-"phase" {return T_PHASE;}
-"prefix" {return T_PREFIX;}
-"to" {return T_TO;}
-"traversal" {return T_TRAVERSAL;}
-"traversals" {return T_TRAVERSALS;}
-"values" {return T_VALUES;}
+"attributes"    { LEX_KEYWORD(T_ATTRIBUTES);}
+"children"      { LEX_KEYWORD(T_CHILDREN);}
+"child"         { LEX_KEYWORD(T_CHILD);}
+"construct"     { LEX_KEYWORD(T_CONSTRUCT);}
+"cycle"         { LEX_KEYWORD(T_CYCLE);}
+"cycles"        { LEX_KEYWORD(T_CYCLES);}
+"enum"          { LEX_KEYWORD(T_ENUM);}
+"mandatory"     { LEX_KEYWORD(T_MANDATORY);}
+"node"          { LEX_KEYWORD(T_NODE);}
+"nodeset"       { LEX_KEYWORD(T_NODESET);}
+"nodes"         { LEX_KEYWORD(T_NODES);}
+"phase"         { LEX_KEYWORD(T_PHASE);}
+"prefix"        { LEX_KEYWORD(T_PREFIX);}
+"to"            { LEX_KEYWORD(T_TO);}
+"traversal"     { LEX_KEYWORD(T_TRAVERSAL);}
+"traversals"    { LEX_KEYWORD(T_TRAVERSALS);}
+"values"        {
+                    if (yy_lex_keywords) {
+                        yy_lex_keywords = false;
+                        return T_VALUES;
+                    } else {
+                        yylval.string = strdup(yytext);
+                        return T_ID;
+                    }
+                }
 
-"double" {return T_DOUBLE;}
-"float" {return T_FLOAT;}
-"int" {return T_INT;}
-"uint" {return T_UINT;}
-"int8" {return T_INT8;}
-"int16" {return T_INT16;}
-"int32" {return T_INT32;}
-"int64" {return T_INT64;}
-"uint8" {return T_UINT8;}
-"uint16" {return T_UINT16;}
-"uint32" {return T_UINT32;}
-"uint64" {return T_UINT64;}
-"string" {return T_STRING;}
-"bool" {return T_BOOL;}
+"double"        { LEX_KEYWORD(T_DOUBLE);}
+"float"         { LEX_KEYWORD(T_FLOAT);}
+"int"           { LEX_KEYWORD(T_INT);}
+"uint"          { LEX_KEYWORD(T_UINT);}
+"int8"          { LEX_KEYWORD(T_INT8);}
+"int16"         { LEX_KEYWORD(T_INT16);}
+"int32"         { LEX_KEYWORD(T_INT32);}
+"int64"         { LEX_KEYWORD(T_INT64);}
+"uint8"         { LEX_KEYWORD(T_UINT8);}
+"uint16"        { LEX_KEYWORD(T_UINT16);}
+"uint32"        { LEX_KEYWORD(T_UINT32);}
+"uint64"        { LEX_KEYWORD(T_UINT64);}
+"string"        { LEX_KEYWORD(T_STRING);}
+"bool"          { LEX_KEYWORD(T_BOOL);}
 
-"false" {return T_FALSE;}
-"true" {return T_TRUE;}
-"NULL" {return T_NULL;}
+"false"         { LEX_KEYWORD(T_FALSE);}
+"true"          { LEX_KEYWORD(T_TRUE);}
+
+"NULL"          { return T_NULL;}
 
 
 [A-Za-z][A-Za-z0-9_]*  {

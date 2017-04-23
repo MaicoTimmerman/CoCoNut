@@ -1,0 +1,15 @@
+enum MyEnum {
+    prefix = MY,
+    values {
+        int, float, bool, attribute, prefix, enum, node
+    }
+};
+
+node MyNode {
+    attributes {
+        MyEnum en,
+        int a,
+        float b,
+        bool c
+    }
+};
