@@ -4,25 +4,9 @@
 #include "str-ast.h"
 #include <stdio.h>
 
-#define out(...) fprintf(info->fp, __VA_ARGS__)
+#define out(...) fprintf(fp, __VA_ARGS__)
 
-struct Info {
-    FILE *fp;
-};
-
-static struct Info *create_info(FILE *fp) {
-
-    struct Info *info = (struct Info *)mem_alloc(sizeof(struct Info));
-    info->fp = fp;
-
-    return info;
-}
-
-static void free_info(struct Info *info) {
-    mem_free(info);
-}
-
-static void template_enum(struct Enum *arg_enum, struct Info *info) {
+static void template_enum(struct Enum *arg_enum, FILE *fp) {
     out("typedef enum {\n");
     for (int i = 0; i < array_size(arg_enum->values); i++) {
         out("    %s_%s,\n", arg_enum->prefix,
@@ -31,7 +15,7 @@ static void template_enum(struct Enum *arg_enum, struct Info *info) {
     out("} %s;\n\n", arg_enum->id);
 }
 
-static void template_ast_h(struct Config *config, struct Info *info) {
+static void template_ast_h(struct Config *config, FILE *fp) {
     // First do forward declaration of all the structs.
     out("\n// Forward declarations of nodes\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
@@ -39,8 +23,7 @@ static void template_ast_h(struct Config *config, struct Info *info) {
     }
     out("\n// Forward declarations of nodesets\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        out("struct %s;\n",
-            ((struct Nodeset *)array_get(config->nodesets, i))->id);
+        out("struct %s;\n", ((struct Nodeset *)array_get(config->nodesets, i))->id);
     }
 
     // Print node structs
@@ -93,22 +76,14 @@ static void template_ast_h(struct Config *config, struct Info *info) {
 }
 
 void generate_enum_definitions(struct Config *config, FILE *fp) {
-    struct Info *info = create_info(fp);
-
     out("#pragma once\n");
     for (int i = 0; i < array_size(config->enums); i++) {
-        template_enum((struct Enum *)array_get(config->enums, i), info);
+        template_enum((struct Enum *)array_get(config->enums, i), fp);
     }
-
-    free_info(info);
 }
 
 void generate_ast_definitions(struct Config *config, FILE *fp) {
-    struct Info *info = create_info(fp);
-
     out("#pragma once\n");
     out("#include \"enum.h\"\n");
-    template_ast_h(config, info);
-
-    free_info(info);
+    template_ast_h(config, fp);
 }
