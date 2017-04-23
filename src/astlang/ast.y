@@ -19,6 +19,8 @@ extern int yycolumn;
 extern char* yytext;
 extern FILE* yyin;
 
+extern bool yy_lex_keywords;
+
 /* Array to append config entries to during reducing */
 static array *config_phases;
 static array *config_cycles;
@@ -130,7 +132,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token END 0 "End-of-file (EOF)"
 
 %type<array> idlist mandatoryarglist mandatory
-             attrlist attrs childlist children
+             attrlist attrs childlist children enumvalues
 %type<mandatoryphase> mandatoryarg
 %type<attrval> attrval
 %type<attrtype> attrprimitivetype
@@ -209,21 +211,28 @@ traversal: T_TRAVERSAL T_ID ';'
          }
          ;
 
-enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' T_VALUES '{' idlist  '}' '}' ';'
+enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     {
-        $$ = create_enum($2, $6, $10);
+        $$ = create_enum($2, $6, $8);
         new_location($$, &@$);
         new_location($2, &@2);
         new_location($6, &@6);
     }
-    | T_ENUM T_ID '{' T_VALUES '{' idlist  '}' ',' T_PREFIX '=' T_ID '}' ';'
+    | T_ENUM T_ID '{' enumvalues ',' T_PREFIX '=' T_ID '}' ';'
     {
-        $$ = create_enum($2, $11, $6);
+        $$ = create_enum($2, $8, $4);
         new_location($$, &@$);
         new_location($2, &@2);
-        new_location($6, &@6);
+        new_location($8, &@6);
     }
     ;
+enumvalues: T_VALUES '{' idlist  '}'
+        {
+            $$ = $3;
+            yy_lex_keywords = true;
+        }
+
+
 nodeset: T_NODESET T_ID '{' idlist '}' ';'
        {
            $$ = create_nodeset($2, $4);
@@ -368,6 +377,7 @@ attrhead: attrprimitivetype T_ID
             new_location($3, &@3);
         }
         ;
+
 attrprimitivetype: T_INT
                  { $$ = AT_int; }
                  | T_INT8
