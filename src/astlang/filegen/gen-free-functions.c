@@ -6,7 +6,8 @@
 
 #define out(...) fprintf(fp, __VA_ARGS__)
 
-static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
+static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
+                                  bool header) {
 
     out("void free_%s_tree(struct %s *nodeset)", nodeset->id, nodeset->id);
 

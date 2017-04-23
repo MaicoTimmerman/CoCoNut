@@ -14,8 +14,8 @@ static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
-    out("struct %s *check_%s(struct %s *node, struct Info *info)",
-            node->id, node->id, node->id);
+    out("struct %s *check_%s(struct %s *node, struct Info *info)", node->id,
+        node->id, node->id);
 
     if (header) {
         out(";\n\n");
@@ -23,7 +23,7 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
         out(" {\n");
 
         for (int i = 0; i < array_size(node->children); ++i) {
-            struct Child *child = (struct Child*)array_get(node->children, i);
+            struct Child *child = (struct Child *)array_get(node->children, i);
             out("     // Check mandatoryness for %s\n", child->id);
             out("     if (node->%s == NULL && "
                 // TODO Fix the indices for the phase and node
@@ -73,23 +73,24 @@ static void generate_mandatory(struct Config *config, FILE *fp) {
 }
 
 static void generate_info(FILE *fp) {
-        out("struct Info {\n");
-        out("    enum phase_id phase;\n");
-        out("    bool error;\n");
-        out("};\n");
-        out("\n");
+    out("struct Info {\n");
+    out("    enum phase_id phase;\n");
+    out("    bool error;\n");
+    out("};\n");
+    out("\n");
 
-        out("static struct Info *create_info(enum phase_id phase) {\n");
-        out("     struct Info *info = (struct info *) malloc(sizeof(struct Info));\n");
-        out("     info->phase = phase;\n");
-        out("     error = 0;\n");
-        out("     return info;\n");
-        out("}\n");
-        out("\n");
+    out("static struct Info *create_info(enum phase_id phase) {\n");
+    out("     struct Info *info = (struct info *) malloc(sizeof(struct "
+        "Info));\n");
+    out("     info->phase = phase;\n");
+    out("     error = 0;\n");
+    out("     return info;\n");
+    out("}\n");
+    out("\n");
 
-        out("static void free_info(struct Info *info) {\n");
-        out("     free(info);\n");
-        out("}\n");
+    out("static void free_info(struct Info *info) {\n");
+    out("     free(info);\n");
+    out("}\n");
 }
 
 static void generate(struct Config *c, FILE *fp, bool header) {
@@ -97,7 +98,6 @@ static void generate(struct Config *c, FILE *fp, bool header) {
         out("#pragma once\n");
         generate_mandatory(c, fp);
     }
-
 
     out("#include \"ast.h\"\n");
     if (!header) {

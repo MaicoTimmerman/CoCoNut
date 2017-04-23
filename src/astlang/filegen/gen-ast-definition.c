@@ -23,7 +23,8 @@ static void template_ast_h(struct Config *config, FILE *fp) {
     }
     out("\n// Forward declarations of nodesets\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        out("struct %s;\n", ((struct Nodeset *)array_get(config->nodesets, i))->id);
+        out("struct %s;\n",
+            ((struct Nodeset *)array_get(config->nodesets, i))->id);
     }
 
     // Print node structs
