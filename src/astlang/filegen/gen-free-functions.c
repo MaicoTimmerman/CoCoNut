@@ -4,43 +4,18 @@
 #include "str-ast.h"
 #include <stdio.h>
 
-#define out(...) fprintf(info->fp, __VA_ARGS__)
+#define out(...) fprintf(fp, __VA_ARGS__)
 
-struct Info {
-    FILE *fp;
-};
+static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
 
-static struct Info *create_info(void) {
-    struct Info *info = (struct Info *)mem_alloc(sizeof(struct Info));
-    info->fp = NULL;
-    return info;
-}
+    out("void free_%s_tree(struct %s *nodeset)", nodeset->id, nodeset->id);
 
-static void free_info(struct Info *info) {
-    mem_free(info);
-}
-
-static void generate_free_node_header(struct Node *node, struct Info *info) {
-    out("void free_%s_tree(struct %s*);", node->id, node->id);
-    out(" // free children.\n");
-
-    out("void free_%s_node(struct %s*);", node->id, node->id);
-    out(" // skip children.\n");
-}
-
-static void generate_free_nodeset_header(struct Nodeset *nodeset,
-                                         struct Info *info) {
-    out("void free_%s_tree(struct %s*);", nodeset->id, nodeset->id);
-    out(" // free children.\n");
-
-    out("void free_%s_node(struct %s*);", nodeset->id, nodeset->id);
-    out(" // skip children.\n");
-}
-
-static void generate_free_nodeset_definition(struct Nodeset *nodeset,
-                                             struct Info *info) {
-
-    out("void free_%s_tree(struct %s *nodeset) {", nodeset->id, nodeset->id);
+    if (header) {
+        out(" {\n");
+    } else {
+        out(";\n");
+        return;
+    }
     out(" // free children. \n");
 
     out("    switch(nodeset->type) {\n");
@@ -60,9 +35,15 @@ static void generate_free_nodeset_definition(struct Nodeset *nodeset,
     out("}\n");
 }
 
-static void generate_free_node_definition(struct Node *node,
-                                          struct Info *info) {
-    out("void free_%s_tree(struct %s* node) {\n", node->id, node->id);
+static void generate_free_node(struct Node *node, FILE *fp, bool header) {
+    out("void free_%s_tree(struct %s* node)", node->id, node->id);
+
+    if (header) {
+        out(" {\n");
+    } else {
+        out(";\n");
+        return;
+    }
 
     for (int i = 0; i < array_size(node->children); ++i) {
         struct Child *child = (struct Child *)array_get(node->children, i);
@@ -97,44 +78,30 @@ static void generate_free_node_definition(struct Node *node,
     out("}\n");
 }
 
-void generate_free_definitions(struct Config *config, FILE *fp) {
-    struct Info *info = create_info();
-    info->fp = fp;
-
+void generate(struct Config *config, FILE *fp, bool header) {
     out("#include \"ast.h\"\n");
-    out("#include \"free-ast.h\"\n");
-    out("\n");
+
+    if (header) {
+        out("#include \"memory.h\"\n");
+        out("#include \"free-ast.h\"\n");
+    } else {
+        out("#pragma once\n");
+    }
+
     out("// NODES\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        generate_free_node_definition(
-            (struct Node *)array_get(config->nodes, i), info);
+        generate_free_node(array_get(config->nodes, i), fp, header);
     }
     out("// NODESETS\n");
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        generate_free_nodeset_definition(
-            (struct Nodeset *)array_get(config->nodesets, i), info);
+        generate_free_nodeset(array_get(config->nodesets, i), fp, header);
     }
-
-    free_info(info);
 }
+
+void generate_free_definitions(struct Config *config, FILE *fp) {
+    generate(config, fp, true);
+}
+
 void generate_free_header(struct Config *config, FILE *fp) {
-    struct Info *info = create_info();
-    info->fp = fp;
-
-    out("#pragma once\n");
-    out("#include \"ast.h\"\n");
-    out("#include \"memory.h\"\n");
-    out("\n");
-    out("// NODES\n");
-    for (int i = 0; i < array_size(config->nodes); ++i) {
-        generate_free_node_header((struct Node *)array_get(config->nodes, i),
-                                  info);
-    }
-    out("// NODESETS\n");
-    for (int i = 0; i < array_size(config->nodesets); ++i) {
-        generate_free_nodeset_header(
-            (struct Nodeset *)array_get(config->nodesets, i), info);
-    }
-
-    free_info(info);
+    generate(config, fp, false);
 }
