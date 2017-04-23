@@ -14,6 +14,7 @@
 #include "gen-ast-definition.h"
 #include "gen-copy-functions.h"
 #include "gen-create-functions.h"
+#include "gen-consistency-functions.h"
 #include "gen-free-functions.h"
 #include "gen-trav-functions.h"
 #include "print-ast.h"
@@ -109,6 +110,7 @@ int main(int argc, char *argv[]) {
 
     filegen_add("free-ast.h", generate_free_header);
     filegen_add("free-ast.c", generate_free_definitions);
+
     filegen_add("create-ast.c", generate_create_functions);
     filegen_add("create-ast.h", generate_create_function_headers);
 
@@ -117,6 +119,9 @@ int main(int argc, char *argv[]) {
 
     filegen_add("copy-ast.h", generate_copy_header);
     filegen_add("copy-ast.c", generate_copy_definitions);
+
+    filegen_add("consistency-ast.h", generate_consistency_header);
+    filegen_add("consistency-ast.c", generate_consistency_definition);
 
     int ret = filegen_generate(parse_result);
     filegen_cleanup();
