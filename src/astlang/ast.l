@@ -93,13 +93,13 @@ static inline void lexer_init();
 "children"      { LEX_KEYWORD(T_CHILDREN);}
 "child"         { LEX_KEYWORD(T_CHILD);}
 "construct"     { LEX_KEYWORD(T_CONSTRUCT);}
-"cycle"         { LEX_KEYWORD(T_CYCLE);}
-"cycles"        { LEX_KEYWORD(T_CYCLES);}
 "enum"          { LEX_KEYWORD(T_ENUM);}
 "mandatory"     { LEX_KEYWORD(T_MANDATORY);}
 "node"          { LEX_KEYWORD(T_NODE);}
 "nodeset"       { LEX_KEYWORD(T_NODESET);}
 "nodes"         { LEX_KEYWORD(T_NODES);}
+"pass"          { LEX_KEYWORD(T_PASS);}
+"passes"        { LEX_KEYWORD(T_PASSES);}
 "phase"         { LEX_KEYWORD(T_PHASE);}
 "prefix"        { LEX_KEYWORD(T_PREFIX);}
 "to"            { LEX_KEYWORD(T_TO);}
