@@ -21,6 +21,8 @@
 
 extern struct Config *parse(FILE *fp);
 
+char *yy_filename;
+
 static void usage(char *program) {
     char *program_bin = strrchr(program, '/');
     if (program_bin)
@@ -43,7 +45,7 @@ int main(int argc, char *argv[]) {
     int verbose_flag;
     int option_index;
     int c = 0;
-    char *input_fn, *output_dir = NULL;
+    char *output_dir = NULL;
 
     struct option long_options[] = {{"verbose", no_argument, &verbose_flag, 1},
                                     {"output-dir", required_argument, 0, 'o'},
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind == argc - 1) {
-        input_fn = argv[optind];
+        yy_filename = argv[optind];
     } else {
         usage(argv[0]);
         return 1;
@@ -89,9 +91,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    FILE *f = fopen(input_fn, "r");
+    FILE *f = fopen(yy_filename, "r");
     if (f == NULL) {
-        fprintf(stderr, "%s: cannot open file: %s\n", input_fn,
+        fprintf(stderr, "%s: cannot open file: %s\n", yy_filename,
                 strerror(errno));
         return 1;
     }
