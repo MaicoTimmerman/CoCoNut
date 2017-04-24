@@ -31,6 +31,7 @@ enum PrintType { PT_error, PT_warning, PT_note };
 static void do_print(enum PrintType type, int lineno, int column_start,
                      int column_end, char *line, char *format, va_list ap) {
 
+    // TODO: FIXME: Filename
     char *fn = "(stdin)";
 
     PRINT_COLOR(BOLD);

@@ -107,6 +107,7 @@ static inline void lexer_init();
 "traversals"    { LEX_KEYWORD(T_TRAVERSALS);}
 "values"        {
                     if (yy_lex_keywords) {
+                        // Set to true in ast.y.
                         yy_lex_keywords = false;
                         return T_VALUES;
                     } else {
