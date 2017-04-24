@@ -28,9 +28,10 @@ static void usage(char *program) {
 
     printf("Usage: %s [options] [file]\n", program);
     printf("Options:\n");
-    printf("  --output-dir/-o <directory>       Directory to write generated "
+    printf("  --output-dir/-o <directory>  Directory to write generated "
            "files to.\n");
-    printf("  --verbose/-v                      Enable verbose mode.\n");
+    printf("  --verbose/-v                 Enable verbose mode.\n");
+    printf("                               Prints the AST after parsing the input file\n");
 }
 
 static void version(void) {
@@ -102,7 +103,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "\n\nFound errors\n");
         exit(1);
     }
-    /*print_config(parse_result);*/
+
+    if (verbose_flag) {
+        print_config(parse_result);
+    }
 
     filegen_init(output_dir);
     filegen_add("enum.h", generate_enum_definitions);
