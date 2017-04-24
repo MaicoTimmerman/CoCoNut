@@ -5,26 +5,22 @@
 
 static void free_phase(void *p) {
     struct Phase *phase = p;
-    
-    if (phase->traversals != NULL)
-        array_cleanup(phase->traversals, mem_free);
-    if (phase->cycles != NULL)
-        array_cleanup(phase->cycles, mem_free);
-    
+
+    if (phase->passes != NULL)
+        array_cleanup(phase->passes, mem_free);
+
     mem_free(phase->id);
     mem_free(phase);
 }
 
-static void free_cycle(void *c) {
-    struct Cycle *cycle = c;
-    
-    if (cycle->traversals != NULL)
-        array_cleanup(cycle->traversals, mem_free);
-    if (cycle->cycles != NULL)
-        array_cleanup(cycle->cycles, mem_free);
-    
-    mem_free(cycle->id);
-    mem_free(cycle);
+static void free_pass(void *p) {
+    struct Pass *pass = p;
+
+    if (pass->traversals != NULL)
+        array_cleanup(pass->traversals, mem_free);
+
+    mem_free(pass->id);
+    mem_free(pass);
 }
 
 static void free_traversal(void *p) {
@@ -113,6 +109,7 @@ static void free_node(void *p) {
 
 void free_config(struct Config *config) {
     array_cleanup(config->phases, free_phase);
+    array_cleanup(config->passes, free_pass);
     array_cleanup(config->traversals, free_traversal);
     array_cleanup(config->enums, free_enum);
     array_cleanup(config->nodesets, free_nodeset);

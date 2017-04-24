@@ -21,7 +21,7 @@ extern FILE* yyin;
 
 /* Array to append config entries to during reducing */
 static array *config_phases;
-static array *config_cycles;
+static array *config_passes;
 static array *config_enums;
 static array *config_traversals;
 static array *config_nodesets;
@@ -66,7 +66,7 @@ struct ParserLocation yy_parser_location;
     struct array *array;
     struct Config *config;
     struct Phase *phase;
-    struct Cycle *cycle;
+    struct Pass *pass;
     struct Traversal *traversal;
     struct Enum *attr_enum;
     struct Nodeset *nodeset;
@@ -109,13 +109,13 @@ struct ParserLocation yy_parser_location;
 %token T_CHILDREN "children"
 %token T_CHILD "child"
 %token T_CONSTRUCT "construct"
-%token T_CYCLE "cycle"
-%token T_CYCLES "cycles"
 %token T_ENUM "enum"
 %token T_MANDATORY "mandatory"
 %token T_NODE "node"
 %token T_NODES "nodes"
 %token T_NODESET "nodeset"
+%token T_PASS "pass"
+%token T_PASSES "passes"
 %token T_PHASE "phase"
 %token T_PREFIX "prefix"
 %token T_TO "to"
@@ -135,7 +135,7 @@ struct ParserLocation yy_parser_location;
 %type<attrtype> attrprimitivetype
 %type<attr> attr attrhead
 %type<child> child
-%type<cycle> cycle
+%type<pass> pass
 %type<node> nodebody node
 %type<nodeset> nodeset
 %type<phase> phase
@@ -149,7 +149,7 @@ struct ParserLocation yy_parser_location;
 
 /* Root of the config, creating the final config */
 root: entry { parse_result = create_config(config_phases,
-                                 config_cycles,
+                                 config_passes,
                                  config_traversals,
                                  config_enums,
                                  config_nodesets,
@@ -158,7 +158,7 @@ root: entry { parse_result = create_config(config_phases,
 
 /* For every entry in the config, append to the correct array. */
 entry: phase entry { array_append(config_phases, $1); }
-     | cycle entry { array_append(config_cycles, $1); }
+     | pass entry { array_append(config_passes, $1); }
      | traversal entry { array_append(config_traversals, $1); }
      | enum entry { array_append(config_enums, $1); }
      | nodeset entry { array_append(config_nodesets, $1); }
@@ -166,24 +166,50 @@ entry: phase entry { array_append(config_phases, $1); }
      | %empty
      ;
 
-phase: T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_phase($2, $6, NULL);}
-     | T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_phase($2, $6, $11);}
+phase: T_PHASE T_ID '{' T_PASSES '{' idlist '}' '}' ';'
+     {  $$ = create_phase($2, $6, 1);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($6, &@6);
+
+     }
+     | T_PHASE T_ID T_INTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
+     {  $$ = create_phase($2, $7, $3);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($7, &@7);
+        new_location($3, &@3);
+
+     }
      ;
 
-cycle: T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {$$ = create_cycle($2, $6, NULL);}
-     | T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {$$ = create_cycle($2, $6, $11);}
+pass: T_PASS T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
+     { $$ = create_pass($2, $6, 1);
+       new_location($$, &@$);
+       new_location($2, &@2);
+       new_location($6, &@6);
+     }
+     | T_PASS T_ID T_INTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
+     { $$ = create_pass($2, $7, $3);
+       new_location($$, &@$);
+       new_location($2, &@2);
+       new_location($7, &@7);
+       new_location($3, &@3);
+
+     }
      ;
 
 traversal: T_TRAVERSAL T_ID ';'
          { $$ = create_traversal($2, NULL);
            new_location($$, &@$);
+           new_location($2, &@2);
          }
          | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'
-         { $$ = create_traversal($2, $6);   }
+         { $$ = create_traversal($2, $6);
+           new_location($$, &@$);
+           new_location($2, &@2);
+           new_location($6, &@6);
+         }
          ;
 
 enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' T_VALUES '{' idlist  '}' '}' ';'
@@ -450,7 +476,7 @@ idlist: idlist ',' T_ID
 struct Config* parse(void) {
     yyin = stdin;
     config_phases = create_array();
-    config_cycles = create_array();
+    config_passes = create_array();
     config_enums = create_array();
     config_traversals = create_array();
     config_nodesets = create_array();

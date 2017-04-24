@@ -58,7 +58,7 @@ struct ParserLocation {
 
 struct Config {
     array *phases;
-    array *cycles;
+    array *passes;
     array *traversals;
     array *enums;
     array *nodesets;
@@ -69,19 +69,17 @@ struct Config {
 
 struct Phase {
     char *id;
-    
-    array *traversals;
-    array *cycles;
+    int num_run;
+    array *passes;
 
     struct NodeCommonInfo *common_info;
 };
 
-struct Cycle {
+struct Pass {
     char *id;
-    
+    int num_run;
     array *traversals;
-    array *cycles;
-    
+
     struct NodeCommonInfo *common_info;
 };
 

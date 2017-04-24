@@ -15,6 +15,7 @@ struct Info {
     smap_t *nodeset_name;
     smap_t *traversal_name;
     smap_t *phase_name;
+    smap_t *pass_name;
 };
 
 
@@ -28,6 +29,7 @@ static struct Info *create_info(void) {
     info->nodeset_name = smap_init(32);
     info->traversal_name = smap_init(32);
     info->phase_name = smap_init(32);
+    info->pass_name = smap_init(32);
     return info;
 }
 
@@ -38,6 +40,7 @@ static void free_info(struct Info *info) {
     smap_free(info->nodeset_name);
     smap_free(info->traversal_name);
     smap_free(info->phase_name);
+    smap_free(info->pass_name);
     mem_free(info);
 }
 
@@ -51,6 +54,8 @@ static bool check_name_exists(struct Info *info, char *name) {
     if (smap_retrieve(info->traversal_name, name) != NULL)
         return true;
     if (smap_retrieve(info->phase_name, name) != NULL)
+        return true;
+    if (smap_retrieve(info->pass_name, name) != NULL)
         return true;
     return false;
 }
@@ -127,6 +132,25 @@ static int check_phases(array *phases, struct Info *info) {
         } else {
             smap_insert(info->traversal_name, cur_phase->id,
                         cur_phase);
+        }
+    }
+    return error;
+}
+
+static int check_passes(array *passes, struct Info *info) {
+
+    int error = 0;
+
+    for (int i = 0; i < array_size(passes); ++i) {
+        struct Pass *cur_pass =
+            (struct Pass *)array_get(passes, i);
+
+        if (check_name_exists(info, cur_pass->id)) {
+            printf("Redefinition of name: %s\n", cur_pass->id);
+            error = 1;
+        } else {
+            smap_insert(info->pass_name, cur_pass->id,
+                        cur_pass);
         }
     }
     return error;
@@ -322,6 +346,68 @@ static int check_traversal(struct Traversal *traversal, struct Info *info) {
     return error;
 }
 
+static int check_pass(struct Pass *pass, struct Info *info) {
+
+    int error = 0;
+
+    smap_t *traversal_name = smap_init(16);
+
+    for (int i = 0; i < array_size(pass->traversals); ++i) {
+        char *traversal = (char *)array_get(pass->traversals, i);
+        //
+        // Check if there is no duplicate naming.
+        if (smap_retrieve(traversal_name, traversal)) {
+            printf("Duplicate name '%s' in traversals of pass '%s'\n", traversal,
+                   pass->id);
+            error = 1;
+        } else {
+            smap_insert(traversal_name, traversal, traversal);
+        }
+
+        struct Traversal *pass_traversal =
+            (struct Traversal *)smap_retrieve(info->traversal_name, traversal);
+
+        if (!pass_traversal) {
+            printf("Unknown type of traversal '%s' in pass '%s'\n", traversal,
+                   pass->id);
+            error = 1;
+        }
+    }
+
+    return error;
+}
+
+static int check_phase(struct Phase *phase, struct Info *info) {
+
+    int error = 0;
+
+    smap_t *pass_name = smap_init(16);
+
+    for (int i = 0; i < array_size(phase->passes); ++i) {
+        char *pass = (char *)array_get(phase->passes, i);
+        //
+        // Check if there is no duplicate naming.
+        if (smap_retrieve(pass_name, pass)) {
+            printf("Duplicate name '%s' in passes of phase '%s'\n", pass,
+                   phase->id);
+            error = 1;
+        } else {
+            smap_insert(pass_name, pass, pass);
+        }
+
+        struct Pass *phase_pass =
+            (struct Pass *)smap_retrieve(info->pass_name, pass);
+
+        if (!phase_pass) {
+            printf("Unknown type of pass '%s' in phase '%s'\n", pass,
+                   phase->id);
+            error = 1;
+        }
+    }
+
+    return error;
+}
+
 int check_config(struct Config *config) {
 
     int success = 0;
@@ -331,7 +417,8 @@ int check_config(struct Config *config) {
     success += check_nodesets(config->nodesets, info);
     success += check_enums(config->enums, info);
     success += check_traversals(config->traversals, info);
-    success += check_phases(config->traversals, info);
+    success += check_phases(config->phases, info);
+    success += check_passes(config->passes, info);
 
     for (int i = 0; i < array_size(config->nodes); ++i) {
         success += check_node(array_get(config->nodes, i), info);
@@ -348,9 +435,12 @@ int check_config(struct Config *config) {
     for (int i = 0; i < array_size(config->traversals); ++i) {
         success += check_traversal(array_get(config->traversals, i), info);
     }
-    /*for (int i = 0; i < array_size(config->traversals); ++i) {*/
-    /*success += check_traversal(array_get(config->traversals, i), info);*/
-    /*}*/
+    for (int i = 0; i < array_size(config->passes); ++i) {
+        success += check_pass(array_get(config->passes, i), info);
+    }
+    for (int i = 0; i < array_size(config->phases); ++i) {
+        success += check_phase(array_get(config->phases, i), info);
+    }
 
     free_info(info);
 

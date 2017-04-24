@@ -85,13 +85,13 @@ static inline void lexer_init();
 "children" {return T_CHILDREN;}
 "child" {return T_CHILD;}
 "construct" {return T_CONSTRUCT;}
-"cycle" {return T_CYCLE;}
-"cycles" {return T_CYCLES;}
 "enum" {return T_ENUM;}
 "mandatory" {return T_MANDATORY;}
 "node" {return T_NODE;}
 "nodeset" {return T_NODESET;}
 "nodes" {return T_NODES;}
+"pass" {return T_PASS;}
+"passes" {return T_PASSES;}
 "phase" {return T_PHASE;}
 "prefix" {return T_PREFIX;}
 "to" {return T_TO;}
