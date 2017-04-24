@@ -228,6 +228,8 @@ enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
         new_location($8, &@6);
     }
     ;
+
+// TODO Lorian: Intermediate stuff.
 enumvalues: T_VALUES '{' idlist  '}'
         {
             $$ = $3;
