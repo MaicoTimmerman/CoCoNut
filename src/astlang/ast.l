@@ -105,17 +105,7 @@ static inline void lexer_init();
 "to"            { LEX_KEYWORD(T_TO);}
 "traversal"     { LEX_KEYWORD(T_TRAVERSAL);}
 "traversals"    { LEX_KEYWORD(T_TRAVERSALS);}
-"values"        {
-                    if (yy_lex_keywords) {
-                        // Set to true in ast.y.
-                        yy_lex_keywords = false;
-                        return T_VALUES;
-                    } else {
-                        yylval.string = strdup(yytext);
-                        return T_ID;
-                    }
-                }
-
+"values"        { LEX_KEYWORD(T_VALUES) ; }
 "double"        { LEX_KEYWORD(T_DOUBLE);}
 "float"         { LEX_KEYWORD(T_FLOAT);}
 "int"           { LEX_KEYWORD(T_INT);}

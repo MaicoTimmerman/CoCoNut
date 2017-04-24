@@ -229,10 +229,13 @@ enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     }
     ;
 
-// TODO Lorian: Intermediate stuff.
-enumvalues: T_VALUES '{' idlist  '}'
+enumvalues: T_VALUES '{'
         {
-            $$ = $3;
+            yy_lex_keywords = false;
+        }
+        idlist  '}'
+        {
+            $$ = $4;
             yy_lex_keywords = true;
         }
 
