@@ -13,7 +13,8 @@
 static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
 
-static void generate_node(struct Node *node, FILE *fp, bool header) {
+static void generate_node(struct Node *node, FILE *fp, int node_id,
+                          bool header) {
     out("struct %s *check_%s(struct %s *node, struct Info *info)", node->id,
         node->id, node->id);
 
@@ -26,14 +27,12 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
             struct Child *child = (struct Child *)array_get(node->children, i);
             out("     // Check mandatoryness for %s\n", child->id);
             out("     if (node->%s == NULL && "
-                // TODO Fix the indices for the phase and node
                 "mandatory_phases[info->phase_id][%d][%d] == %d)\n",
-                child->id, 1234234, 23432423, MANDATORY);
+                child->id, node_id, i, MANDATORY);
             out("          error = 1;\n");
             out("     if (node->%s != NULL && "
-                // TODO Fix the indices for the phase and node
                 "mandatory_phases[info->phase_id][%d][%d] == %d)\n",
-                child->id, 1234234, 23432423, FORBIDDEN);
+                child->id, node_id, i, FORBIDDEN);
             out("          error = 1;\n");
         }
         out("}\n\n");
@@ -107,7 +106,7 @@ static void generate(struct Config *c, FILE *fp, bool header) {
 
     out("// Node create functions\n");
     for (int i = 0; i < array_size(c->nodes); i++) {
-        generate_node(array_get(c->nodes, i), fp, header);
+        generate_node(array_get(c->nodes, i), fp, i, header);
     }
 
     out("// Nodeset create functions\n");
