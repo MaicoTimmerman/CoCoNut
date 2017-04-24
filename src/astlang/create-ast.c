@@ -19,12 +19,12 @@ static struct NodeCommonInfo *create_commoninfo() {
     return info;
 }
 
-struct Config *create_config(array *phases, array *cycles, array *traversals, 
+struct Config *create_config(array *phases, array *passes, array *traversals,
                              array *enums, array *nodesets, array *nodes) {
 
     struct Config *c = mem_alloc(sizeof(struct Config));
     c->phases = phases;
-    c->cycles = cycles;
+    c->passes = passes;
     c->traversals = traversals;
     c->enums = enums;
     c->nodesets = nodesets;
@@ -34,26 +34,26 @@ struct Config *create_config(array *phases, array *cycles, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *traversals, array *cycles) {
+struct Phase *create_phase(char *id, array *passes, int num_run) {
 
     struct Phase *p = mem_alloc(sizeof(struct Phase));
     p->id = id;
-    p->traversals = traversals;
-    p->cycles = cycles;
+    p->passes = passes;
+    p->num_run = num_run;
 
     p->common_info = create_commoninfo();
     return p;
 }
 
-struct Cycle *create_cycle(char *id, array *traversals, array *cycles) {
+struct Pass *create_pass(char *id, array *traversals, int num_run) {
 
-    struct Cycle *c = mem_alloc(sizeof(struct Cycle));
-    c->id = id;
-    c->traversals = traversals;
-    c->cycles = cycles;
+    struct Pass *p = mem_alloc(sizeof(struct Pass));
+    p->id = id;
+    p->traversals = traversals;
+    p->num_run = num_run;
 
-    c->common_info = create_commoninfo();
-    return c;
+    p->common_info = create_commoninfo();
+    return p;
 }
 
 struct Traversal *create_traversal(char *id, array *nodes) {
