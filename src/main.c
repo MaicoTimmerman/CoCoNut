@@ -31,7 +31,8 @@ static void usage(char *program) {
     printf("  --output-dir/-o <directory>  Directory to write generated "
            "files to.\n");
     printf("  --verbose/-v                 Enable verbose mode.\n");
-    printf("                               Prints the AST after parsing the input file\n");
+    printf("                               Prints the AST after parsing the "
+           "input file\n");
 }
 
 static void version(void) {

@@ -23,7 +23,7 @@ extern bool yy_lex_keywords;
 
 /* Array to append config entries to during reducing */
 static array *config_phases;
-static array *config_cycles;
+static array *config_passes;
 static array *config_enums;
 static array *config_traversals;
 static array *config_nodesets;
@@ -69,7 +69,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
     struct array *array;
     struct Config *config;
     struct Phase *phase;
-    struct Cycle *cycle;
+    struct Pass *pass;
     struct Traversal *traversal;
     struct Enum *attr_enum;
     struct Nodeset *nodeset;
@@ -112,13 +112,13 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token T_CHILDREN "children"
 %token T_CHILD "child"
 %token T_CONSTRUCT "construct"
-%token T_CYCLE "cycle"
-%token T_CYCLES "cycles"
 %token T_ENUM "enum"
 %token T_MANDATORY "mandatory"
 %token T_NODE "node"
 %token T_NODES "nodes"
 %token T_NODESET "nodeset"
+%token T_PASS "pass"
+%token T_PASSES "passes"
 %token T_PHASE "phase"
 %token T_PREFIX "prefix"
 %token T_TO "to"
@@ -138,7 +138,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %type<attrtype> attrprimitivetype
 %type<attr> attr attrhead
 %type<child> child
-%type<cycle> cycle
+%type<pass> pass
 %type<node> nodebody node
 %type<nodeset> nodeset
 %type<phase> phase
@@ -152,7 +152,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 
 /* Root of the config, creating the final config */
 root: entry { parse_result = create_config(config_phases,
-                                 config_cycles,
+                                 config_passes,
                                  config_traversals,
                                  config_enums,
                                  config_nodesets,
@@ -161,7 +161,7 @@ root: entry { parse_result = create_config(config_phases,
 
 /* For every entry in the config, append to the correct array. */
 entry: entry phase { array_append(config_phases, $2); }
-     | entry cycle { array_append(config_cycles, $2); }
+     | entry pass { array_append(config_passes, $2); }
      | entry traversal { array_append(config_traversals, $2); }
      | entry enum { array_append(config_enums, $2); }
      | entry nodeset { array_append(config_nodesets, $2); }
@@ -169,31 +169,33 @@ entry: entry phase { array_append(config_phases, $2); }
      | %empty
      ;
 
-phase: T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {
-         $$ = create_phase($2, $6, NULL);
-         new_location($$, &@$);
-         new_location($2, &@2);
+phase: T_PHASE T_ID '{' T_PASSES '{' idlist '}' '}' ';'
+     {  $$ = create_phase($2, $6, 1);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($6, &@6);
+
      }
-     | T_PHASE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {
-         $$ = create_phase($2, $6, $11);
-         new_location($$, &@$);
-         new_location($2, &@2);
+     | T_PHASE T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
+     {  $$ = create_phase($2, $7, $3);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($7, &@7);
+
      }
      ;
 
-cycle: T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     {
-         $$ = create_cycle($2, $6, NULL);
-         new_location($$, &@$);
-         new_location($2, &@2);
+pass: T_PASS T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
+     { $$ = create_pass($2, $6, 1);
+       new_location($$, &@$);
+       new_location($2, &@2);
+       new_location($6, &@6);
      }
-     | T_CYCLE T_ID '{' T_TRAVERSALS '{' idlist '}' ',' T_CYCLES '{' idlist '}' '}' ';'
-     {
-         $$ = create_cycle($2, $6, $11);
-         new_location($$, &@$);
-         new_location($2, &@2);
+     | T_PASS T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
+     { $$ = create_pass($2, $7, $3);
+       new_location($$, &@$);
+       new_location($2, &@2);
+       new_location($7, &@7);
      }
      ;
 
@@ -491,7 +493,7 @@ static void new_location(void *ptr, struct ParserLocation *loc) {
 struct Config* parse(FILE *fp) {
     yyin = fp;
     config_phases = create_array();
-    config_cycles = create_array();
+    config_passes = create_array();
     config_enums = create_array();
     config_traversals = create_array();
     config_nodesets = create_array();

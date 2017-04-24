@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct Config *create_config(array *phases, array *cycles, array *traversals,
+struct Config *create_config(array *phases, array *passes, array *traversals,
                              array *attr_enums, array *nodesets, array *nodes);
 
-struct Phase *create_phase(char *id, array *traversals, array *cycles);
+struct Phase *create_phase(char *id, array *passes, int num_run);
 
-struct Cycle *create_cycle(char *id, array *traversals, array *cycles);
+struct Pass *create_pass(char *id, array *traversals, int num_run);
 
 struct Traversal *create_traversal(char *id, array *nodes);
 
