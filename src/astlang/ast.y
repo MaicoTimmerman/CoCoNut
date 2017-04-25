@@ -172,22 +172,22 @@ entry: entry phase { array_append(config_phases, $2); }
      ;
 
 phase: T_CYCLE T_PHASE T_ID '{' T_SUBPHASES '{' idlist '}' '}' ';'
-     {  $$ = create_phase($3, $7, NULL, 1);
+     {  $$ = create_phase($3, $7, NULL, true);
         new_location($$, &@$);
         new_location($3, &@3);
      }
      |T_CYCLE T_PHASE T_ID '{' T_PASSES '{' idlist '}'  '}' ';'
-     {  $$ = create_phase($3, NULL, $7, 1);
+     {  $$ = create_phase($3, NULL, $7, true);
         new_location($$, &@$);
         new_location($3, &@3);
      }
      | T_PHASE T_ID '{' T_SUBPHASES '{' idlist '}' '}' ';'
-     {  $$ = create_phase($2, $6, NULL, 0);
+     {  $$ = create_phase($2, $6, NULL, false);
         new_location($$, &@$);
         new_location($2, &@2);
      }
      | T_PHASE T_ID '{' T_PASSES '{' idlist '}'  '}' ';'
-     {  $$ = create_phase($2, NULL, $6, 0);
+     {  $$ = create_phase($2, NULL, $6, false);
         new_location($$, &@$);
         new_location($2, &@2);
      }
