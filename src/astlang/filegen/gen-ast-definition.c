@@ -1,5 +1,7 @@
+#include "array.h"
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
 #include "str-ast.h"
 #include <stdio.h>
@@ -13,6 +15,22 @@ static void template_enum(struct Enum *arg_enum, FILE *fp) {
             (char *)array_get(arg_enum->values, i));
     }
     out("} %s;\n\n", arg_enum->id);
+}
+
+static void generate_nodetype_enum(struct Config *config, FILE *fp) {
+
+    out("typedef enum {\n");
+    for (int i = 0; i < array_size(config->nodes); i++) {
+        struct Node *n = array_get(config->nodes, i);
+        out("   " NT_FMT ",\n", n->id);
+    }
+
+    for (int i = 0; i < array_size(config->nodesets); i++) {
+        struct Nodeset *n = array_get(config->nodesets, i);
+        out("   " NT_FMT ",\n", n->id);
+    }
+
+    out("} NodeType;\n\n");
 }
 
 static void template_ast_h(struct Config *config, FILE *fp) {
@@ -59,10 +77,10 @@ static void template_ast_h(struct Config *config, FILE *fp) {
         out("// Nodeset %s\n", nodeset->id);
         out("typedef enum { ");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
-            out("NS_%s_%s, ", nodeset->id,
+            out(NS_FMT ", ", nodeset->id,
                 (char *)array_get(nodeset->nodes, j));
         }
-        out("} NS_%s_enum;\n", nodeset->id);
+        out("} " NS_ENUMTYPE_FMT ";\n", nodeset->id);
 
         out("typedef struct %s {\n", nodeset->id);
         out("    union {\n");
@@ -71,13 +89,16 @@ static void template_ast_h(struct Config *config, FILE *fp) {
             out("        struct %s *val_%s;\n", node_name, node_name);
         }
         out("    } value;\n");
-        out("    NS_%s_enum type;\n", nodeset->id);
+        out("    " NS_ENUMTYPE_FMT " type;\n", nodeset->id);
         out("} %s;\n\n", nodeset->id);
     }
 }
 
 void generate_enum_definitions(struct Config *config, FILE *fp) {
     out("#pragma once\n");
+
+    generate_nodetype_enum(config, fp);
+
     for (int i = 0; i < array_size(config->enums); i++) {
         template_enum((struct Enum *)array_get(config->enums, i), fp);
     }

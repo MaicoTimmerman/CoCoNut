@@ -4,11 +4,10 @@
 #include "array.h"
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
 #include "smap.h"
 #include "str-ast.h"
-
-#define out(...) fprintf(fp, __VA_ARGS__)
 
 static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
@@ -42,8 +41,8 @@ static void generate_node(struct Node *node, FILE *fp, int node_id,
 }
 
 static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
-    out("void check_%s(struct %s *nodeset, struct Info *info)",
-        nodeset->id, nodeset->id);
+    out("void check_%s(struct %s *nodeset, struct Info *info)", nodeset->id,
+        nodeset->id);
 
     if (header) {
         out(";\n\n");
@@ -54,7 +53,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     out("    switch (nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         char *node = (char *)array_get(nodeset->nodes, i);
-        out("    case NS_%s_%s:\n", nodeset->id, node);
+        out("    case " NS_FMT ":\n", nodeset->id, node);
         out("        check_%s(nodeset->value.val_%s, info);\n", node, node);
         out("        break;\n");
     }
@@ -65,7 +64,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
 /* For every phase, */
 /*     for every node, */
 /*         for every child, */
-    /*         for every manatory phase, */
+/*         for every manatory phase, */
 static void generate_mandatory_array(struct Config *config, FILE *fp) {
     out("bool mandatory_phases[][][] = {\n");
     for (int i = 0; i < array_size(config->phases); ++i) {
