@@ -19,10 +19,6 @@ clean:
 		$(LEXER:.c=.h) $(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) \
 		$(PARSER:.c=.h) $(PARSER:.c=.d)
 
-enum: $(TARGET)
-	bin/$(TARGET) < test/pass/meta_ast.ast
-	autogen -T src/templates/enum.tpl src/templates/enum.def
-
 %.o: %.c
 	@echo "Compiling source code: $(notdir $@)"
 	@$(CC) $(CFLAGS) $(patsubst %,-I%,$(SOURCE_DIRS)) -o $@ -c $<

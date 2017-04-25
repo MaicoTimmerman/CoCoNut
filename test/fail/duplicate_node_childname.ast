@@ -5,3 +5,10 @@ node IdExpr {
     }
 };
 
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

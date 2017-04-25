@@ -122,6 +122,9 @@ struct Child *create_child(int construct, int mandatory,
     c->id = id;
     c->type = type;
 
+    c->node = NULL;
+    c->nodeset = NULL;
+
     c->common_info = create_commoninfo();
     return c;
 }

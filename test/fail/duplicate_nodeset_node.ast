@@ -8,3 +8,10 @@ nodeset SomeNodeSet {
     SomeNode, SomeNode
 };
 
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

@@ -3,3 +3,10 @@ node SomeNode {
         string enum
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

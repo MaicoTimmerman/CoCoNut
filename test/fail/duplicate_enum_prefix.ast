@@ -11,3 +11,10 @@ enum SomeEnum {
         one, two
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;
