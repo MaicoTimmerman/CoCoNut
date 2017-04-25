@@ -3,9 +3,8 @@
 
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
-
-#define out(...) fprintf(fp, __VA_ARGS__)
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
     out("static struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,
@@ -75,7 +74,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("    switch (nodeset->type) {\n");
         for (int i = 0; i < array_size(nodeset->nodes); i++) {
             char *node = array_get(nodeset->nodes, i);
-            out("        case NS_%s_%s:\n", nodeset->id, node);
+            out("        case " NS_FMT ":\n", nodeset->id, node);
             out("            res->value.val_%s = "
                 "_copy_%s(nodeset->value.val_%s, imap);\n",
                 node, node, node);

@@ -32,6 +32,7 @@ static void usage(char *program) {
     printf("Options:\n");
     printf("  --output-dir/-o <directory>  Directory to write generated "
            "files to.\n");
+    printf("                               Defaults to ./src/generated/\n");
     printf("  --verbose/-v                 Enable verbose mode.\n");
     printf("                               Prints the AST after parsing the "
            "input file\n");
@@ -87,8 +88,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (output_dir == NULL) {
-        printf("Missing required --output-dir/-o option\n");
-        return 1;
+        output_dir = "src/generated/";
     }
 
     FILE *f = fopen(yy_filename, "r");
