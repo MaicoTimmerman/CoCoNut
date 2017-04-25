@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,11 +36,17 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *phases, array *passes, int cycle) {
+struct Phase *create_phase(char *id, array *phases, array *passes, bool cycle) {
 
     struct Phase *p = mem_alloc(sizeof(struct Phase));
+    if (phases == NULL) {
+        p->type = PH_passes;
+    } else {
+        p->type = PH_subphases;
+    }
+
     p->id = id;
-    p->phases = phases;
+    p->subphases = phases;
     p->passes = passes;
     p->cycle = cycle;
 

@@ -13,13 +13,24 @@
 #define IND5 IND IND IND IND IND
 
 static void print_phase(struct Phase *phase) {
-    printf("phase %s %i", phase->id, phase->num_run);
+    if (phase->cycle)
+        printf("cycle ");
 
-    printf(" {\n" IND "passes {\n");
-    int num_passes = array_size(phase->passes);
-    for (int i = 0; i < num_passes; i++) {
-        printf(IND2 "%s", (char *)array_get(phase->passes, i));
-        if (i < num_passes - 1)
+    printf("phase %s {\n", phase->id);
+
+    array *elems;
+    if (phase->type == PH_subphases) {
+        printf(IND "subphases {\n");
+        elems = phase->subphases;
+    } else {
+        printf(IND "passes {\n");
+        elems = phase->passes;
+    }
+
+    int num_elems = array_size(elems);
+    for (int i = 0; i < num_elems; i++) {
+        printf(IND2 "%s", (char *)array_get(elems, i));
+        if (i < num_elems - 1)
             printf(",\n");
         else
             printf("\n");
@@ -29,20 +40,12 @@ static void print_phase(struct Phase *phase) {
 }
 
 static void print_pass(struct Pass *pass) {
-    printf("pass %s %i", pass->id, pass->num_run);
-
-    printf(" {\n" IND "traversals {\n");
-    int num_traversals = array_size(pass->traversals);
-    for (int i = 0; i < num_traversals; i++) {
-        printf(IND2 "%s", (char *)array_get(pass->traversals, i));
-        if (i < num_traversals - 1)
-            printf(",\n");
-        else
-            printf("\n");
+    printf("pass %s", pass->id);
+    if (pass->traversal != NULL) {
+        printf(" {\n" IND "traversal = %s\n};\n\n", pass->traversal);
+    } else {
+        printf(";\n\n");
     }
-    printf("\n");
-
-    printf(IND "}\n};\n\n");
 }
 
 static void print_traversal(struct Traversal *traversal) {

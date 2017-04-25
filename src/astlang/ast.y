@@ -192,16 +192,16 @@ phase: T_CYCLE T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
      }
      ;
 
-pass: T_PASS T_ID '{' T_TRAVERSAL '=' T_ID '}' ';'
-     { $$ = create_pass($2, $6);
-       new_location($$, &@$);
-       new_location($2, &@2);
-       new_location($6, &@6);
-     }
-     | T_PASS T_ID ';'
-     { $$ = create_pass($2, NULL);
-       new_location($$, &@$);
-       new_location($2, &@2);
+pass: T_PASS T_ID ';'
+    { $$ = create_pass($2, NULL);
+      new_location($$, &@$);
+      new_location($2, &@2);
+    }
+    | T_PASS T_ID '{' T_TRAVERSAL '=' T_ID ';' '}' ';'
+    { $$ = create_pass($2, $6);
+      new_location($$, &@$);
+      new_location($2, &@2);
+      new_location($6, &@6);
      }
      ;
 
@@ -234,9 +234,14 @@ enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
         new_location($8, &@6);
     }
     ;
-enumvalues: T_VALUES '{' idlist  '}'
+
+enumvalues: T_VALUES '{'
         {
-            $$ = $3;
+            yy_lex_keywords = false;
+        }
+        idlist  '}'
+        {
+            $$ = $4;
             yy_lex_keywords = true;
         }
 
