@@ -1,6 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdbool.h>
+#include <regex.h>
+
 #include "ast.h"
 #include "ast.parser.h"
 #include "print.h"
@@ -16,12 +18,15 @@
 
 bool yy_lex_keywords = true;
 static char yy_linebuf[500];
+static regex_t regex;
+
 int yycolumn = 1;
 
 array *yy_lines;
 
 static inline void token_action();
 static inline void lexer_init();
+static inline void check_c_keyword(const char *);
 
 #define YY_USER_INIT lexer_init();
 #define YY_USER_ACTION token_action();
@@ -130,7 +135,9 @@ static inline void lexer_init();
 [A-Za-z][A-Za-z0-9_]*  {
     // TODO: Make identifiers start with an uppercase letter?
     // Identifier start with an letter and can have numbers and underscores.
-    yylval.string = strdup(yytext); return T_ID; }
+    yylval.string = strdup(yytext);
+    check_c_keyword(yylval.string);
+    return T_ID; }
 -?[0-9]+\.[0-9]+ {
     // (negative) floating point numbers
     yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
@@ -156,7 +163,30 @@ static inline void lexer_init(void) {
     // We start by reading the whole first line, and then continue lexing it
     yy_push_state(SAVELINE);
 
+    // Compile a regex for checking C-keywords as identifiers.
+    const char* regex_str = "^\\(auto\\|break\\|case\\|char\\|const\\|continue"
+        "\\|default\\|do\\|double\\|else\\|enum\\|extern\\|float\\|for\\|goto"
+        "\\|if\\|inline\\|int\\|long\\|register\\|restrict\\|return\\|short"
+        "\\|signed\\|sizeof\\|static\\|struct\\|switch\\|typedef\\|union"
+        "\\|unsigned\\|void\\|volatile\\|while\\)$";
+    int reti = regcomp(&regex, regex_str, 0);
+    if (reti) {
+        fprintf(stderr, "Could not compile C-keyword regex.\n");
+        exit(1);
+    }
+
     yy_lines = array_init(32);
+}
+
+static inline void check_c_keyword(const char *str) {
+    // Match for C-keywords.
+    int reti = regexec(&regex, str, 0, NULL, 0);
+    if (!reti) {
+        print_error_at(yylineno, yycolumn, yy_linebuf,
+                "Found C-keyword as identifier, would generate"
+                "incompatible C-code.\n");
+        exit(1);
+    }
 }
 
 static inline void token_action() {
