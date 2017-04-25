@@ -8,3 +8,10 @@ node SomeNode {
         child SomeNode a
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

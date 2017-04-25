@@ -2,3 +2,10 @@ nodeset SomeNodeSet {
     SomeNode, SomeOtherNode
 };
 
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

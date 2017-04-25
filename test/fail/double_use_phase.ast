@@ -25,3 +25,10 @@ pass a {
 pass c;
 
 traversal someTrav;
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;
