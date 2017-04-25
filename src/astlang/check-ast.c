@@ -468,7 +468,7 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
 
         // Check if there is no duplicate naming.
         if ((orig_node = smap_retrieve(pass_name, pass)) != NULL) {
-            print_error(pass, "Duplicate name '%s' in passes of phase '%s'\n",
+            print_error(pass, "Duplicate name '%s' in passes of phase '%s'",
                         pass, phase->id);
             print_note(orig_node, "Previously declared here");
             error = 1;
@@ -480,8 +480,8 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             (struct Pass *)smap_retrieve(info->pass_name, pass);
 
         if (!phase_pass) {
-            print_error(pass, "Unknown type of pass '%s' in phase '%s'\n", pass,
-                   phase->id);
+            print_error(pass, "Unknown type of pass '%s' in phase '%s'",
+                        pass, phase->id);
             error = 1;
         }
     }
@@ -492,7 +492,7 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
 
         // Check if there is no duplicate naming.
         if ((orig_node = smap_retrieve(subphase_name, subphase)) != NULL) {
-            print_error(subphase, "Duplicate name '%s' in subphases of phase '%s'\n",
+            print_error(subphase, "Duplicate name '%s' in subphases of phase '%s'",
                         subphase, phase->id);
             print_note(orig_node, "Previously declared here");
             error = 1;
@@ -504,17 +504,17 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             (struct Phase *)smap_retrieve(info->phase_name, subphase);
 
         if (!phase_subphase) {
-            print_error(subphase, "Unknown type of subphase '%s' in phase '%s'\n",
+            print_error(subphase, "Unknown type of subphase '%s' in phase '%s'",
                         subphase, phase->id);
             error = 1;
         } else {
             if (smap_retrieve(phase_order, subphase) == NULL) {
-                print_error(subphase, "undeclared type of subphase '%s' in phase '%s'\n",
+                print_error(subphase, "Undeclared type of subphase '%s' in phase '%s'",
                             subphase, phase->id);
                 error = 1;
             } else {
                 if (smap_retrieve(phase_used, subphase) != NULL) {
-                    print_error(subphase, "double use of subphase '%s' in phase '%s'\n",
+                    print_error(subphase, "Double use of subphase '%s' in phase '%s'",
                                 subphase, phase->id);
                     error = 1;
                 } else {
