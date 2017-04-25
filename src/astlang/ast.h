@@ -48,6 +48,8 @@ enum AttrValueType {
     AV_id
 };
 
+enum PhaseType { PH_subphases, PH_passes };
+
 // We define the type for YYLTYPE here,
 // to avoid a circular dependency between this header and the parser
 struct ParserLocation {
@@ -71,9 +73,11 @@ struct Config {
 struct Phase {
     char *id;
 
-    int cycle;
-    array *phases;
+    bool cycle;
+    enum PhaseType type;
+
     array *passes;
+    array *subphases;
 
     struct NodeCommonInfo *common_info;
 };

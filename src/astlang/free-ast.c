@@ -6,10 +6,14 @@
 static void free_phase(void *p) {
     struct Phase *phase = p;
 
-    if (phase->phases != NULL)
-        array_cleanup(phase->phases, mem_free);
-    if (phase->passes != NULL)
+    switch (phase->type) {
+    case PH_subphases:
+        array_cleanup(phase->subphases, mem_free);
+        break;
+    case PH_passes:
         array_cleanup(phase->passes, mem_free);
+        break;
+    }
 
     mem_free(phase->id);
     mem_free(phase);
@@ -18,8 +22,10 @@ static void free_phase(void *p) {
 static void free_pass(void *p) {
     struct Pass *pass = p;
 
+    if (pass->traversal != NULL)
+        mem_free(pass->traversal);
+
     mem_free(pass->id);
-    mem_free(pass->traversal);
     mem_free(pass);
 }
 

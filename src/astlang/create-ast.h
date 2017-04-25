@@ -8,11 +8,13 @@
 struct Config *create_config(array *phases, array *passes, array *traversals,
                              array *attr_enums, array *nodesets, array *nodes);
 
-struct Phase *create_phase(char *id, array *phases, array *passes, int cycle);
+struct Phase *create_phase(char *id, array *phases, array *passes, bool cycle);
 
 struct Pass *create_pass(char *id, char *traversal);
 
 struct Traversal *create_traversal(char *id, array *nodes);
+
+struct Phase *create_phase_passes(char *id, array *passes, bool cycle);
 
 struct Enum *create_enum(char *id, char *prefix, array *values);
 

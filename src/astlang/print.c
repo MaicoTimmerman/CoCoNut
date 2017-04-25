@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "imap.h"
 
+extern char *yy_filename;
 extern array *yy_lines;
 extern imap_t *yy_parser_locations;
 
@@ -31,11 +32,9 @@ enum PrintType { PT_error, PT_warning, PT_note };
 static void do_print(enum PrintType type, int lineno, int column_start,
                      int column_end, char *line, char *format, va_list ap) {
 
-    char *fn = "(stdin)";
-
     PRINT_COLOR(BOLD);
 
-    fprintf(stderr, "%s:%d:%d: ", fn, lineno, column_start);
+    fprintf(stderr, "%s:%d:%d: ", yy_filename, lineno, column_start);
 
     PRINT_COLOR(RESET_COLOR);
 

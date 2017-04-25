@@ -429,15 +429,13 @@ static int check_pass(struct Pass *pass, struct Info *info) {
 
     int error = 0;
 
-    smap_t *traversal_name = smap_init(16);
-
     if (pass->traversal != NULL) {
         struct Traversal *pass_traversal =
             (struct Traversal *)smap_retrieve(info->traversal_name, pass->traversal);
 
         if (!pass_traversal) {
-            printf("Unknown type of traversal '%s' in pass '%s'\n", pass->traversal,
-                   pass->id);
+            print_error(pass->traversal, "Unknown type of traversal '%s' in pass '%s'",
+                        pass->traversal, pass->id);
             error = 1;
         }
     }
@@ -445,19 +443,22 @@ static int check_pass(struct Pass *pass, struct Info *info) {
     return error;
 }
 
-static int check_phase(struct Phase *phase, struct Info *info) {
+static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_order) {
 
     int error = 0;
 
     smap_t *pass_name = smap_init(16);
+    smap_t *subphase_name = smap_init(16);
 
     for (int i = 0; i < array_size(phase->passes); ++i) {
         char *pass = (char *)array_get(phase->passes, i);
-        //
+        char *orig_node;
+
         // Check if there is no duplicate naming.
-        if (smap_retrieve(pass_name, pass)) {
-            printf("Duplicate name '%s' in passes of phase '%s'\n", pass,
-                   phase->id);
+        if ((orig_node = smap_retrieve(pass_name, pass)) != NULL) {
+            print_error(pass, "Duplicate name '%s' in passes of phase '%s'\n",
+                        pass, phase->id);
+            print_note(orig_node, "Previously declared here");
             error = 1;
         } else {
             smap_insert(pass_name, pass, pass);
@@ -467,8 +468,36 @@ static int check_phase(struct Phase *phase, struct Info *info) {
             (struct Pass *)smap_retrieve(info->pass_name, pass);
 
         if (!phase_pass) {
-            printf("Unknown type of pass '%s' in phase '%s'\n", pass,
+            print_error(pass, "Unknown type of pass '%s' in phase '%s'\n", pass,
                    phase->id);
+            error = 1;
+        }
+    }
+
+    for (int i = 0; i < array_size(phase->subphases); ++i) {
+        char *subphase = (char *)array_get(phase->subphases, i);
+        char *orig_node;
+
+        // Check if there is no duplicate naming.
+        if ((orig_node = smap_retrieve(subphase_name, subphase)) != NULL) {
+            print_error(subphase, "Duplicate name '%s' in subphases of phase '%s'\n",
+                        subphase, phase->id);
+            print_note(orig_node, "Previously declared here");
+            error = 1;
+        } else {
+            smap_insert(subphase_name, subphase, subphase);
+        }
+
+        struct phase *phase_subphase =
+            (struct Phase *)smap_retrieve(info->phase_name, subphase);
+
+        if (!phase_subphase) {
+            print_error(subphase, "Unknown type of subphase '%s' in phase '%s'\n",
+                        subphase, phase->id);
+            error = 1;
+        } else if (smap_retrieve(phase_order, subphase) == NULL) {
+            print_error(subphase, "undeclared type of subphase '%s' in phase '%s'\n",
+                        subphase, phase->id);
             error = 1;
         }
     }
@@ -480,6 +509,8 @@ int check_config(struct Config *config) {
 
     int success = 0;
     struct Info *info = create_info();
+    smap_t *phase_order = smap_init(16);
+    struct Phase *cur_phase;
 
     success += check_nodes(config->nodes, info);
     success += check_nodesets(config->nodesets, info);
@@ -506,8 +537,11 @@ int check_config(struct Config *config) {
     for (int i = 0; i < array_size(config->passes); ++i) {
         success += check_pass(array_get(config->passes, i), info);
     }
+
     for (int i = 0; i < array_size(config->phases); ++i) {
-        success += check_phase(array_get(config->phases, i), info);
+        cur_phase =  array_get(config->phases, i);
+        smap_insert(phase_order,cur_phase->id, NULL);
+        success += check_phase(cur_phase, info, phase_order);
     }
 
     free_info(info);

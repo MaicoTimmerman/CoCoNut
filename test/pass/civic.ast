@@ -1,0 +1,330 @@
+enum BasicType {
+    prefix = BT,
+    values {
+        int, float, bool
+    }
+};
+
+enum MonOpEnum {
+    prefix = MO,
+    values {
+        neg, not
+    }
+};
+
+enum BinOpEnum {
+    prefix = BO,
+    values {
+        mul, add, sub, div, mod, lt, leq, eq, gt, geq, neq
+    }
+};
+
+traversal Print;
+traversal ByteCode;
+traversal RenameFor {
+    nodes {
+        For, VarLet, Var
+    }
+};
+
+traversal Context {
+    nodes {
+        Root, GlobalDef, GlobalDec, Stmt, FunDef, Param, For, VarDec, VarLet, Var, FunCall
+    }
+};
+
+traversal SplitInit {
+    nodes {
+        Root, GlobalDef, FunBody, VarDec
+    }
+};
+
+traversal TypeCheck {
+    nodes {
+        FunDef, FunBody, Return, VarLet, For, DoWhile, While, IfElse, FunCall,
+        BinOp, MonOp, Cast, Var, IntConst, FloatConst, BoolConst
+    }
+};
+
+traversal Refactor {
+    nodes {
+        Cast, While, StmtList, BinOp, IntConst, FloatConst, BoolConst, Var,
+        FunCall
+    }
+};
+
+traversal Symbols {
+    nodes {
+        Root, FunDef, FunSymbol, Symbol
+    }
+};
+
+nodeset Decl {
+    FunDef, GlobalDef, GlobalDec
+};
+
+nodeset Expr {
+    BinOp, MonOp, Cast, FunCall, Var, Ternary, IntConst, FloatConst, BoolConst
+};
+
+nodeset Stmt {
+    VarLet, FunCall, IfElse, While, DoWhile, For, Return
+};
+
+node Root {
+    children {
+        child Decls decls { construct, mandatory },
+        child FunSymbol funsymbol { construct },
+        child Symbol symbol { construct }
+    }
+};
+
+node Decls {
+    children {
+        child Decl decl { construct, mandatory },
+        child Decl next { construct }
+    }
+};
+
+node LocalFunDef {
+    children {
+        child FunDef decl { construct, mandatory },
+        child LocalFunDef next { construct }
+    }
+};
+
+node FunDef {
+    children {
+        child FunHeader funheader { construct, mandatory },
+        child FunBody funbody { construct },
+        child FunSymbol funsymbol { construct },
+        child Symbol symbol { construct }
+    },
+    attributes {
+        construct bool external,
+        construct bool export
+    }
+};
+
+node FunHeader {
+    children {
+        child Param params { construct, mandatory }
+    },
+    attributes {
+        construct BasicType rettype,
+        construct string id
+    }
+};
+
+node Param {
+    children {
+        child Param next { construct }
+    },
+    attributes {
+        construct BasicType type,
+        construct string id
+    }
+};
+
+node GlobalDec {
+    attributes {
+        construct BasicType type,
+        construct string id
+    }
+};
+
+node GlobalDef {
+    children {
+        child Expr expr { construct }
+    },
+    attributes {
+        construct BasicType type,
+        construct string id,
+        construct bool export,
+        Symbol symbol
+    }
+};
+
+node FunBody {
+    children {
+        child VarDec vardec { construct },
+        child LocalFunDef localfundef { construct },
+        child StmtList stmtlist { construct }
+    }
+};
+
+node VarDec {
+    children {
+        child Expr expr { construct, mandatory },
+        child VarDec next { construct }
+    },
+    attributes {
+        Symbol symbol,
+        construct BasicType type,
+        construct string id
+    }
+};
+
+node StmtList {
+    children {
+        child Stmt stmt { construct, mandatory },
+        child StmtList next { construct }
+    }
+};
+
+node VarLet {
+    children {
+        child Expr expr { construct, mandatory }
+    },
+    attributes {
+        Symbol symbol,
+        construct string id
+    }
+};
+
+node FunCall {
+    children {
+        child ExprList params { construct }
+    },
+    attributes {
+        FunSymbol symbol,
+        construct string id
+    }
+};
+
+node ExprList {
+    children {
+        child Expr expr { construct, mandatory },
+        child ExprList next { construct }
+    }
+};
+
+node IfElse {
+    children {
+        child Expr condition { construct, mandatory },
+        child StmtList ifblock { construct },
+        child StmtList elseblock { construct }
+    }
+};
+
+node While {
+    children {
+        child Expr condition { construct, mandatory },
+        child StmtList block { construct }
+    }
+};
+
+node DoWhile {
+    children {
+        child Expr condition { construct, mandatory },
+        child StmtList block { construct }
+    }
+};
+
+node For {
+    children {
+        child Expr initexpr { construct, mandatory },
+        child Expr boundexpr { construct, mandatory },
+        child Expr stepexpr { construct },
+        child StmtList block { construct }
+    },
+    attributes {
+        Symbol symbol,
+        construct string id
+    }
+};
+
+node Return {
+    children {
+        child Expr expr { construct }
+    }
+};
+
+node BinOp {
+    children {
+        child Expr left { construct, mandatory },
+        child Expr right { construct, mandatory }
+    },
+    attributes {
+        construct BinOpEnum op
+    }
+};
+
+node MonOp {
+    children {
+        child Expr expr { construct, mandatory }
+    },
+    attributes {
+        construct MonOpEnum op
+    }
+};
+
+node Cast {
+    children {
+        child Expr expr { construct, mandatory }
+    },
+    attributes {
+        construct BasicType type
+    }
+};
+
+node Var {
+    attributes {
+        construct string id,
+        Symbol symbol
+    }
+};
+
+node IntConst {
+    attributes {
+        construct int value
+    }
+};
+
+node FloatConst {
+    attributes {
+        construct float value
+    }
+};
+
+node BoolConst {
+    attributes {
+        construct bool value
+    }
+};
+
+node Ternary {
+    children {
+        child Expr testexpr { construct, mandatory },
+        child Expr trueexpr { construct, mandatory },
+        child Expr falseexpr { construct, mandatory }
+    }
+};
+
+node Symbol {
+    children {
+        child Symbol next { construct }
+    },
+    attributes {
+        construct bool external,
+        construct bool export,
+        construct string name,
+        construct int scope,
+        construct int offset
+    }
+};
+
+node FunSymbol {
+    children {
+        child FunSymbol next { construct }
+    },
+    attributes {
+        construct bool export,
+        construct bool external,
+        construct string name,
+        construct string scopedname,
+        construct int arity,
+        construct int scope,
+        construct int offset
+    }
+};
