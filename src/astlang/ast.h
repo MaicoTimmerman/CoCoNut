@@ -71,7 +71,8 @@ struct Config {
 struct Phase {
     char *id;
 
-    int num_run;
+    int cycle;
+    array *phases;
     array *passes;
 
     struct NodeCommonInfo *common_info;
@@ -79,8 +80,7 @@ struct Phase {
 
 struct Pass {
     char *id;
-    int num_run;
-    array *traversals;
+    char *traversal;
 
     struct NodeCommonInfo *common_info;
 };

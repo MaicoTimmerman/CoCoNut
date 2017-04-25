@@ -8,9 +8,9 @@
 struct Config *create_config(array *phases, array *passes, array *traversals,
                              array *attr_enums, array *nodesets, array *nodes);
 
-struct Phase *create_phase(char *id, array *passes, int num_run);
+struct Phase *create_phase(char *id, array *phases, array *passes, int cycle);
 
-struct Pass *create_pass(char *id, array *traversals, int num_run);
+struct Pass *create_pass(char *id, char *traversal);
 
 struct Traversal *create_traversal(char *id, array *nodes);
 
