@@ -443,7 +443,7 @@ static int check_pass(struct Pass *pass, struct Info *info) {
     return error;
 }
 
-static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_order) {
+static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_order, smap_t *phase_used) {
 
     int error = 0;
 
@@ -495,10 +495,20 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             print_error(subphase, "Unknown type of subphase '%s' in phase '%s'\n",
                         subphase, phase->id);
             error = 1;
-        } else if (smap_retrieve(phase_order, subphase) == NULL) {
-            print_error(subphase, "undeclared type of subphase '%s' in phase '%s'\n",
-                        subphase, phase->id);
-            error = 1;
+        } else {
+            if (smap_retrieve(phase_order, subphase) == NULL) {
+                print_error(subphase, "undeclared type of subphase '%s' in phase '%s'\n",
+                            subphase, phase->id);
+                error = 1;
+            } else {
+                if (smap_retrieve(phase_used, subphase) != NULL) {
+                    print_error(subphase, "double use of subphase '%s' in phase '%s'\n",
+                                subphase, phase->id);
+                    error = 1;
+                } else {
+                    smap_insert(phase_used, subphase, phase);
+                }
+            }
         }
     }
 
@@ -510,6 +520,7 @@ int check_config(struct Config *config) {
     int success = 0;
     struct Info *info = create_info();
     smap_t *phase_order = smap_init(16);
+    smap_t *phase_used = smap_init(16);
     struct Phase *cur_phase;
 
     success += check_nodes(config->nodes, info);
@@ -540,10 +551,12 @@ int check_config(struct Config *config) {
 
     for (int i = 0; i < array_size(config->phases); ++i) {
         cur_phase =  array_get(config->phases, i);
-        smap_insert(phase_order,cur_phase->id, &cur_phase);
-        success += check_phase(cur_phase, info, phase_order);
+        smap_insert(phase_order, cur_phase->id, &cur_phase);
+        success += check_phase(cur_phase, info, phase_order, phase_used);
     }
 
+    smap_free(phase_used);
+    smap_free(phase_order);
     free_info(info);
 
     return success;
