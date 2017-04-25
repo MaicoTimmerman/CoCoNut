@@ -153,7 +153,7 @@ static int check_phases(array *phases, struct Info *info) {
             print_note(orig_def, "Previously declared here");
             error = 1;
         } else {
-            smap_insert(info->traversal_name, cur_phase->id, cur_phase);
+            smap_insert(info->phase_name, cur_phase->id, cur_phase);
         }
     }
     return error;
@@ -165,10 +165,12 @@ static int check_passes(array *passes, struct Info *info) {
 
     for (int i = 0; i < array_size(passes); ++i) {
         struct Pass *cur_pass = (struct Pass *)array_get(passes, i);
+        void *orig_def;
 
-        if (check_name_exists(info, cur_pass->id)) {
-            printf("Redefinition of name: %s\n", cur_pass->id);
-            error = 1;
+        if ((orig_def = check_name_exists(info, cur_pass->id)) != NULL) {
+            print_error(cur_pass->id, "Redefinition of name '%s'",
+                        cur_pass->id);
+            print_note(orig_def, "Previously declared here");
         } else {
             smap_insert(info->pass_name, cur_pass->id, cur_pass);
         }
@@ -429,23 +431,12 @@ static int check_pass(struct Pass *pass, struct Info *info) {
 
     smap_t *traversal_name = smap_init(16);
 
-    for (int i = 0; i < array_size(pass->traversals); ++i) {
-        char *traversal = (char *)array_get(pass->traversals, i);
-        //
-        // Check if there is no duplicate naming.
-        if (smap_retrieve(traversal_name, traversal)) {
-            printf("Duplicate name '%s' in traversals of pass '%s'\n",
-                   traversal, pass->id);
-            error = 1;
-        } else {
-            smap_insert(traversal_name, traversal, traversal);
-        }
-
+    if (pass->traversal != NULL) {
         struct Traversal *pass_traversal =
-            (struct Traversal *)smap_retrieve(info->traversal_name, traversal);
+            (struct Traversal *)smap_retrieve(info->traversal_name, pass->traversal);
 
         if (!pass_traversal) {
-            printf("Unknown type of traversal '%s' in pass '%s'\n", traversal,
+            printf("Unknown type of traversal '%s' in pass '%s'\n", pass->traversal,
                    pass->id);
             error = 1;
         }

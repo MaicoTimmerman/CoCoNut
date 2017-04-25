@@ -112,6 +112,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token T_CHILDREN "children"
 %token T_CHILD "child"
 %token T_CONSTRUCT "construct"
+%token T_CYCLE "cycle"
 %token T_ENUM "enum"
 %token T_MANDATORY "mandatory"
 %token T_NODE "node"
@@ -120,10 +121,10 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token T_PASS "pass"
 %token T_PASSES "passes"
 %token T_PHASE "phase"
+%token T_PHASES "phases"
 %token T_PREFIX "prefix"
 %token T_TO "to"
 %token T_TRAVERSAL "traversal"
-%token T_TRAVERSALS "traversals"
 %token T_FLOAT "float"
 %token T_DOUBLE "double"
 %token T_STRING "string"
@@ -169,33 +170,38 @@ entry: entry phase { array_append(config_phases, $2); }
      | %empty
      ;
 
-phase: T_PHASE T_ID '{' T_PASSES '{' idlist '}' '}' ';'
-     {  $$ = create_phase($2, $6, 1);
+phase: T_CYCLE T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
+     {  $$ = create_phase($3, $7, NULL, 1);
         new_location($$, &@$);
-        new_location($2, &@2);
-        new_location($6, &@6);
-
+        new_location($3, &@3);
      }
-     | T_PHASE T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
-     {  $$ = create_phase($2, $7, $3);
+     |T_CYCLE T_PHASE T_ID '{' T_PASSES '{' idlist '}'  '}' ';'
+     {  $$ = create_phase($3, NULL, $7, 1);
+        new_location($$, &@$);
+        new_location($3, &@3);
+     }
+     | T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
+     {  $$ = create_phase($2, $6, NULL, 0);
         new_location($$, &@$);
         new_location($2, &@2);
-        new_location($7, &@7);
-
+     }
+     | T_PHASE T_ID '{' T_PASSES '{' idlist '}'  '}' ';'
+     {  $$ = create_phase($2, NULL, $6, 0);
+        new_location($$, &@$);
+        new_location($2, &@2);
      }
      ;
 
-pass: T_PASS T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     { $$ = create_pass($2, $6, 1);
+pass: T_PASS T_ID '{' T_TRAVERSAL '=' T_ID '}' ';'
+     { $$ = create_pass($2, $6);
        new_location($$, &@$);
        new_location($2, &@2);
        new_location($6, &@6);
      }
-     | T_PASS T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
-     { $$ = create_pass($2, $7, $3);
+     | T_PASS T_ID ';'
+     { $$ = create_pass($2, NULL);
        new_location($$, &@$);
        new_location($2, &@2);
-       new_location($7, &@7);
      }
      ;
 

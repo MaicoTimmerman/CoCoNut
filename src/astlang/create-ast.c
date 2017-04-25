@@ -35,23 +35,23 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *passes, int num_run) {
+struct Phase *create_phase(char *id, array *phases, array *passes, int cycle) {
 
     struct Phase *p = mem_alloc(sizeof(struct Phase));
     p->id = id;
+    p->phases = phases;
     p->passes = passes;
-    p->num_run = num_run;
+    p->cycle = cycle;
 
     p->common_info = create_commoninfo();
     return p;
 }
 
-struct Pass *create_pass(char *id, array *traversals, int num_run) {
+struct Pass *create_pass(char *id, char *traversal) {
 
     struct Pass *p = mem_alloc(sizeof(struct Pass));
     p->id = id;
-    p->traversals = traversals;
-    p->num_run = num_run;
+    p->traversal = traversal;
 
     p->common_info = create_commoninfo();
     return p;

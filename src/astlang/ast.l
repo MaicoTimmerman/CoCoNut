@@ -93,6 +93,7 @@ static inline void lexer_init();
 "children"      { LEX_KEYWORD(T_CHILDREN);}
 "child"         { LEX_KEYWORD(T_CHILD);}
 "construct"     { LEX_KEYWORD(T_CONSTRUCT);}
+"cycle"         { LEX_KEYWORD(T_CYCLE);}
 "enum"          { LEX_KEYWORD(T_ENUM);}
 "mandatory"     { LEX_KEYWORD(T_MANDATORY);}
 "node"          { LEX_KEYWORD(T_NODE);}
@@ -101,10 +102,10 @@ static inline void lexer_init();
 "pass"          { LEX_KEYWORD(T_PASS);}
 "passes"        { LEX_KEYWORD(T_PASSES);}
 "phase"         { LEX_KEYWORD(T_PHASE);}
+"phases"         { LEX_KEYWORD(T_PHASES);}
 "prefix"        { LEX_KEYWORD(T_PREFIX);}
 "to"            { LEX_KEYWORD(T_TO);}
 "traversal"     { LEX_KEYWORD(T_TRAVERSAL);}
-"traversals"    { LEX_KEYWORD(T_TRAVERSALS);}
 "values"        {
                     if (yy_lex_keywords) {
                         yy_lex_keywords = false;
