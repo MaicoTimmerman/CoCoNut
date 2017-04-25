@@ -364,6 +364,7 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
                         node, nodeset->id);
             error = 1;
         } else {
+            mem_free(node);
             array_set(nodeset->nodes, i, nodeset_node);
         }
     }
@@ -433,6 +434,8 @@ static int check_traversal(struct Traversal *traversal, struct Info *info) {
             error = 1;
         }
     }
+
+    smap_free(node_name);
 
     return error;
 }
