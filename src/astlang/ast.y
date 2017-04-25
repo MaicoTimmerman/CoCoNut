@@ -123,6 +123,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token T_PHASE "phase"
 %token T_PHASES "phases"
 %token T_PREFIX "prefix"
+%token T_SUBPHASES "subphases"
 %token T_TO "to"
 %token T_TRAVERSAL "traversal"
 %token T_FLOAT "float"
@@ -170,7 +171,7 @@ entry: entry phase { array_append(config_phases, $2); }
      | %empty
      ;
 
-phase: T_CYCLE T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
+phase: T_CYCLE T_PHASE T_ID '{' T_SUBPHASES '{' idlist '}' '}' ';'
      {  $$ = create_phase($3, $7, NULL, 1);
         new_location($$, &@$);
         new_location($3, &@3);
@@ -180,7 +181,7 @@ phase: T_CYCLE T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
         new_location($$, &@$);
         new_location($3, &@3);
      }
-     | T_PHASE T_ID '{' T_PHASES '{' idlist '}' '}' ';'
+     | T_PHASE T_ID '{' T_SUBPHASES '{' idlist '}' '}' ';'
      {  $$ = create_phase($2, $6, NULL, 0);
         new_location($$, &@$);
         new_location($2, &@2);

@@ -5,25 +5,25 @@ cycle phase B {
 };
 
 phase A {
-    phases {
+    subphases {
         B
     }
 };
 
 phase D {
-    phases {
+    subphases {
         A
     }
 };
 
 phase C {
-    phases {
+    subphases {
         D
     }
 };
 
 phase RootPhase {
-    phases {
+    subphases {
         C
     }
 };

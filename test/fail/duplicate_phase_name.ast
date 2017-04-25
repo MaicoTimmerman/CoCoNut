@@ -1,29 +1,29 @@
 cycle phase B {
-    passes {
+    subpasses {
         a
     }
 };
 
 phase A {
-    phases {
+    subphases {
         B
     }
 };
 
 phase D {
-    phases {
+    subphases {
         A
     }
 };
 
 phase B {
-    passes {
+    subpasses {
         a
     }
 };
 
 phase RootPhase {
-    phases {
+    subphases {
         C, D
     }
 };
