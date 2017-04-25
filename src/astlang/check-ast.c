@@ -488,7 +488,7 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             smap_insert(subphase_name, subphase, subphase);
         }
 
-        struct phase *phase_subphase =
+        struct Phase *phase_subphase =
             (struct Phase *)smap_retrieve(info->phase_name, subphase);
 
         if (!phase_subphase) {
@@ -540,7 +540,7 @@ int check_config(struct Config *config) {
 
     for (int i = 0; i < array_size(config->phases); ++i) {
         cur_phase =  array_get(config->phases, i);
-        smap_insert(phase_order,cur_phase->id, NULL);
+        smap_insert(phase_order,cur_phase->id, &cur_phase);
         success += check_phase(cur_phase, info, phase_order);
     }
 
