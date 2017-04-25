@@ -98,6 +98,7 @@ void generate(struct Config *config, FILE *fp, bool header) {
     }
 }
 
+// TODO generate header for free node.
 void generate_free_definitions(struct Config *config, FILE *fp) {
     generate(config, fp, true);
 }
