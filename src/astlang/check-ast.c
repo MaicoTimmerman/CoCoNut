@@ -427,6 +427,9 @@ static int check_pass(struct Pass *pass, struct Info *info) {
 
     int error = 0;
 
+    // TODO
+
+    /*
     smap_t *traversal_name = smap_init(16);
 
     for (int i = 0; i < array_size(pass->traversals); ++i) {
@@ -450,6 +453,7 @@ static int check_pass(struct Pass *pass, struct Info *info) {
             error = 1;
         }
     }
+    */
 
     return error;
 }

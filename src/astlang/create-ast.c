@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,23 +36,33 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *passes, int num_run) {
+struct Phase *create_phase_subphases(char *id, array *subphases, bool cycle) {
 
     struct Phase *p = mem_alloc(sizeof(struct Phase));
     p->id = id;
-    p->passes = passes;
-    p->num_run = num_run;
+    p->subphases = subphases;
+    p->cycle = cycle;
 
     p->common_info = create_commoninfo();
     return p;
 }
 
-struct Pass *create_pass(char *id, array *traversals, int num_run) {
+struct Phase *create_phase_passes(char *id, array *passes, bool cycle) {
+
+    struct Phase *p = mem_alloc(sizeof(struct Phase));
+    p->id = id;
+    p->passes = passes;
+    p->cycle = cycle;
+
+    p->common_info = create_commoninfo();
+    return p;
+}
+
+struct Pass *create_pass(char *id, char *traversal) {
 
     struct Pass *p = mem_alloc(sizeof(struct Pass));
     p->id = id;
-    p->traversals = traversals;
-    p->num_run = num_run;
+    p->traversal = traversal;
 
     p->common_info = create_commoninfo();
     return p;

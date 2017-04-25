@@ -170,14 +170,18 @@ entry: entry phase { array_append(config_phases, $2); }
      ;
 
 phase: T_PHASE T_ID '{' T_PASSES '{' idlist '}' '}' ';'
-     {  $$ = create_phase($2, $6, 1);
+     {
+        // TODO
+        //$$ = create_phase($2, $6, 1);
         new_location($$, &@$);
         new_location($2, &@2);
         new_location($6, &@6);
 
      }
      | T_PHASE T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
-     {  $$ = create_phase($2, $7, $3);
+     {
+        // TODO
+        //$$ = create_phase($2, $7, $3);
         new_location($$, &@$);
         new_location($2, &@2);
         new_location($7, &@7);
@@ -186,13 +190,17 @@ phase: T_PHASE T_ID '{' T_PASSES '{' idlist '}' '}' ';'
      ;
 
 pass: T_PASS T_ID '{' T_TRAVERSALS '{' idlist '}' '}' ';'
-     { $$ = create_pass($2, $6, 1);
+     {
+        // TODO
+        //$$ = create_pass($2, $6, 1);
        new_location($$, &@$);
        new_location($2, &@2);
        new_location($6, &@6);
      }
      | T_PASS T_ID T_UINTVAL '{' T_TRAVERSALS '{' idlist '}'  '}' ';'
-     { $$ = create_pass($2, $7, $3);
+     {
+        // TODO
+        //$$ = create_pass($2, $7, $3);
        new_location($$, &@$);
        new_location($2, &@2);
        new_location($7, &@7);
