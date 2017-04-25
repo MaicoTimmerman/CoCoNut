@@ -134,6 +134,9 @@ struct Child {
     char *id;
     char *type;
 
+    struct Node *node;
+    struct Nodeset *nodeset;
+
     struct NodeCommonInfo *common_info;
 };
 

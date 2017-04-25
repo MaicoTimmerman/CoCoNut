@@ -3,3 +3,10 @@ node SomeNode {
         string long
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

@@ -51,7 +51,7 @@ static void free_enum(void *p) {
 static void free_nodeset(void *p) {
     struct Nodeset *nodeset = p;
     if (nodeset->nodes != NULL)
-        array_cleanup(nodeset->nodes, mem_free);
+        array_cleanup(nodeset->nodes, NULL);
 
     mem_free(nodeset->id);
     mem_free(nodeset);

@@ -1,2 +1,9 @@
 traversal SomeTrav;
 traversal SomeTrav;
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

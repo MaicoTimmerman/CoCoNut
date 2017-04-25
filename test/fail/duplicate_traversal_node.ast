@@ -9,3 +9,10 @@ node IdExpr {
         child IdExpr somename
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;
