@@ -3,3 +3,10 @@ node SomeNode {
         string volatile
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;

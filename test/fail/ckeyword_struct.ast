@@ -3,3 +3,10 @@ node SomeNode {
         string struct
     }
 };
+
+phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;
