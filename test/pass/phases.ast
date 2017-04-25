@@ -1,0 +1,39 @@
+cycle phase B {
+    passes {
+        a
+    }
+};
+
+phase A {
+    phases {
+        B
+    }
+};
+
+phase D {
+    phases {
+        A
+    }
+};
+
+phase C {
+    phases {
+        D
+    }
+};
+
+phase RootPhase {
+    phases {
+        C
+    }
+};
+
+
+
+pass a {
+    traversal = someTrav;
+};
+
+pass c;
+
+traversal someTrav;
