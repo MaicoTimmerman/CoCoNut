@@ -133,7 +133,6 @@ static inline void check_c_keyword(const char *);
 
 
 [A-Za-z][A-Za-z0-9_]*  {
-    // TODO: Make identifiers start with an uppercase letter?
     // Identifier start with an letter and can have numbers and underscores.
     yylval.string = strdup(yytext);
     check_c_keyword(yylval.string);
