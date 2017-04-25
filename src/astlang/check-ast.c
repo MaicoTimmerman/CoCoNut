@@ -267,7 +267,11 @@ static int check_node(struct Node *node, struct Info *info) {
                             "Unknown type '%s' of child '%s' of node '%s'",
                             child->type, child->id, node->id);
                 error = 1;
+            } else {
+                child->node = child_node;
+                child->nodeset = child_nodeset;
             }
+
 
             if (!child->mandatory_phases) {
                 for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
@@ -346,13 +350,21 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
 
         struct Node *nodeset_node =
             (struct Node *)smap_retrieve(info->node_name, node);
+
         struct Nodeset *nodeset_nodeset =
             (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
 
-        if (!nodeset_node && !nodeset_nodeset) {
+        // TODO: create tests for this
+        if (nodeset_nodeset) {
+            print_error(node, "Nodeset '%s' contains other nodeset '%s'",
+                        nodeset->id, nodeset_nodeset->id);
+            error = 1;
+        } else if (!nodeset_node) {
             print_error(node, "Unknown type of node '%s' in nodeset '%s'",
                         node, nodeset->id);
             error = 1;
+        } else {
+            array_set(nodeset->nodes, i, nodeset_node);
         }
     }
 
