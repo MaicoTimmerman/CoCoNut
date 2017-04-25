@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "array.h"
 #include "ast.h"
@@ -522,6 +523,7 @@ int check_config(struct Config *config) {
     smap_t *phase_order = smap_init(16);
     smap_t *phase_used = smap_init(16);
     struct Phase *cur_phase;
+    int start_phase = 0;
 
     success += check_nodes(config->nodes, info);
     success += check_nodesets(config->nodesets, info);
@@ -551,8 +553,18 @@ int check_config(struct Config *config) {
 
     for (int i = 0; i < array_size(config->phases); ++i) {
         cur_phase =  array_get(config->phases, i);
+        if (start_phase)
+            print_warning(cur_phase->id, "phase %s is unreachable", cur_phase->id);
+        if (!strcmp(cur_phase->id, "RootPhase"))
+            start_phase++;
         smap_insert(phase_order, cur_phase->id, &cur_phase);
         success += check_phase(cur_phase, info, phase_order, phase_used);
+    }
+    if (start_phase < 1) {
+        cur_phase =  array_get(config->phases, 0);
+        //TODO error without object
+        fprintf(stderr, "file is missing a RootPhase");
+        success++;
     }
 
     smap_free(phase_used);
