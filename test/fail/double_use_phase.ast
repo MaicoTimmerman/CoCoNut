@@ -5,13 +5,13 @@ cycle phase B {
 };
 
 phase F {
-    phases {
+    subphases {
         B
     }
 };
 
 phase D {
-    phases {
+    subphases {
         B
     }
 };

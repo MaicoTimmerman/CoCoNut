@@ -107,8 +107,9 @@ static inline void check_c_keyword(const char *);
 "pass"          { LEX_KEYWORD(T_PASS);}
 "passes"        { LEX_KEYWORD(T_PASSES);}
 "phase"         { LEX_KEYWORD(T_PHASE);}
-"phases"         { LEX_KEYWORD(T_PHASES);}
+"phases"        { LEX_KEYWORD(T_PHASES);}
 "prefix"        { LEX_KEYWORD(T_PREFIX);}
+"subphases"     { LEX_KEYWORD(T_SUBPHASES);}
 "to"            { LEX_KEYWORD(T_TO);}
 "traversal"     { LEX_KEYWORD(T_TRAVERSAL);}
 "values"        { LEX_KEYWORD(T_VALUES) ; }
