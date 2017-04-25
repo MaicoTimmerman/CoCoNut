@@ -1,10 +1,9 @@
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
 #include "str-ast.h"
 #include <stdio.h>
-
-#define out(...) fprintf(fp, __VA_ARGS__)
 
 // TODO Merge functions for header and definition.
 static void generate_trav_node_header(struct Node *node, FILE *fp) {

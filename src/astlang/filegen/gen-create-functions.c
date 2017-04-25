@@ -4,11 +4,10 @@
 #include "array.h"
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
 #include "smap.h"
 #include "str-ast.h"
-
-#define out(...) fprintf(fp, __VA_ARGS__)
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
     out("struct %s *create_%s(", node->id, node->id);
@@ -90,7 +89,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
             out("   struct %s *res = mem_alloc(sizeof(struct %s));\n",
                 nodeset->id, nodeset->id);
 
-            out("   res->type = NS_%s_%s;\n", nodeset->id, node);
+            out("   res->type = " NS_FMT ";\n", nodeset->id, node);
             out("   res->value.val_%s = _%s;\n", node, node);
             out("   return res;\n");
             out("}\n\n");

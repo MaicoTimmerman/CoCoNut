@@ -1,10 +1,9 @@
 #include "ast.h"
 #include "filegen-driver.h"
+#include "filegen-util.h"
 #include "memory.h"
 #include "str-ast.h"
 #include <stdio.h>
-
-#define out(...) fprintf(fp, __VA_ARGS__)
 
 static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
                                   bool header) {
@@ -22,7 +21,7 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
     out("    switch(nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         char *node = (char *)array_get(nodeset->nodes, i);
-        out("    case NS_%s_%s:\n", nodeset->id, node);
+        out("    case " NS_FMT ":\n", nodeset->id, node);
         out("        free_%s_tree(nodeset->value.val_%s);\n", node, node);
         out("        break;\n");
     }
