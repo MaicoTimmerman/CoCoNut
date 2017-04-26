@@ -1,0 +1,5 @@
+root node A {
+    attributes { int a }
+};
+
+root nodeset B { nodes { A } };

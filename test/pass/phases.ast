@@ -47,3 +47,5 @@ traversal SOT {
     }
 };
 
+
+root node RootNode { attributes { int a } };
