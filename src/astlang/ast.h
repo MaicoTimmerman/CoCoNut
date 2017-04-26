@@ -72,9 +72,11 @@ struct Config {
 
 struct Phase {
     char *id;
+    char *info;
 
-    bool cycle;
     enum PhaseType type;
+    bool cycle;
+    bool root;
 
     array *passes;
     array *subphases;
@@ -91,6 +93,7 @@ struct Pass {
 
 struct Traversal {
     char *id;
+    char *info;
 
     array *nodes;
 
@@ -108,21 +111,27 @@ struct Enum {
 
 struct Nodeset {
     char *id;
+    char *info;
 
     // Array of strings transformed into array of Nodes.
     array *nodes;
+
+    bool root;
 
     struct NodeCommonInfo *common_info;
 };
 
 struct Node {
     char *id;
+    char *info;
 
     // array of (struct Child *)
     array *children;
 
     // array of (struct Attr *)
     array *attrs;
+
+    bool root;
 
     struct NodeCommonInfo *common_info;
 };

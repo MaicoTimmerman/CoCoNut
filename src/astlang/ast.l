@@ -113,6 +113,9 @@ static inline void check_c_keyword(const char *);
 "to"            { LEX_KEYWORD(T_TO);}
 "traversal"     { LEX_KEYWORD(T_TRAVERSAL);}
 "values"        { LEX_KEYWORD(T_VALUES) ; }
+"info"          { LEX_KEYWORD(T_INFO) ; }
+"func"          { LEX_KEYWORD(T_FUNC) ; }
+"root"          { LEX_KEYWORD(T_ROOT) ; }
 "double"        { LEX_KEYWORD(T_DOUBLE);}
 "float"         { LEX_KEYWORD(T_FLOAT);}
 "int"           { LEX_KEYWORD(T_INT);}
