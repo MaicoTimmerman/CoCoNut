@@ -67,18 +67,24 @@ traversal Symbols {
 };
 
 nodeset Decl {
-    FunDef, GlobalDef, GlobalDec
+    nodes {
+        FunDef, GlobalDef, GlobalDec
+    }
 };
 
 nodeset Expr {
-    BinOp, MonOp, Cast, FunCall, Var, Ternary, IntConst, FloatConst, BoolConst
+    nodes {
+        BinOp, MonOp, Cast, FunCall, Var, Ternary, IntConst, FloatConst, BoolConst
+    }
 };
 
 nodeset Stmt {
-    VarLet, FunCall, IfElse, While, DoWhile, For, Return
+    nodes {
+        VarLet, FunCall, IfElse, While, DoWhile, For, Return
+    }
 };
 
-node Root {
+root node Root {
     children {
         child Decls decls { construct, mandatory },
         child FunSymbol funsymbol { construct },

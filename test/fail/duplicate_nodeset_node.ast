@@ -5,7 +5,9 @@ node SomeNode {
 };
 
 nodeset SomeNodeSet {
-    SomeNode, SomeNode
+    nodes {
+        SomeNode, SomeNode
+    }
 };
 
 

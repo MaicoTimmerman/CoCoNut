@@ -90,10 +90,14 @@ node For {
 };
 
 nodeset Expr {
-    BinOp, MonOp
+    nodes {
+        BinOp, MonOp
+    }
 };
 
 nodeset Stmt {
-    IfElse, For
+    nodes {
+        IfElse, For
+    }
 };
 // vim: ft=ast

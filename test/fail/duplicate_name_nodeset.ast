@@ -5,10 +5,14 @@ node SomeNode {
 };
 
 nodeset SomeNodeSet {
-    SomeNode
+    nodes {
+        SomeNode
+    }
 };
 nodeset SomeNodeSet {
-    SomeNode
+    nodes {
+        SomeNode
+    }
 };
 
 
