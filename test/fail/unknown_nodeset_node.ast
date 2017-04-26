@@ -1,5 +1,7 @@
 nodeset SomeNodeSet {
-    SomeNode, SomeOtherNode
+    nodes {
+        SomeNode, SomeOtherNode
+    }
 };
 
 

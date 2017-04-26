@@ -5,8 +5,7 @@ cycle phase B {
 };
 
 phase A {
-    // TODO
-    description = "Some phase that does A"
+    info = "Some phase that does A",
     subphases {
         B
     }
@@ -27,7 +26,6 @@ phase C {
 phase RootPhase {
     subphases {
         C, D
-        D, C
     }
 };
 

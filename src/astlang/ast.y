@@ -230,11 +230,24 @@ pass: T_PASS T_ID ';'
       new_location($$, &@$);
       new_location($2, &@2);
     }
-    | T_PASS T_ID '{' T_TRAVERSAL '=' T_ID ';' '}' ';'
+    | T_PASS T_ID '{' T_TRAVERSAL '=' T_ID '}' ';'
     { $$ = create_pass($2, $6);
       new_location($$, &@$);
       new_location($2, &@2);
       new_location($6, &@6);
+    }
+    | T_PASS T_ID '{' info '}'
+    { $$ = create_pass($2, NULL);
+      $$->info = $4;
+      new_location($$, &@$);
+      new_location($2, &@2);
+    }
+    | T_PASS T_ID '{' info ',' T_TRAVERSAL '=' T_ID '}' ';'
+    { $$ = create_pass($2, $8);
+      $$->info = $4;
+      new_location($$, &@$);
+      new_location($2, &@2);
+      new_location($8, &@8);
      }
      ;
 
@@ -309,29 +322,29 @@ enumvalues: T_VALUES '{'
         }
 
 
-nodeset: T_NODESET T_ID '{' idlist '}' ';'
+nodeset: T_NODESET T_ID '{' T_NODES '{' idlist '}' '}' ';'
        {
-           $$ = create_nodeset($2, $4);
+           $$ = create_nodeset($2, $6);
            new_location($$, &@$);
            new_location($2, &@2);
        }
-       | T_ROOT T_NODESET T_ID '{' idlist '}' ';'
+       | T_ROOT T_NODESET T_ID '{' T_NODES '{' idlist '}' '}' ';'
        {
-           $$ = create_nodeset($3, $5);
+           $$ = create_nodeset($3, $7);
            $$->root = true;
            new_location($$, &@$);
            new_location($3, &@3);
        }
-       | T_NODESET T_ID '{' info ',' idlist '}' ';'
+       | T_NODESET T_ID '{' info ',' T_NODES '{' idlist '}' '}' ';'
        {
-           $$ = create_nodeset($2, $6);
+           $$ = create_nodeset($2, $8);
            $$->info = $4;
            new_location($$, &@$);
            new_location($2, &@2);
        }
-       | T_ROOT T_NODESET T_ID '{' info ',' idlist '}' ';'
+       | T_ROOT T_NODESET T_ID '{' info ',' T_NODES '{' idlist '}' '}' ';'
        {
-           $$ = create_nodeset($3, $7);
+           $$ = create_nodeset($3, $9);
            $$->root = true;
            $$->info = $5;
            new_location($$, &@$);
