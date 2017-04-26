@@ -52,9 +52,10 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
     out("    switch (nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        char *node = (char *)array_get(nodeset->nodes, i);
-        out("    case " NS_FMT ":\n", nodeset->id, node);
-        out("        check_%s(nodeset->value.val_%s, info);\n", node, node);
+        struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
+        out("    case " NS_FMT ":\n", nodeset->id, node->id);
+        out("        check_%s(nodeset->value.val_%s, info);\n", node->id,
+            node->id);
         out("        break;\n");
     }
     out("    }\n");

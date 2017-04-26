@@ -20,9 +20,10 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
 
     out("    switch(nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        char *node = (char *)array_get(nodeset->nodes, i);
-        out("    case " NS_FMT ":\n", nodeset->id, node);
-        out("        free_%s_tree(nodeset->value.val_%s);\n", node, node);
+        struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
+        out("    case " NS_FMT ":\n", nodeset->id, node->id);
+        out("        free_%s_tree(nodeset->value.val_%s);\n", node->id,
+            node->id);
         out("        break;\n");
     }
     out("    }\n");

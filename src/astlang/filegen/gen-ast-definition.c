@@ -78,15 +78,15 @@ static void template_ast_h(struct Config *config, FILE *fp) {
         out("typedef enum { ");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
             out(NS_FMT ", ", nodeset->id,
-                (char *)array_get(nodeset->nodes, j));
+                ((struct Node *)array_get(nodeset->nodes, j))->id);
         }
         out("} " NS_ENUMTYPE_FMT ";\n", nodeset->id);
 
         out("typedef struct %s {\n", nodeset->id);
         out("    union {\n");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
-            char *node_name = (char *)array_get(nodeset->nodes, j);
-            out("        struct %s *val_%s;\n", node_name, node_name);
+            struct Node *node = (struct Node *)array_get(nodeset->nodes, j);
+            out("        struct %s *val_%s;\n", node->id, node->id);
         }
         out("    } value;\n");
         out("    " NS_ENUMTYPE_FMT " type;\n", nodeset->id);

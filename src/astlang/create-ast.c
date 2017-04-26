@@ -36,7 +36,8 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *phases, array *passes, bool cycle) {
+struct Phase *create_phase(char *id, array *phases, array *passes,
+                           bool cycle) {
 
     struct Phase *p = mem_alloc(sizeof(struct Phase));
     if (phases == NULL) {

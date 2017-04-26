@@ -73,11 +73,11 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("    res->type = nodeset->type;\n");
         out("    switch (nodeset->type) {\n");
         for (int i = 0; i < array_size(nodeset->nodes); i++) {
-            char *node = array_get(nodeset->nodes, i);
-            out("        case " NS_FMT ":\n", nodeset->id, node);
+            struct Node *node = array_get(nodeset->nodes, i);
+            out("        case " NS_FMT ":\n", nodeset->id, node->id);
             out("            res->value.val_%s = "
                 "_copy_%s(nodeset->value.val_%s, imap);\n",
-                node, node, node);
+                node->id, node->id, node->id);
             out("            break;\n");
         }
         out("    }\n");

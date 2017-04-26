@@ -273,7 +273,6 @@ static int check_node(struct Node *node, struct Info *info) {
                 child->nodeset = child_nodeset;
             }
 
-
             if (!child->mandatory_phases) {
                 for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
                     struct MandatoryPhase *phase =
@@ -446,11 +445,12 @@ static int check_pass(struct Pass *pass, struct Info *info) {
     int error = 0;
 
     if (pass->traversal != NULL) {
-        struct Traversal *pass_traversal =
-            (struct Traversal *)smap_retrieve(info->traversal_name, pass->traversal);
+        struct Traversal *pass_traversal = (struct Traversal *)smap_retrieve(
+            info->traversal_name, pass->traversal);
 
         if (!pass_traversal) {
-            print_error(pass->traversal, "Unknown type of traversal '%s' in pass '%s'",
+            print_error(pass->traversal,
+                        "Unknown type of traversal '%s' in pass '%s'",
                         pass->traversal, pass->id);
             error = 1;
         }
@@ -459,7 +459,8 @@ static int check_pass(struct Pass *pass, struct Info *info) {
     return error;
 }
 
-static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_order, smap_t *phase_used) {
+static int check_phase(struct Phase *phase, struct Info *info,
+                       smap_t *phase_order, smap_t *phase_used) {
 
     int error = 0;
 
@@ -484,8 +485,8 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             (struct Pass *)smap_retrieve(info->pass_name, pass);
 
         if (!phase_pass) {
-            print_error(pass, "Unknown type of pass '%s' in phase '%s'",
-                        pass, phase->id);
+            print_error(pass, "Unknown type of pass '%s' in phase '%s'", pass,
+                        phase->id);
             error = 1;
         }
     }
@@ -496,7 +497,8 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
 
         // Check if there is no duplicate naming.
         if ((orig_node = smap_retrieve(subphase_name, subphase)) != NULL) {
-            print_error(subphase, "Duplicate name '%s' in subphases of phase '%s'",
+            print_error(subphase,
+                        "Duplicate name '%s' in subphases of phase '%s'",
                         subphase, phase->id);
             print_note(orig_node, "Previously declared here");
             error = 1;
@@ -508,17 +510,20 @@ static int check_phase(struct Phase *phase, struct Info *info, smap_t *phase_ord
             (struct Phase *)smap_retrieve(info->phase_name, subphase);
 
         if (!phase_subphase) {
-            print_error(subphase, "Unknown type of subphase '%s' in phase '%s'",
+            print_error(subphase,
+                        "Unknown type of subphase '%s' in phase '%s'",
                         subphase, phase->id);
             error = 1;
         } else {
             if (smap_retrieve(phase_order, subphase) == NULL) {
-                print_error(subphase, "Undeclared type of subphase '%s' in phase '%s'",
+                print_error(subphase,
+                            "Undeclared type of subphase '%s' in phase '%s'",
                             subphase, phase->id);
                 error = 1;
             } else {
                 if (smap_retrieve(phase_used, subphase) != NULL) {
-                    print_error(subphase, "Double use of subphase '%s' in phase '%s'",
+                    print_error(subphase,
+                                "Double use of subphase '%s' in phase '%s'",
                                 subphase, phase->id);
                     error = 1;
                 } else {
@@ -567,17 +572,18 @@ int check_config(struct Config *config) {
     }
 
     for (int i = 0; i < array_size(config->phases); ++i) {
-        cur_phase =  array_get(config->phases, i);
+        cur_phase = array_get(config->phases, i);
         if (start_phase)
-            print_warning(cur_phase->id, "phase %s is unreachable", cur_phase->id);
+            print_warning(cur_phase->id, "phase %s is unreachable",
+                          cur_phase->id);
         if (!strcmp(cur_phase->id, "RootPhase"))
             start_phase++;
         smap_insert(phase_order, cur_phase->id, &cur_phase);
         success += check_phase(cur_phase, info, phase_order, phase_used);
     }
     if (start_phase < 1) {
-        cur_phase =  array_get(config->phases, 0);
-        //TODO error without object
+        cur_phase = array_get(config->phases, 0);
+        // TODO error without object
         fprintf(stderr, "file is missing a RootPhase");
         success++;
     }
