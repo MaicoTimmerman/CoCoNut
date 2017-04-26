@@ -87,7 +87,7 @@ struct Phase {
 struct Pass {
     char *id;
     char *info;
-    char *traversal;
+    char *func;
 
     struct NodeCommonInfo *common_info;
 };
@@ -95,6 +95,7 @@ struct Pass {
 struct Traversal {
     char *id;
     char *info;
+    char *func;
 
     array *nodes;
 

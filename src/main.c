@@ -43,7 +43,7 @@ static void version(void) {
 }
 
 int main(int argc, char *argv[]) {
-    int verbose_flag;
+    int verbose_flag = 0;
     int option_index;
     int c = 0;
     char *output_dir = NULL;

@@ -136,9 +136,9 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 %token T_NULL "NULL"
 %token END 0 "End-of-file (EOF)"
 
-%type<string> info
+%type<string> info func
 %type<array> idlist mandatoryarglist mandatory
-             attrlist attrs childlist children enumvalues
+             attrlist attrs childlist children enumvalues traversalnodes
 %type<mandatoryphase> mandatoryarg
 %type<attrval> attrval
 %type<attrtype> attrprimitivetype
@@ -178,24 +178,20 @@ entry: entry phase { array_append(config_phases, $2); }
 phase: phaseheader '{' T_SUBPHASES '{' idlist '}' '}' ';'
      {
          $$ = create_phase($1, $5, NULL);
-         new_location($$, &@$);
      }
      | phaseheader '{' T_PASSES '{' idlist '}' '}' ';'
      {
          $$ = create_phase($1, NULL, $5);
-         new_location($$, &@$);
      }
      | phaseheader '{' info ',' T_SUBPHASES '{' idlist '}' '}' ';'
      {
          $$ = create_phase($1, $7, NULL);
          $$->info = $3;
-         new_location($$, &@$);
      }
      | phaseheader '{' info ',' T_PASSES '{' idlist '}' '}' ';'
      {
          $$ = create_phase($1, NULL, $7);
          $$->info = $3;
-         new_location($$, &@$);
      }
      ;
 
@@ -225,60 +221,101 @@ phaseheader: T_PHASE T_ID
            }
            ;
 
-pass: T_PASS T_ID ';'
-    { $$ = create_pass($2, NULL);
-      new_location($$, &@$);
-      new_location($2, &@2);
+pass: T_PASS T_ID '{' T_FUNC '=' T_ID '}' ';'
+    {
+        $$ = create_pass($2, $6);
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($6, &@6);
     }
-    | T_PASS T_ID '{' T_TRAVERSAL '=' T_ID '}' ';'
-    { $$ = create_pass($2, $6);
-      new_location($$, &@$);
-      new_location($2, &@2);
-      new_location($6, &@6);
+    | T_PASS T_ID '{' info ',' T_FUNC '=' T_ID '}' ';'
+    {
+        $$ = create_pass($2, $8);
+        $$->info = $4;
+        new_location($$, &@$);
+        new_location($2, &@2);
+        new_location($8, &@8);
     }
-    | T_PASS T_ID '{' info '}'
-    { $$ = create_pass($2, NULL);
-      $$->info = $4;
-      new_location($$, &@$);
-      new_location($2, &@2);
+    | T_PASS T_ID '{' info '}' ';'
+    {
+        $$ = create_pass($2, NULL);
+        $$->info = $4;
+        new_location($$, &@$);
+        new_location($2, &@2);
     }
-    | T_PASS T_ID '{' info ',' T_TRAVERSAL '=' T_ID '}' ';'
-    { $$ = create_pass($2, $8);
-      $$->info = $4;
-      new_location($$, &@$);
-      new_location($2, &@2);
-      new_location($8, &@8);
-     }
-     ;
+    | T_PASS T_ID ';'
+    {
+        $$ = create_pass($2, NULL);
+        new_location($$, &@$);
+        new_location($2, &@2);
+    }
+    ;
+
 
 traversal: T_TRAVERSAL T_ID ';'
          {
-             $$ = create_traversal($2, NULL);
+             $$ = create_traversal($2, NULL, NULL);
              new_location($$, &@$);
              new_location($2, &@2);
          }
-         | T_TRAVERSAL T_ID '{' T_NODES '{' idlist '}' '}' ';'
+         | T_TRAVERSAL T_ID '{' func '}' ';'
          {
-             $$ = create_traversal($2, $6);
+             $$ = create_traversal($2, $4, NULL);
+             new_location($$, &@$);
+             new_location($2, &@2);
+         }
+         | T_TRAVERSAL T_ID '{' func ',' traversalnodes '}' ';'
+         {
+             $$ = create_traversal($2, $4, $6);
+             new_location($$, &@$);
+             new_location($2, &@2);
+         }
+         | T_TRAVERSAL T_ID '{' traversalnodes '}' ';'
+         {
+             $$ = create_traversal($2, NULL, $4);
              new_location($$, &@$);
              new_location($2, &@2);
          }
          | T_TRAVERSAL T_ID '{' info '}' ';'
          {
-             $$ = create_traversal($2, NULL);
+             $$ = create_traversal($2, NULL, NULL);
              $$->info = $4;
              new_location($$, &@$);
              new_location($2, &@2);
          }
-         | T_TRAVERSAL T_ID '{' info ',' T_NODES '{' idlist '}' '}' ';'
+         | T_TRAVERSAL T_ID '{' info ',' func '}' ';'
          {
-             $$ = create_traversal($2, $8);
+             $$ = create_traversal($2, $6, NULL);
+             $$->info = $4;
+             new_location($$, &@$);
+             new_location($2, &@2);
+         }
+         | T_TRAVERSAL T_ID '{' info ',' func ',' traversalnodes '}' ';'
+         {
+             $$ = create_traversal($2, $6, $8);
+             $$->info = $4;
+             new_location($$, &@$);
+             new_location($2, &@2);
+         }
+         | T_TRAVERSAL T_ID '{' info ',' traversalnodes '}' ';'
+         {
+             $$ = create_traversal($2, NULL, $6);
              $$->info = $4;
              new_location($$, &@$);
              new_location($2, &@2);
          }
          ;
 
+func: T_FUNC '=' T_ID
+    {
+        $$ = $3;
+        new_location($3, &@3);
+    }
+
+traversalnodes: T_NODES '{' idlist '}'
+              {
+                  $$ = $3;
+              }
 
 enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     {

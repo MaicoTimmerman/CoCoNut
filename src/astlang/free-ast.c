@@ -22,9 +22,6 @@ static void free_phase(void *p) {
 static void free_pass(void *p) {
     struct Pass *pass = p;
 
-    if (pass->traversal != NULL)
-        mem_free(pass->traversal);
-
     mem_free(pass->id);
     mem_free(pass);
 }
