@@ -1,10 +1,12 @@
 cycle phase B {
     passes {
-        a
+        SomePass, SomeTrav
     }
 };
 
 phase A {
+    // TODO
+    description = "Some phase that does A"
     subphases {
         B
     }
@@ -24,16 +26,26 @@ phase C {
 
 phase RootPhase {
     subphases {
-        C
+        C, D
+        D, C
     }
 };
 
 
 
-pass a {
-    traversal = someTrav;
+pass SomePass {
+    func = doSomePass  // -> pass_doSomePass_entry() in doSomePass.h
 };
 
-pass c;
+traversal SomeTrav {
+    func = doSomeTrav // -> trav_doSomeTrav_entry() in doSomeTrav.h
+};
 
-traversal someTrav;
+
+traversal SOT {
+    func = SomeOtherTrav // -> trav_SomeOtherTrav_entry() in SomeOtherTrav.h
+    nodes {
+        A, B
+    }
+};
+
