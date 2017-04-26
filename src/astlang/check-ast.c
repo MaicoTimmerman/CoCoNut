@@ -17,6 +17,10 @@ struct Info {
     smap_t *traversal_name;
     smap_t *phase_name;
     smap_t *pass_name;
+
+    struct Node *root_node;
+    struct Nodeset *root_nodeset;
+    struct Phase *root_phase;
 };
 
 static struct Info *create_info(void) {
@@ -30,6 +34,10 @@ static struct Info *create_info(void) {
     info->traversal_name = smap_init(32);
     info->phase_name = smap_init(32);
     info->pass_name = smap_init(32);
+
+    info->root_node = NULL;
+    info->root_nodeset = NULL;
+    info->root_phase = NULL;
     return info;
 }
 
@@ -116,6 +124,17 @@ static int check_nodes(array *nodes, struct Info *info) {
         } else {
             smap_insert(info->node_name, cur_node->id, cur_node);
         }
+
+        if (cur_node->root) {
+            if (info->root_node != NULL || info->root_nodeset != NULL) {
+                orig_def = info->root_node != NULL ? info->root_node->id : info->root_nodeset->id;
+                print_error(cur_node->id, "Duplicate declaration of root node");
+                print_note(orig_def, "Previously declared here");
+                error = 1;
+            } else {
+                info->root_node = cur_node;
+            }
+        }
     }
     return error;
 }
@@ -135,6 +154,17 @@ static int check_nodesets(array *nodesets, struct Info *info) {
             error = 1;
         } else {
             smap_insert(info->nodeset_name, cur_nodeset->id, cur_nodeset);
+        }
+
+        if (cur_nodeset->root) {
+            if (info->root_node != NULL || info->root_nodeset != NULL) {
+                orig_def = info->root_node != NULL ? info->root_node->id : info->root_nodeset->id;
+                print_error(cur_nodeset->id, "Duplicate declaration of root node");
+                print_note(orig_def, "Previously declared here");
+                error = 1;
+            } else {
+                info->root_nodeset = cur_nodeset;
+            }
         }
     }
     return error;
@@ -581,10 +611,17 @@ int check_config(struct Config *config) {
         smap_insert(phase_order, cur_phase->id, &cur_phase);
         success += check_phase(cur_phase, info, phase_order, phase_used);
     }
+
+    // TODO: create print_error without location
+    if (info->root_node == NULL && info->root_nodeset == NULL) {
+        fprintf(stderr, "error: No root node or root nodeset defined\n");
+        success++;
+    }
+
+
     if (start_phase < 1) {
         cur_phase = array_get(config->phases, 0);
-        // TODO error without object
-        fprintf(stderr, "file is missing a RootPhase");
+        fprintf(stderr, "file is missing a RootPhase\n");
         success++;
     }
 

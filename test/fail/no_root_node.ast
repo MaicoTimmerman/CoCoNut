@@ -1,0 +1,13 @@
+node A {
+    children {
+        child B b
+    }
+};
+
+node B {
+    attributes {
+        int a
+    }
+};
+
+root node RootNode { attributes { int a } };

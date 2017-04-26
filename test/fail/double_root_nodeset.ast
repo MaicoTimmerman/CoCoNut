@@ -1,0 +1,15 @@
+node A {
+    attributes { int a }
+};
+
+root nodeset B {
+    nodes {
+        A
+    }
+};
+
+root nodeset C {
+    nodes {
+        A
+    }
+};

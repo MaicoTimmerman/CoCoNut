@@ -88,6 +88,7 @@ static void do_print_at_loc(enum PrintType type, void *loc_obj, char *format,
                             va_list ap) {
     struct ParserLocation *loc = imap_retrieve(yy_parser_locations, loc_obj);
     assert(loc != NULL);
+    assert(loc->first_line > 0);
 
     char *line = array_get(yy_lines, loc->first_line - 1);
 

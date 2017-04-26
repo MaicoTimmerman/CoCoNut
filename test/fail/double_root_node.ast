@@ -1,0 +1,7 @@
+root node A {
+    attributes { int a }
+};
+
+root node B {
+    attributes { int a }
+};

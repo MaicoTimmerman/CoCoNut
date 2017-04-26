@@ -95,7 +95,7 @@ nodeset Expr {
     }
 };
 
-nodeset Stmt {
+root nodeset Stmt {
     nodes {
         IfElse, For
     }

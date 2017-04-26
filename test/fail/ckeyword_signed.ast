@@ -10,3 +10,5 @@ phase RootPhase {
     }
 };
 pass A;
+
+root node RootNode { attributes { int a } };

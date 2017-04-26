@@ -1,0 +1,38 @@
+root phase RootPhase {
+    info = "test",
+    passes { SomePass }
+};
+
+pass SomePass {
+    info = "test",
+    traversal = SomeTrav
+};
+
+enum SomeEnum {
+    info = "loloasdsa",
+    prefix = MY,
+    values {
+        A, B, C
+    }
+};
+
+traversal SomeTrav {
+    info = "test",
+    nodes {
+        SomeNode
+    }
+};
+
+root node SomeNode {
+    info = "blabla",
+     attributes {
+        int a
+     }
+};
+
+nodeset SomeNodeset {
+    info = "blabasdaas",
+     nodes {
+        SomeNode
+     }
+};
