@@ -109,7 +109,7 @@ struct Enum {
 struct Nodeset {
     char *id;
 
-    // Array of strings
+    // Array of strings transformed into array of Nodes.
     array *nodes;
 
     struct NodeCommonInfo *common_info;
@@ -134,6 +134,8 @@ struct Child {
     char *id;
     char *type;
 
+    // One of these becomes a link to the actual child node(set), other NULL
+    // after checking the ast.
     struct Node *node;
     struct Nodeset *nodeset;
 
