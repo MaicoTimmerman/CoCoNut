@@ -9,6 +9,7 @@
 #include "smap.h"
 #include "str-ast.h"
 
+// TODO make enum of mandatory/forbidden/optional.
 static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
 static const int OPTIONAL = 2;

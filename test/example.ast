@@ -1,3 +1,4 @@
+// TODO Cycle based on nodelists, apply cycle to individual entries of the list.
 phase FirstPhase {
     traversals {
         aa, bb
@@ -19,6 +20,7 @@ cycle MyCycle {
 traversal PrintAll;
 
 traversal Print {
+    info = "alksdjflkajsdflkj",
     nodes {
         asda,
         asd, asd, asd, a, a
@@ -52,9 +54,10 @@ node IdExpr {
             // Random order
             construct,
             mandatory {
-                !A,
+                !laksd:djfl:Rase,
                 B,
-                C,
+                A:D,
+            Cjj
                 !(C to D)
             }
         },
@@ -62,10 +65,10 @@ node IdExpr {
             // Random order
             construct,
             mandatory {
-                !A,
-                B,
-                C,
-                !(C to D)
+                // TODO think of better common pattern.
+                !(0 to 5)
+                5 to 6
+                !(7 to n)
             }
         }
 
@@ -88,8 +91,10 @@ node IdExpr {
         float attr11 = 1.1,
         double  attr12 = -1.1,
 
+        // TODO mandatoryness of strings and links.
         string attr14 = "laksdfj",
         SomeNode attr15 = NULL ,
+
         SomeEnum attr16 = BO_add,
         flag attr166 = true,
 
