@@ -36,22 +36,29 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase(char *id, array *phases, array *passes,
-                           bool cycle) {
-
+struct Phase *create_phase_header(char *id, bool root, bool cycle) {
     struct Phase *p = mem_alloc(sizeof(struct Phase));
+    p->id = id;
+    p->root = root;
+    p->cycle = cycle;
+
+    p->common_info = create_commoninfo();
+    return p;
+}
+
+struct Phase *create_phase(struct Phase *phase_header, array *phases,
+                           array *passes) {
+
+    struct Phase *p = phase_header;
     if (phases == NULL) {
         p->type = PH_passes;
     } else {
         p->type = PH_subphases;
     }
 
-    p->id = id;
     p->subphases = phases;
     p->passes = passes;
-    p->cycle = cycle;
 
-    p->common_info = create_commoninfo();
     return p;
 }
 
@@ -92,6 +99,7 @@ struct Nodeset *create_nodeset(char *id, array *nodes) {
     struct Nodeset *n = mem_alloc(sizeof(struct Nodeset));
     n->id = id;
     n->nodes = nodes;
+    n->root = false;
 
     n->common_info = create_commoninfo();
     return n;
@@ -100,6 +108,7 @@ struct Nodeset *create_nodeset(char *id, array *nodes) {
 struct Node *create_node(char *id, struct Node *nodebody) {
 
     nodebody->id = id;
+    nodebody->root = false;
     nodebody->common_info = create_commoninfo();
     return nodebody;
 }
