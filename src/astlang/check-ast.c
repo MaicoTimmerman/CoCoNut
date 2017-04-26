@@ -127,8 +127,10 @@ static int check_nodes(array *nodes, struct Info *info) {
 
         if (cur_node->root) {
             if (info->root_node != NULL || info->root_nodeset != NULL) {
-                orig_def = info->root_node != NULL ? info->root_node->id : info->root_nodeset->id;
-                print_error(cur_node->id, "Duplicate declaration of root node");
+                orig_def = info->root_node != NULL ? info->root_node->id
+                                                   : info->root_nodeset->id;
+                print_error(cur_node->id,
+                            "Duplicate declaration of root node");
                 print_note(orig_def, "Previously declared here");
                 error = 1;
             } else {
@@ -158,8 +160,10 @@ static int check_nodesets(array *nodesets, struct Info *info) {
 
         if (cur_nodeset->root) {
             if (info->root_node != NULL || info->root_nodeset != NULL) {
-                orig_def = info->root_node != NULL ? info->root_node->id : info->root_nodeset->id;
-                print_error(cur_nodeset->id, "Duplicate declaration of root node");
+                orig_def = info->root_node != NULL ? info->root_node->id
+                                                   : info->root_nodeset->id;
+                print_error(cur_nodeset->id,
+                            "Duplicate declaration of root node");
                 print_note(orig_def, "Previously declared here");
                 error = 1;
             } else {
@@ -432,6 +436,8 @@ static int check_enum(struct Enum *arg_enum, struct Info *info) {
 
 static int check_traversal(struct Traversal *traversal, struct Info *info) {
 
+    // TODO: check collission of func
+
     int error = 0;
 
     if (traversal->nodes == NULL)
@@ -474,17 +480,7 @@ static int check_pass(struct Pass *pass, struct Info *info) {
 
     int error = 0;
 
-    if (pass->traversal != NULL) {
-        struct Traversal *pass_traversal = (struct Traversal *)smap_retrieve(
-            info->traversal_name, pass->traversal);
-
-        if (!pass_traversal) {
-            print_error(pass->traversal,
-                        "Unknown type of traversal '%s' in pass '%s'",
-                        pass->traversal, pass->id);
-            error = 1;
-        }
-    }
+    // TODO: check collission of func
 
     return error;
 }
@@ -563,6 +559,9 @@ static int check_phase(struct Phase *phase, struct Info *info,
         }
     }
 
+    smap_free(pass_name);
+    smap_free(subphase_name);
+
     return error;
 }
 
@@ -617,7 +616,6 @@ int check_config(struct Config *config) {
         fprintf(stderr, "error: No root node or root nodeset defined\n");
         success++;
     }
-
 
     if (start_phase < 1) {
         cur_phase = array_get(config->phases, 0);

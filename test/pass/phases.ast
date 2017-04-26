@@ -41,9 +41,9 @@ traversal SomeTrav {
 
 
 traversal SOT {
-    func = SomeOtherTrav // -> trav_SomeOtherTrav_entry() in SomeOtherTrav.h
+    func = SomeOtherTrav, // -> trav_SomeOtherTrav_entry() in SomeOtherTrav.h
     nodes {
-        A, B
+        RootNode
     }
 };
 

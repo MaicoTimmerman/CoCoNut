@@ -62,20 +62,21 @@ struct Phase *create_phase(struct Phase *phase_header, array *phases,
     return p;
 }
 
-struct Pass *create_pass(char *id, char *traversal) {
-
+struct Pass *create_pass(char *id, char *func) {
     struct Pass *p = mem_alloc(sizeof(struct Pass));
+
     p->id = id;
-    p->traversal = traversal;
+    p->func = func;
 
     p->common_info = create_commoninfo();
     return p;
 }
 
-struct Traversal *create_traversal(char *id, array *nodes) {
+struct Traversal *create_traversal(char *id, char *func, array *nodes) {
 
     struct Traversal *t = mem_alloc(sizeof(struct Traversal));
     t->id = id;
+    t->func = func;
     t->nodes = nodes;
 
     t->common_info = create_commoninfo();

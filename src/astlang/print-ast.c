@@ -41,8 +41,8 @@ static void print_phase(struct Phase *phase) {
 
 static void print_pass(struct Pass *pass) {
     printf("pass %s", pass->id);
-    if (pass->traversal != NULL) {
-        printf(" {\n" IND "traversal = %s\n};\n\n", pass->traversal);
+    if (pass->func != NULL) {
+        printf(" {\n" IND "func = %s\n};\n\n", pass->func);
     } else {
         printf(";\n\n");
     }
