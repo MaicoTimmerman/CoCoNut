@@ -33,6 +33,16 @@ static void generate_nodetype_enum(struct Config *config, FILE *fp) {
     out("} NodeType;\n\n");
 }
 
+static void generate_traversal_enum(struct Config *config, FILE *fp) {
+    out("typedef enum {\n");
+    for (int i = 0; i < array_size(config->traversals); i++) {
+        struct Traversal *t = array_get(config->traversals, i);
+        out("   " TRAV_FMT ",\n", t->id);
+    }
+
+    out("} TraversalType;\n\n");
+}
+
 static void template_ast_h(struct Config *config, FILE *fp) {
     // First do forward declaration of all the structs.
     out("\n// Forward declarations of nodes\n");
@@ -98,6 +108,7 @@ void generate_enum_definitions(struct Config *config, FILE *fp) {
     out("#pragma once\n");
 
     generate_nodetype_enum(config, fp);
+    generate_traversal_enum(config, fp);
 
     for (int i = 0; i < array_size(config->enums); i++) {
         template_enum((struct Enum *)array_get(config->enums, i), fp);

@@ -7,8 +7,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define TRAVERSAL_FMT "void %s_%s(%s *node, struct Info *info)"
-
 void generate_user_trav_header(struct Config *config, FILE *fp,
                                void *userdata) {
     struct Traversal *trav = userdata;
@@ -22,13 +20,17 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
     if (trav->nodes != NULL) {
         for (int i = 0; i < array_size(trav->nodes); i++) {
             char *node = array_get(trav->nodes, i);
-            out(TRAVERSAL_FMT ";\n", trav->id, node, node);
+            out("void " TRAVERSAL_HANDLER_FMT
+                "(%s *node, struct Info *info);\n",
+                trav->id, node, node);
         }
 
     } else {
         for (int i = 0; i < array_size(config->nodes); i++) {
             struct Node *n = array_get(config->nodes, i);
-            out(TRAVERSAL_FMT ";\n", trav->id, n->id, n->id);
+            out("void " TRAVERSAL_HANDLER_FMT
+                "(%s *node, struct Info *info);\n",
+                trav->id, n->id, n->id);
         }
     }
 }
