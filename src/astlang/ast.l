@@ -183,6 +183,10 @@ static inline void lexer_init(void) {
 }
 
 static inline void check_c_keyword(const char *str) {
+    if (!yy_lex_keywords) {
+        // values of enum are not a problem.
+        return;
+    }
     // Match for C-keywords.
     int reti = regexec(&regex, str, 0, NULL, 0);
     if (!reti) {
