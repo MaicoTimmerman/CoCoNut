@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -11,7 +12,12 @@
 
 struct FileGen {
     char *fn;
-    void (*main_func)(struct Config *config, FILE *fp);
+    union {
+        void (*func)(struct Config *, FILE *);
+        void (*func_userdata)(struct Config *, FILE *, void *);
+    } function;
+    void *main_func;
+    void *user_data;
 };
 
 static array *file_generations = NULL;
@@ -29,12 +35,24 @@ void filegen_init(char *out_dir) {
     }
 }
 
-void filegen_add(char *filename,
-                 void (*main_func)(struct Config *config, FILE *fp)) {
+void filegen_add_with_userdata(char *filename,
+                               void (*main_func)(struct Config *, FILE *,
+                                                 void *),
+                               void *user_data) {
 
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->fn = strdup(filename);
-    g->main_func = main_func;
+    g->function.func_userdata = main_func;
+    g->user_data = user_data;
+    array_append(file_generations, g);
+}
+
+void filegen_add(char *filename, void (*main_func)(struct Config *, FILE *)) {
+
+    struct FileGen *g = malloc(sizeof(struct FileGen));
+    g->fn = strdup(filename);
+    g->function.func = main_func;
+    g->user_data = NULL;
     array_append(file_generations, g);
 }
 
@@ -76,7 +94,12 @@ int filegen_generate(struct Config *config) {
             return -1;
         }
 
-        g->main_func(config, fp);
+        if (g->user_data == NULL) {
+            g->function.func(config, fp);
+
+        } else {
+            g->function.func_userdata(config, fp, g->user_data);
+        }
 
         fclose(fp);
 
