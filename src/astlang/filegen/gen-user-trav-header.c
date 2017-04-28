@@ -17,7 +17,7 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
     out("#include \"ast.h\"\n");
     out("struct Info;\n");
     out("struct Info *%s_createinfo(void);\n", trav->id);
-    out("struct Info *%s_freeinfo(void);\n", trav->id);
+    out("void %s_freeinfo(struct Info *);\n", trav->id);
 
     if (trav->nodes != NULL) {
         for (int i = 0; i < array_size(trav->nodes); i++) {
