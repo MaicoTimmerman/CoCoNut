@@ -6,3 +6,6 @@
 #define NS_ENUMTYPE_FMT "NS_%s_enum"
 
 #define NT_FMT "NT_%s"
+#define TRAV_FMT "TRAV_%s"
+
+#define TRAVERSAL_HANDLER_FMT "%s_%s"

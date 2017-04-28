@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 static void generate_replace_node(struct Node *node, FILE *fp, bool header) {
     // Generate replace functions
@@ -52,17 +53,43 @@ static void generate_node_child_nodeset(struct Node *node, struct Child *child,
     out("    }\n");
 }
 
-static void generate_trav_node(struct Node *node, FILE *fp, bool header) {
-    out("static struct %s *trav_%s(struct %s *node, struct Info *info)",
-        node->id, node->id, node->id);
+static void generate_trav_node(struct Node *node, FILE *fp,
+                               struct Config *config, bool header) {
+    out("static void trav_%s(struct %s *node, struct Info *info)", node->id,
+        node->id);
 
     if (header) {
         out(";\n");
     } else {
         out(" {\n");
-        out("    return NULL;// SOME_USER_%s_FUN(struct %s *, struct Info "
-            "*info);\n",
-            node->id, node->id);
+        out("   switch (current_traversal) {\n");
+        for (int i = 0; i < array_size(config->traversals); i++) {
+            struct Traversal *t = array_get(config->traversals, i);
+
+            bool handles_node = t->nodes == NULL;
+            for (int j = 0; j < array_size(t->nodes); j++) {
+                char *node_name = array_get(t->nodes, j);
+                if (strcmp(node->id, node_name) == 0) {
+                    handles_node = true;
+                    break;
+                }
+            }
+
+            if (handles_node) {
+                out("   case " TRAV_FMT ":\n", t->id);
+                out("       " TRAVERSAL_HANDLER_FMT "(node, info);\n", t->id,
+                    node->id);
+                out("       break;\n");
+            }
+        }
+
+        out("   default:\n");
+        for (int i = 0; i < array_size(node->children); i++) {
+            struct Child *c = array_get(node->children, i);
+            out("       trav_%s_%s(node, info);\n", node->id, c->id);
+        }
+        out("       break;\n");
+        out("   }\n");
         out("}\n\n");
     }
 
@@ -113,12 +140,18 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("struct Info;\n");
         out("NodeType node_replacement_type;\n");
         out("void *node_replacement;\n");
+        out("TraversalType current_traversal = 0; // TODO: create stack\n");
+    } else {
+        for (int i = 0; i < array_size(config->traversals); i++) {
+            struct Traversal *t = array_get(config->traversals, i);
+            out("#include \"traversal-%s.h\"\n", t->id);
+        }
     }
 
     out("\n");
     out("// NODES\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        generate_trav_node(array_get(config->nodes, i), fp, header);
+        generate_trav_node(array_get(config->nodes, i), fp, config, header);
     }
 
     for (int i = 0; i < array_size(config->nodes); ++i) {
