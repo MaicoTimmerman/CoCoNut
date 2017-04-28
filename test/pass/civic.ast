@@ -8,7 +8,7 @@ pass A;
 enum BasicType {
     prefix = BT,
     values {
-        int, float, bool
+        int, float, bool, void
     }
 };
 
@@ -22,7 +22,7 @@ enum MonOpEnum {
 enum BinOpEnum {
     prefix = BO,
     values {
-        mul, add, sub, div, mod, lt, leq, eq, gt, geq, neq
+        mul, add, sub, div, mod, lt, leq, eq, gt, geq, neq, and, or
     }
 };
 
