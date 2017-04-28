@@ -138,7 +138,7 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     }
 }
 
-void generate_consistency_definition(struct Config *c, FILE *fp) {
+void generate_consistency_definitions(struct Config *c, FILE *fp) {
     generate(c, fp, false);
 }
 

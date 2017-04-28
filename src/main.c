@@ -118,8 +118,8 @@ int main(int argc, char *argv[]) {
     filegen_add("free-ast.h", generate_free_header);
     filegen_add("free-ast.c", generate_free_definitions);
 
-    filegen_add("create-ast.c", generate_create_functions);
-    filegen_add("create-ast.h", generate_create_function_headers);
+    filegen_add("create-ast.h", generate_create_header);
+    filegen_add("create-ast.c", generate_create_definitions);
 
     filegen_add("trav-ast.h", generate_trav_header);
     filegen_add("trav-ast.c", generate_trav_definitions);
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     filegen_add("copy-ast.c", generate_copy_definitions);
 
     filegen_add("consistency-ast.h", generate_consistency_header);
-    filegen_add("consistency-ast.c", generate_consistency_definition);
+    filegen_add("consistency-ast.c", generate_consistency_definitions);
 
     int ret = filegen_generate(parse_result);
     filegen_cleanup();
