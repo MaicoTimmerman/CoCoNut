@@ -615,12 +615,17 @@ int check_config(struct Config *config) {
     if (info->root_node == NULL && info->root_nodeset == NULL) {
         fprintf(stderr, "error: No root node or root nodeset defined\n");
         success++;
+    } else {
+        config->root_node = info->root_node;
+        config->root_nodeset = info->root_nodeset;
     }
 
     if (start_phase < 1) {
         cur_phase = array_get(config->phases, 0);
         fprintf(stderr, "file is missing a RootPhase\n");
         success++;
+    } else {
+        config->root_phase = info->root_phase;
     }
 
     smap_free(phase_used);

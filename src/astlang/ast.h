@@ -67,6 +67,10 @@ struct Config {
     array *nodesets;
     array *nodes;
 
+    struct Node *root_node;
+    struct Nodeset *root_nodeset;
+    struct Phase *root_phase;
+
     struct NodeCommonInfo *common_info;
 };
 
