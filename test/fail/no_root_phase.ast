@@ -1,10 +1,4 @@
-node SomeNode {
-    attributes {
-        string goto
-    }
-};
-
-root phase RootPhase {
+phase NotTheRootPhase {
     passes {
         A
     }

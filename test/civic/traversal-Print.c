@@ -52,6 +52,10 @@ void Print_Root(Root *node, struct Info *info) {
 
 void Print_Decls(Decls *node, struct Info *info) {
     trav_Decls_decl(node, info);
+    struct Info *info = SomeTRAv_createinfo()
+    trav_push(TRAV_SomeTraov);
+    trav_start_ForLoop(node, NT_SomeTrav);
+
 }
 
 void Print_LocalFunDef(LocalFunDef *node, struct Info *info) {

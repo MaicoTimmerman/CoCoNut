@@ -5,7 +5,7 @@ node IdExpr {
 };
 
 
-phase RootPhase {
+root phase RootPhase {
     passes {
         A
     }

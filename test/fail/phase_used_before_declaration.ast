@@ -1,0 +1,15 @@
+pass A;
+
+root phase TheRootPhase {
+    subphases {
+        AnotherPhase
+    }
+};
+
+phase AnotherPhase {
+    passes {
+        A
+    }
+};
+
+root node RootNode { attributes { int a } };

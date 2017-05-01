@@ -1,11 +1,16 @@
-root phase RootPhase {
+phase AnotherPhase1 {
     info = "test",
-    passes { SomePass }
+    passes { SomeTrav }
 };
 
-pass SomePass {
+phase AnotherPhase2 {
     info = "test",
-    traversal = SomeTrav
+    passes { SomeTrav }
+};
+
+root phase RootPhase {
+    info = "test",
+    subphases { AnotherPhase1, AnotherPhase2 }
 };
 
 enum SomeEnum {

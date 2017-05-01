@@ -22,7 +22,7 @@ phase B {
     }
 };
 
-phase RootPhase {
+root phase RootPhase {
     subphases {
         C, D
     }
@@ -38,11 +38,6 @@ pass c;
 
 traversal someTrav;
 
-phase RootPhase {
-    passes {
-        A
-    }
-};
 pass A;
 
 root node RootNode { attributes { int a } };

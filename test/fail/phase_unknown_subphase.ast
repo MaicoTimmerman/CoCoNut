@@ -1,0 +1,8 @@
+root phase TheRootPhase {
+    subphases {
+        NonExistentPhase
+    }
+};
+
+
+root node RootNode { attributes { int a } };

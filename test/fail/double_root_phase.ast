@@ -1,14 +1,15 @@
-node SomeNode {
-    attributes {
-        string const
-    }
-};
+pass A;
 
-root phase RootPhase {
+root phase TheRootPhase {
     passes {
         A
     }
 };
-pass A;
+
+root phase AnotherRootPhase {
+    passes {
+        A
+    }
+};
 
 root node RootNode { attributes { int a } };
