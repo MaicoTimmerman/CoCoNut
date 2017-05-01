@@ -510,8 +510,11 @@ static int check_phase(struct Phase *phase, struct Info *info,
         struct Pass *phase_pass =
             (struct Pass *)smap_retrieve(info->pass_name, pass);
 
-        if (!phase_pass) {
-            print_error(pass, "Unknown type of pass '%s' in phase '%s'", pass,
+        struct Traversal *phase_trav =
+            (struct Traversal *)smap_retrieve(info->traversal_name, pass);
+
+        if (!phase_pass && !phase_trav) {
+            print_error(pass, "Unknown type of traversal or pass '%s' in phase '%s'", pass,
                         phase->id);
             error = 1;
         }
@@ -524,7 +527,7 @@ static int check_phase(struct Phase *phase, struct Info *info,
         // Check if there is no duplicate naming.
         if ((orig_node = smap_retrieve(subphase_name, subphase)) != NULL) {
             print_error(subphase,
-                        "Duplicate name '%s' in subphases of phase '%s'",
+                        "Duplicate subphase '%s' in subphases of phase '%s'",
                         subphase, phase->id);
             print_note(orig_node, "Previously declared here");
             error = 1;
@@ -535,29 +538,35 @@ static int check_phase(struct Phase *phase, struct Info *info,
         struct Phase *phase_subphase =
             (struct Phase *)smap_retrieve(info->phase_name, subphase);
 
+        // Subphase does not exist at all
         if (!phase_subphase) {
             print_error(subphase,
                         "Unknown type of subphase '%s' in phase '%s'",
                         subphase, phase->id);
             error = 1;
         } else {
+
+            // Subphase does exist, but is used before it is declared
             if (smap_retrieve(phase_order, subphase) == NULL) {
                 print_error(subphase,
-                            "Undeclared type of subphase '%s' in phase '%s'",
-                            subphase, phase->id);
+                            "Phase '%s' used as subphase before declaration",
+                            subphase);
                 error = 1;
-            } else {
-                if (smap_retrieve(phase_used, subphase) != NULL) {
-                    print_error(subphase,
-                                "Double use of subphase '%s' in phase '%s'",
-                                subphase, phase->id);
-                    error = 1;
-                } else {
-                    smap_insert(phase_used, subphase, phase);
-                }
             }
         }
     }
+
+    if (phase->root) {
+        if (info->root_phase != NULL) {
+            print_error(phase->id, "Double declaration of root phase");
+            print_note(info->root_phase->id, "Previously declared here");
+            error = 1;
+        } else {
+            info->root_phase = phase;
+        }
+    }
+
+    smap_insert(phase_order, phase->id, phase);
 
     smap_free(pass_name);
     smap_free(subphase_name);
@@ -572,7 +581,7 @@ int check_config(struct Config *config) {
     smap_t *phase_order = smap_init(16);
     smap_t *phase_used = smap_init(16);
     struct Phase *cur_phase;
-    int start_phase = 0;
+    bool root_phase_seen = false;
 
     success += check_nodes(config->nodes, info);
     success += check_nodesets(config->nodesets, info);
@@ -602,27 +611,29 @@ int check_config(struct Config *config) {
 
     for (int i = 0; i < array_size(config->phases); ++i) {
         cur_phase = array_get(config->phases, i);
-        if (start_phase)
-            print_warning(cur_phase->id, "phase %s is unreachable",
-                          cur_phase->id);
-        if (!strcmp(cur_phase->id, "RootPhase"))
-            start_phase++;
-        smap_insert(phase_order, cur_phase->id, &cur_phase);
+
+        // Don't give the warning when we encounter another phase
+        // which is declared as root, since it gives an error anyway
+        if (root_phase_seen && !cur_phase->root)
+            print_warning(cur_phase->id, "Phase is unreachable");
+
+        if (cur_phase->root)
+            root_phase_seen = true;
+
         success += check_phase(cur_phase, info, phase_order, phase_used);
     }
 
     // TODO: create print_error without location
     if (info->root_node == NULL && info->root_nodeset == NULL) {
-        fprintf(stderr, "error: No root node or root nodeset defined\n");
+        fprintf(stderr, "error: No root node or root nodeset specified\n");
         success++;
     } else {
         config->root_node = info->root_node;
         config->root_nodeset = info->root_nodeset;
     }
 
-    if (start_phase < 1) {
-        cur_phase = array_get(config->phases, 0);
-        fprintf(stderr, "file is missing a RootPhase\n");
+    if (info->root_phase == NULL) {
+        fprintf(stderr, "error: No root phase specified\n");
         success++;
     } else {
         config->root_phase = info->root_phase;

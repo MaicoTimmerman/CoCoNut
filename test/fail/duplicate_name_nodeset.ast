@@ -16,7 +16,7 @@ nodeset SomeNodeSet {
 };
 
 
-phase RootPhase {
+root phase RootPhase {
     passes {
         A
     }

@@ -23,7 +23,7 @@ phase C {
     }
 };
 
-phase RootPhase {
+root phase RootPhase {
     subphases {
         C, D
     }
