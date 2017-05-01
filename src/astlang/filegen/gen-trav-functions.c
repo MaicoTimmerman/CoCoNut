@@ -140,12 +140,14 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("struct Info;\n");
         out("NodeType node_replacement_type;\n");
         out("void *node_replacement;\n");
-        out("TraversalType current_traversal = 0; // TODO: create stack\n");
+        out("extern TraversalType current_traversal; // TODO: create stack\n");
     } else {
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
             out("#include \"traversal-%s.h\"\n", t->id);
         }
+
+        out("TraversalType current_traversal = 0; // TODO: create stack\n");
     }
 
     out("\n");
