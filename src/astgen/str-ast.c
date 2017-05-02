@@ -1,5 +1,5 @@
-#include "ast.h"
-#include "memory.h"
+#include "astgen/ast.h"
+#include "lib/memory.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

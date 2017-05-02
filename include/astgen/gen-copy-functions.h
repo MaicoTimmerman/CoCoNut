@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 
-#include "ast.h"
+#include "astgen/ast.h"
 
 void generate_copy_definitions(struct Config *, FILE *);
 

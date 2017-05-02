@@ -1,5 +1,5 @@
 #pragma once
-#include "ast.h"
+#include "astgen/ast.h"
 #include <stdio.h>
 
 void generate_trav_definitions(struct Config *, FILE *);

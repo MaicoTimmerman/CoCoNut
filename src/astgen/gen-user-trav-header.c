@@ -1,8 +1,8 @@
-#include "ast.h"
-#include "filegen-driver.h"
-#include "filegen-util.h"
-#include "memory.h"
-#include "str-ast.h"
+#include "astgen/ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/filegen-util.h"
+#include "astgen/str-ast.h"
+#include "lib/memory.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>

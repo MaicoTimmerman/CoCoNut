@@ -5,7 +5,6 @@
 
 #include "array.h"
 #include "ast.h"
-#include "ast.parser.h"
 #include "create-ast.h"
 #include "memory.h"
 

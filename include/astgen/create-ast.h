@@ -1,7 +1,7 @@
 #ifndef _CREATE_AST_H
 #define _CREATE_AST_H
 
-#include "array.h"
+#include "lib/array.h"
 #include <stdbool.h>
 #include <stdint.h>
 

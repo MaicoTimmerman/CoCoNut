@@ -1,5 +1,5 @@
 #pragma once
-#include "ast.h"
+#include "astgen/ast.h"
 #include <stdio.h>
 
 void filegen_init(char *out_dir);
