@@ -17,7 +17,7 @@ $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 clean:
 	@rm -f bin/$(TARGET) $(SRC:.c=.o) $(SRC:.c=.d) $(LEXER) $(LEXER:.c=.o) $(LEXER:.c=.d) \
 		$(LEXER:.c=.h) $(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) \
-		$(PARSER:.c=.h) $(PARSER:.c=.d)
+		$(PARSER:.c=.h) $(PARSER:.c=.d) src/generated/*
 
 %.o: %.c
 	@echo "Compiling source code: $(notdir $@)"
