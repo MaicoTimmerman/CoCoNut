@@ -1,0 +1,13 @@
+Reserved identifiers:
+NodeType
+TraversalType
+
+Reserved prefixes:
+NS_
+NT_
+create_
+free_
+trav_
+copy_
+replace_
+traversal_
