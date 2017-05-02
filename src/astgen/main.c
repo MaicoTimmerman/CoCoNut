@@ -75,16 +75,18 @@ int main(int argc, char *argv[]) {
     int verbose_flag = 0;
     int option_index;
     int c = 0;
-    char *output_dir = NULL;
+    char *header_dir = NULL;
+    char *source_dir = NULL;
 
     struct option long_options[] = {{"verbose", no_argument, &verbose_flag, 1},
-                                    {"output-dir", required_argument, 0, 'o'},
+                                    {"header-dir", required_argument, 0, 21},
+                                    {"source-dir", required_argument, 0, 22},
                                     {"help", no_argument, 0, 'h'},
                                     {"version", no_argument, 0, 0},
                                     {0, 0, 0, 0}};
 
     while (1) {
-        c = getopt_long(argc, argv, "vo:", long_options, &option_index);
+        c = getopt_long(argc, argv, "v", long_options, &option_index);
 
         // End of options
         if (c == -1)
@@ -97,8 +99,11 @@ int main(int argc, char *argv[]) {
         case 'v':
             verbose_flag = 1;
             break;
-        case 'o':
-            output_dir = optarg;
+        case 21: // Header file output directory.
+            header_dir = optarg;
+            break;
+        case 22: // Source file output directory.
+            source_dir = optarg;
             break;
         case 'h':
             usage(argv[0]);
@@ -116,9 +121,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (output_dir == NULL) {
-        output_dir = "src/generated/";
-    }
+    if (header_dir == NULL) header_dir = "include/generated/";
+    if (source_dir == NULL) source_dir = "src/generated/";
 
     FILE *f = open_input_file(yy_filename);
 
@@ -135,27 +139,17 @@ int main(int argc, char *argv[]) {
         print_config(parse_result);
     }
 
-    filegen_init(output_dir);
+    // Generated all the header files.
+    filegen_init(header_dir);
     filegen_add("enum.h", generate_enum_definitions);
     filegen_add("ast.h", generate_ast_definitions);
 
     filegen_add("free-ast.h", generate_free_header);
-    filegen_add("free-ast.c", generate_free_definitions);
-
     filegen_add("create-ast.h", generate_create_header);
-    filegen_add("create-ast.c", generate_create_definitions);
-
     filegen_add("trav-ast.h", generate_trav_header);
-    filegen_add("trav-ast.c", generate_trav_definitions);
-
     filegen_add("copy-ast.h", generate_copy_header);
-    filegen_add("copy-ast.c", generate_copy_definitions);
-
     filegen_add("consistency-ast.h", generate_consistency_header);
-    filegen_add("consistency-ast.c", generate_consistency_definitions);
-
     filegen_add("phase-driver.h", generate_phase_driver_header);
-    filegen_add("phase-driver.c", generate_phase_driver_definitions);
 
     for (int i = 0; i < array_size(parse_result->traversals); i++) {
         struct Traversal *trav = array_get(parse_result->traversals, i);
@@ -171,7 +165,21 @@ int main(int argc, char *argv[]) {
         filegen_add_with_userdata(header, generate_pass_header, pass);
     }
 
-    int ret = filegen_generate(parse_result);
+
+    int ret;
+    ret = filegen_generate(parse_result);
+    filegen_cleanup();
+
+    // Genereate all the source files.
+    filegen_init(source_dir);
+    filegen_add("free-ast.c", generate_free_definitions);
+    filegen_add("create-ast.c", generate_create_definitions);
+    filegen_add("trav-ast.c", generate_trav_definitions);
+    filegen_add("copy-ast.c", generate_copy_definitions);
+    filegen_add("consistency-ast.c", generate_consistency_definitions);
+    filegen_add("phase-driver.c", generate_phase_driver_definitions);
+
+    ret = filegen_generate(parse_result);
     filegen_cleanup();
 
     free_config(parse_result);
