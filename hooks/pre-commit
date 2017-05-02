@@ -1,0 +1,28 @@
+#!/bin/bash
+
+RESET_STYLE="\e[0m"
+YELLOW="\e[93m"
+RED="\e[91m"
+BOLD="\e[1m"
+
+find . -name "*.h" -o -name "*.c" | xargs -n1 clang-format -output-replacements-xml | grep "replacement\ " > /dev/null
+if [ $? -ne 1 ]
+then
+    echo -ne $YELLOW$BOLD
+    echo "--------------------------------------------------"
+    echo "| There are files that require Clang-formatting. |"
+    echo "--------------------------------------------------"
+    echo -ne $RESET_STYLE
+    read -p "    -> Continue? [y/N] " -r < /dev/tty
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+        exit 0
+    fi
+    echo -ne $RED
+    echo "Please run: make format."
+    echo -ne $RESET_STYLE
+
+    # Abort push
+    exit 1
+fi
