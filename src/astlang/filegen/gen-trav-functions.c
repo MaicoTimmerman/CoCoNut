@@ -59,7 +59,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
     if (!header) {
         out("static void trav_%s(struct %s *node, struct Info *info) {\n",
                 node->id, node->id);
-        out("   switch (current_traversal) {\n");
+        out("   switch (trav_current()) {\n");
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
 
@@ -119,6 +119,48 @@ static void generate_trav_node(struct Node *node, FILE *fp,
     }
 }
 
+static void generate_stack_functions(FILE *fp, bool header) {
+    if (header) {
+        out("struct TravStack {\n");
+        out("    struct TravStack *prev;\n");
+        out("    TraversalType current;\n");
+        out("};\n");
+    }
+
+    out("void trav_push(TraversalType trav)");
+    if (header) {
+        out(";\n");
+    } else {
+        out(" {\n");
+        out("    struct TravStack *new = (struct TravStack*)mem_alloc(sizeof(struct TravStack));\n");
+        out("    new->current = trav;\n");
+        out("    new->prev = current_traversal;\n");
+        out("}\n");
+    }
+
+    out("void trav_pop(void)");
+    if (header) {
+        out(";\n");
+    } else {
+        out(" {\n");
+        out("    if (current_traversal == NULL)\n");
+        out("        fprintf(stderr, \"Cannot pop of empty stack.\");\n");
+        out("    struct TravStack *prev = current_traversal->prev;\n");
+        out("    mem_free(current_traversal);\n");
+        out("    current_traversal = prev;\n");
+        out("}\n");
+    }
+
+    out("TraversalType trav_current(void)");
+    if (header) {
+        out(";\n");
+    } else {
+        out(" {\n");
+        out("    return current_traversal->current;\n");
+        out("}\n");
+    }
+}
+
 static void generate(struct Config *config, FILE *fp, bool header) {
     if (header) {
         out("#pragma once\n");
@@ -129,6 +171,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
     if (!header) {
         out("#include \"enum.h\"\n");
         out("#include \"trav-ast.h\"\n");
+        out("#include \"memory.h\"\n");
         out("#include <stdio.h>\n");
     }
     out("\n");
@@ -137,19 +180,23 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("struct Info;\n");
         out("NodeType node_replacement_type;\n");
         out("void *node_replacement;\n");
-        out("extern TraversalType current_traversal; // TODO: create stack\n");
+        out("// Stack of traversals, so that new traversals can be started inside other traversals. \n");
+        out("static struct TravStack *current_traversal;\n");
+
+        generate_stack_functions(fp, header);
     } else {
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
             out("#include \"traversal-%s.h\"\n", t->id);
         }
+
+        generate_stack_functions(fp, header);
+
         for (int i = 0; i < array_size(config->nodes); ++i) {
             struct Node *node = (struct Node *)array_get(config->nodes, i);
             out("static void trav_%s(struct %s *node, struct Info *info);\n",
                     node->id, node->id);
         }
-
-        out("TraversalType current_traversal = 0; // TODO: create stack\n");
     }
 
     out("\n");
@@ -162,6 +209,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         generate_replace_node(array_get(config->nodes, i), fp, header);
     }
 }
+
 
 void generate_trav_definitions(struct Config *config, FILE *fp) {
     generate(config, fp, false);
