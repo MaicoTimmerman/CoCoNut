@@ -5,9 +5,9 @@
 #include "astgen/filegen-driver.h"
 #include "astgen/filegen-util.h"
 #include "astgen/str-ast.h"
+#include "lib/array.h"
 #include "lib/memory.h"
 #include "lib/smap.h"
-#include "lib/array.h"
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
     out("struct %s *create_%s(", node->id, node->id);

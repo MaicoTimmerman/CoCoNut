@@ -5,8 +5,8 @@
 #include "astgen/filegen-util.h"
 #include "astgen/str-ast.h"
 
-#include "lib/memory.h"
 #include "lib/array.h"
+#include "lib/memory.h"
 
 static void template_enum(struct Enum *arg_enum, FILE *fp) {
     out("typedef enum {\n");

@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "lib/array.h"
 #include "astgen/ast.h"
+#include "lib/array.h"
 
 #define IND "    "
 #define IND2 IND IND

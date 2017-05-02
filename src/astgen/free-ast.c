@@ -5,7 +5,6 @@
 #include "lib/array.h"
 #include "lib/memory.h"
 
-
 static void free_phase(void *p) {
     struct Phase *phase = p;
 
