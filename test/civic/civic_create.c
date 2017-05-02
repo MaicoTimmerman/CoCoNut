@@ -56,5 +56,7 @@ int main() {
     Root *program =
         create_Root(create_Decls(create_Decl_FunDef(main), NULL), NULL, NULL);
 
+    phasedriver_run(program);
+
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "array.h"
+#include "lib/array.h"
 
 struct NodeCommonInfo {
     int line_start;

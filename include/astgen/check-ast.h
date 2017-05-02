@@ -1,4 +1,4 @@
 #pragma once
-#include "smap.h"
+#include "lib/smap.h"
 
 int check_config(struct Config *config);

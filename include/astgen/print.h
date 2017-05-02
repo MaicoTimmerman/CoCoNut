@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast.h"
+#include "astgen/ast.h"
 
 void print_error(void *loc_obj, char *format, ...);
 void print_error_at(int lineno, int column, char *line, char *format, ...);

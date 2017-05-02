@@ -5,24 +5,23 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "ast.h"
-#include "check-ast.h"
-#include "create-ast.h"
-#include "filegen-driver.h"
-#include "free-ast.h"
-#include "print-ast.h"
+#include "astgen/ast.h"
+#include "astgen/check-ast.h"
+#include "astgen/create-ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/free-ast.h"
+#include "astgen/print-ast.h"
 
-#include "gen-ast-definition.h"
-#include "gen-consistency-functions.h"
-#include "gen-copy-functions.h"
-#include "gen-create-functions.h"
-#include "gen-free-functions.h"
-#include "gen-pass-header.h"
-#include "gen-phase-driver.h"
-#include "gen-trav-functions.h"
-#include "gen-user-trav-header.h"
+#include "astgen/gen-ast-definition.h"
+#include "astgen/gen-consistency-functions.h"
+#include "astgen/gen-copy-functions.h"
+#include "astgen/gen-create-functions.h"
+#include "astgen/gen-free-functions.h"
+#include "astgen/gen-pass-header.h"
+#include "astgen/gen-phase-driver.h"
+#include "astgen/gen-trav-functions.h"
+#include "astgen/gen-user-trav-header.h"
 
-#include "print-ast.h"
 
 extern struct Config *parse(FILE *fp);
 

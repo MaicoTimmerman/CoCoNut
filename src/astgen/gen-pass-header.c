@@ -1,6 +1,6 @@
-#include "ast.h"
-#include "filegen-driver.h"
-#include "filegen-util.h"
+#include "astgen/ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/filegen-util.h"
 #include <stdio.h>
 
 void generate_pass_header(struct Config *config, FILE *fp, void *userdata) {
