@@ -22,7 +22,6 @@
 #include "astgen/gen-trav-functions.h"
 #include "astgen/gen-user-trav-header.h"
 
-
 extern struct Config *parse(FILE *fp);
 
 char *yy_filename;
@@ -121,8 +120,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (header_dir == NULL) header_dir = "include/generated/";
-    if (source_dir == NULL) source_dir = "src/generated/";
+    if (header_dir == NULL)
+        header_dir = "include/generated/";
+    if (source_dir == NULL)
+        source_dir = "src/generated/";
 
     FILE *f = open_input_file(yy_filename);
 
@@ -164,7 +165,6 @@ int main(int argc, char *argv[]) {
         sprintf(header, "pass-%s.h", pass->id);
         filegen_add_with_userdata(header, generate_pass_header, pass);
     }
-
 
     int ret;
     ret = filegen_generate(parse_result);

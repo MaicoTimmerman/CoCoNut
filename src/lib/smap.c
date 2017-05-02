@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lib/smap.h"
 #include "lib/memory.h"
+#include "lib/smap.h"
 
 smap_t *smap_init(int size) {
     smap_t *smap = (smap_t *)malloc(sizeof(smap_t));

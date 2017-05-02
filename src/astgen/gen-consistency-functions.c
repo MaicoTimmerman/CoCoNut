@@ -6,9 +6,9 @@
 #include "astgen/filegen-util.h"
 #include "astgen/str-ast.h"
 
+#include "lib/array.h"
 #include "lib/memory.h"
 #include "lib/smap.h"
-#include "lib/array.h"
 
 // TODO make enum of mandatory/forbidden/optional.
 static const int MANDATORY = 0;

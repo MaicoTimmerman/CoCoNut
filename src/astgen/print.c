@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "astgen/ast.h"
 #include "lib/array.h"
 #include "lib/imap.h"
-#include "astgen/ast.h"
 
 extern char *yy_filename;
 extern array *yy_lines;
