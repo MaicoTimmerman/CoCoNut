@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "array.h"
-#include "ast.h"
-#include "create-ast.h"
-#include "memory.h"
+#include "astgen/ast.h"
+#include "astgen/create-ast.h"
+
+#include "lib/array.h"
+#include "lib/memory.h"
 
 extern struct ParserLocation yy_parser_location;
 
