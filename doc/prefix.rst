@@ -13,6 +13,9 @@ Reserved identifiers for enums are:
 * push
 * pop
 * current
+* start
+* createinfo
+* freeinfo
 
 Reserved prefixes which are used in functions and enums are:
 
@@ -23,6 +26,10 @@ Reserved prefixes which are used in functions and enums are:
 * `NT_`
 
   Node type prefix.
+
+* `TRAV_`
+
+  Traversal type prefix.
 
 * `create_`
 
@@ -36,6 +43,10 @@ Reserved prefixes which are used in functions and enums are:
 
   Prefix of the traversal functions to traverse children of nodes in the AST.
 
+* `trav_start_`
+
+  Prefix of the traversal functions to start a new traversal.
+
 * `copy_`
 
   Prefix of the traversal functions to copy subtrees of the AST.
@@ -47,3 +58,12 @@ Reserved prefixes which are used in functions and enums are:
 * `traversal_`
 
   Prefix of the user defined traversal functions.
+
+* `pass_`
+
+  Prefix of the user defined pass functions.
+
+* `phasedriver_`
+
+  Prefix of phasedriver functions.
+
