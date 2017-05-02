@@ -10,6 +10,9 @@ Reserved identifiers for enums are:
 
 * NodeType
 * TraversalType
+* push
+* pop
+* current
 
 Reserved prefixes which are used in functions and enums are:
 
