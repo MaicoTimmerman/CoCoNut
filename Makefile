@@ -7,7 +7,7 @@ LEXER         = src/astlang/ast.lexer.c
 
 TARGET = ast
 
-.PHONY: clean test format
+.PHONY: clean test format doc
 
 $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 	@echo "Linking executable: $@"
@@ -33,6 +33,9 @@ clean:
 %.parser.c: $(PARSER:.parser.c=.y) $(LEXER:.c=.h)
 	@echo "Generating source code from YACC specification: $(notdir $@)"
 	@bison -dv -o $@ $<
+
+doc:
+	$(MAKE) --directory doc html
 
 test: $(TARGET)
 	@test/test.sh test
