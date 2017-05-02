@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "ast.h"
 #include "check-ast.h"
@@ -41,6 +42,32 @@ static void usage(char *program) {
 
 static void version(void) {
     printf("CoCoNut AST-gen 0.1\n");
+}
+
+static FILE *open_input_file(char *path) {
+
+    struct stat path_stat;
+    if (stat(path, &path_stat) != 0) {
+        fprintf(stderr, "%s: cannot open file: %s\n", path,
+                strerror(errno));
+        exit(1);
+    }
+
+    // Test if file a regular file.
+    if (S_ISREG(path_stat.st_mode) != 1) {
+        fprintf(stderr, "%s: cannot open file: %s\n", path,
+                "file is not a regular file.");
+        exit(1);
+    }
+
+    FILE *f = fopen(path, "r");
+    if (f == NULL) {
+        fprintf(stderr, "%s: cannot open file: %s\n", yy_filename,
+                strerror(errno));
+        exit(1);
+    }
+
+    return f;
 }
 
 int main(int argc, char *argv[]) {
@@ -92,12 +119,7 @@ int main(int argc, char *argv[]) {
         output_dir = "src/generated/";
     }
 
-    FILE *f = fopen(yy_filename, "r");
-    if (f == NULL) {
-        fprintf(stderr, "%s: cannot open file: %s\n", yy_filename,
-                strerror(errno));
-        return 1;
-    }
+    FILE *f = open_input_file(yy_filename);
 
     struct Config *parse_result = parse(f);
 
