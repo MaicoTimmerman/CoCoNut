@@ -1,11 +1,11 @@
 CC           := gcc
 CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD -Werror=implicit-function-declaration
-SOURCE_DIRS   = src/ src/lib/ src/astlang/ src/astlang/filegen/
+SOURCE_DIRS   = src/lib/ src/astgen/ src/core/
 SRC           = $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)*.c))
-PARSER        = src/astlang/ast.parser.c
-LEXER         = src/astlang/ast.lexer.c
+PARSER        = src/astgen/ast.parser.c
+LEXER         = src/astgen/ast.lexer.c
 
-TARGET = ast
+TARGET = astgen
 
 .PHONY: clean test format doc
 
@@ -17,11 +17,11 @@ $(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
 clean:
 	@rm -f bin/$(TARGET) $(SRC:.c=.o) $(SRC:.c=.d) $(LEXER) $(LEXER:.c=.o) $(LEXER:.c=.d) \
 		$(LEXER:.c=.h) $(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) \
-		$(PARSER:.c=.h) $(PARSER:.c=.d) src/generated/*
+		$(PARSER:.c=.h) $(PARSER:.c=.d)
 
 %.o: %.c
 	@echo "Compiling source code: $(notdir $@)"
-	@$(CC) $(CFLAGS) $(patsubst %,-I%,$(SOURCE_DIRS)) -o $@ -c $<
+	@$(CC) $(CFLAGS) -I includes/ -o $@ -c $<
 
 %.lexer.h: %.lexer.c
 	@echo "Generating header from LEX specification $(notdir $@)"
