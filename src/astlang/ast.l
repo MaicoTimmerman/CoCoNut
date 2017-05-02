@@ -151,8 +151,10 @@ static inline void check_c_keyword(const char *);
 [0-9]+ {
     // (positive) integer numbers
     yylval.uintval = (uint64_t)strtoull(yytext, NULL, 10); return T_INTVAL;}
+
 \"(\\.|[^\\"])*\"   {
-    yylval.string = strdup(yytext); return T_STRINGVAL;}
+    // Remove surrounding quotes
+    yylval.string = strndup(yytext + 1, yyleng - 2); return T_STRINGVAL;}
 
 [ \t\r]   ; // ignore all whitespace
 

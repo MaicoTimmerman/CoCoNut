@@ -79,7 +79,7 @@ static void generate_free_node(struct Node *node, FILE *fp, bool header) {
     out("}\n");
 }
 
-void generate(struct Config *config, FILE *fp, bool header) {
+static void generate(struct Config *config, FILE *fp, bool header) {
     out("#include \"ast.h\"\n");
 
     if (header) {

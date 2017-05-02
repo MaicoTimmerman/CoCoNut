@@ -1,7 +1,7 @@
-#include <string.h>
-#include <stdbool.h>
 #include "../src/generated/ast.h"
 #include "../src/generated/create-ast.h"
+#include <stdbool.h>
+#include <string.h>
 
 /// export int main() {
 ///     int a1;
@@ -27,18 +27,17 @@ int main() {
     // STMTs
     FunCall *scanint = create_FunCall(NULL, strdup("scanInt"));
     FunCall *scanint2 = create_FunCall(NULL, strdup("scanInt"));
-    BinOp *plus = create_BinOp(
-            create_Expr_Var(create_Var(strdup("a1"))),
-            create_Expr_Var(create_Var(strdup("a2"))),
-            BO_add);
+    BinOp *plus =
+        create_BinOp(create_Expr_Var(create_Var(strdup("a1"))),
+                     create_Expr_Var(create_Var(strdup("a2"))), BO_add);
 
     VarLet *a1 = create_VarLet(create_Expr_FunCall(scanint), strdup("a1"));
     VarLet *a2 = create_VarLet(create_Expr_FunCall(scanint2), strdup("a2"));
     VarLet *a3 = create_VarLet(create_Expr_BinOp(plus), strdup("a3"));
-    VarLet *a4 = create_VarLet(create_Expr_Var(create_Var(strdup("a3"))),
-            strdup("a4"));
-    Return *returna4 = create_Return(create_Expr_Var(create_Var(strdup("a4"))));
-
+    VarLet *a4 =
+        create_VarLet(create_Expr_Var(create_Var(strdup("a3"))), strdup("a4"));
+    Return *returna4 =
+        create_Return(create_Expr_Var(create_Var(strdup("a4"))));
 
     StmtList *stmtla1 = create_StmtList(create_Stmt_VarLet(a1), NULL);
     StmtList *stmtla2 = create_StmtList(create_Stmt_VarLet(a2), NULL);
@@ -50,13 +49,12 @@ int main() {
     stmtla3->next = stmtla4;
     stmtla4->next = stmtreturn;
 
-    FunDef *main = create_FunDef(create_FunHeader(NULL, BT_int, strdup("main")),
-            create_FunBody(vda1, NULL, stmtla1),
-            NULL, NULL, false, true);
+    FunDef *main = create_FunDef(
+        create_FunHeader(NULL, BT_int, strdup("main")),
+        create_FunBody(vda1, NULL, stmtla1), NULL, NULL, false, true);
 
-    Root *program = create_Root(
-            create_Decls(create_Decl_FunDef(main), NULL), NULL, NULL);
-
+    Root *program =
+        create_Root(create_Decls(create_Decl_FunDef(main), NULL), NULL, NULL);
 
     return 0;
 }

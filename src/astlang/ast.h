@@ -50,6 +50,8 @@ enum AttrValueType {
 
 enum PhaseType { PH_subphases, PH_passes };
 
+enum PhaseLeafType { PL_pass, PL_traversal };
+
 // We define the type for YYLTYPE here,
 // to avoid a circular dependency between this header and the parser
 struct ParserLocation {
@@ -69,7 +71,7 @@ struct Config {
 
     struct Node *root_node;
     struct Nodeset *root_nodeset;
-    struct Phase *root_phase;
+    struct Phase *phase_tree;
 
     struct NodeCommonInfo *common_info;
 };
@@ -86,6 +88,14 @@ struct Phase {
     array *subphases;
 
     struct NodeCommonInfo *common_info;
+};
+
+struct PhaseLeaf {
+    enum PhaseLeafType type;
+    union {
+        struct Pass *pass;
+        struct Traversal *traversal;
+    } value;
 };
 
 struct Pass {
@@ -109,6 +119,7 @@ struct Traversal {
 struct Enum {
     char *id;
     char *prefix;
+    char *info;
 
     array *values;
 

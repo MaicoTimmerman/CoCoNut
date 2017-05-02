@@ -110,6 +110,23 @@ static void free_node(void *p) {
     mem_free(node);
 }
 
+static void free_phase_tree(struct Phase *tree) {
+    if (tree == NULL)
+        return;
+
+    if (tree->type == PH_subphases) {
+        for (int i = 0; i < array_size(tree->subphases); i++) {
+            free_phase_tree(array_get(tree->subphases, i));
+        }
+
+        array_cleanup(tree->subphases, NULL);
+    } else {
+        array_cleanup(tree->passes, mem_free);
+    }
+
+    mem_free(tree);
+}
+
 void free_config(struct Config *config) {
     array_cleanup(config->phases, free_phase);
     array_cleanup(config->passes, free_pass);
@@ -117,6 +134,8 @@ void free_config(struct Config *config) {
     array_cleanup(config->enums, free_enum);
     array_cleanup(config->nodesets, free_nodeset);
     array_cleanup(config->nodes, free_node);
+
+    free_phase_tree(config->phase_tree);
 
     mem_free(config);
 }

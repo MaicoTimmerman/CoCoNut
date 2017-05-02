@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -485,7 +486,7 @@ static int check_pass(struct Pass *pass, struct Info *info) {
 }
 
 static int check_phase(struct Phase *phase, struct Info *info,
-                       smap_t *phase_order, smap_t *phase_used) {
+                       smap_t *phase_order) {
 
     int error = 0;
 
@@ -513,8 +514,9 @@ static int check_phase(struct Phase *phase, struct Info *info,
             (struct Traversal *)smap_retrieve(info->traversal_name, pass);
 
         if (!phase_pass && !phase_trav) {
-            print_error(pass, "Unknown type of traversal or pass '%s' in phase '%s'", pass,
-                        phase->id);
+            print_error(pass,
+                        "Unknown type of traversal or pass '%s' in phase '%s'",
+                        pass, phase->id);
             error = 1;
         }
     }
@@ -573,14 +575,65 @@ static int check_phase(struct Phase *phase, struct Info *info,
     return error;
 }
 
+struct Phase *build_phase_tree(struct Phase *phase, struct Info *info) {
+    struct Phase *tree_node = mem_alloc(sizeof(struct Phase));
+    tree_node->id = phase->id;
+    if (phase->info)
+        tree_node->info = phase->info;
+    else
+        tree_node->info = NULL;
+    tree_node->cycle = phase->cycle;
+
+    tree_node->type = phase->type;
+
+    if (phase->type == PH_subphases) {
+
+        tree_node->subphases = array_init(32);
+
+        for (int i = 0; i < array_size(phase->subphases); i++) {
+            char *subphase_name = array_get(phase->subphases, i);
+            struct Phase *subphase =
+                smap_retrieve(info->phase_name, subphase_name);
+
+            struct Phase *subphase_tree = build_phase_tree(subphase, info);
+
+            array_append(tree_node->subphases, subphase_tree);
+        }
+    } else {
+
+        tree_node->passes = array_init(32);
+
+        for (int i = 0; i < array_size(phase->passes); i++) {
+            struct PhaseLeaf *leaf = mem_alloc(sizeof(struct PhaseLeaf));
+
+            char *pass_name = array_get(phase->passes, i);
+            struct Traversal *trav =
+                smap_retrieve(info->traversal_name, pass_name);
+
+            if (!trav) {
+                struct Pass *pass = smap_retrieve(info->pass_name, pass_name);
+                leaf->type = PL_pass;
+                leaf->value.pass = pass;
+
+            } else {
+                leaf->type = PL_traversal;
+                leaf->value.traversal = trav;
+            }
+            array_append(tree_node->passes, leaf);
+        }
+    }
+
+    return tree_node;
+}
+
 int check_config(struct Config *config) {
 
     int success = 0;
     struct Info *info = create_info();
     smap_t *phase_order = smap_init(16);
-    smap_t *phase_used = smap_init(16);
     struct Phase *cur_phase;
     bool root_phase_seen = false;
+    bool phase_errors = false;
 
     success += check_nodes(config->nodes, info);
     success += check_nodesets(config->nodesets, info);
@@ -619,7 +672,10 @@ int check_config(struct Config *config) {
         if (cur_phase->root)
             root_phase_seen = true;
 
-        success += check_phase(cur_phase, info, phase_order, phase_used);
+        int res = check_phase(cur_phase, info, phase_order);
+        success += res;
+        if (res)
+            phase_errors = true;
     }
 
     // TODO: create print_error without location
@@ -635,10 +691,14 @@ int check_config(struct Config *config) {
         fprintf(stderr, "error: No root phase specified\n");
         success++;
     } else {
-        config->root_phase = info->root_phase;
+        if (!phase_errors) {
+            struct Phase *tree = build_phase_tree(info->root_phase, info);
+            config->phase_tree = tree;
+        } else {
+            config->phase_tree = NULL;
+        }
     }
 
-    smap_free(phase_used);
     smap_free(phase_order);
     free_info(info);
 
