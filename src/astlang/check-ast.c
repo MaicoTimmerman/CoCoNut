@@ -388,7 +388,6 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
         struct Nodeset *nodeset_nodeset =
             (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
 
-        // TODO: create tests for this
         if (nodeset_nodeset) {
             print_error(node, "Nodeset '%s' contains other nodeset '%s'",
                         nodeset->id, nodeset_nodeset->id);
