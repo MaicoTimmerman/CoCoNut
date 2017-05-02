@@ -55,13 +55,10 @@ static void generate_node_child_nodeset(struct Node *node, struct Child *child,
 
 static void generate_trav_node(struct Node *node, FILE *fp,
                                struct Config *config, bool header) {
-    out("static void trav_%s(struct %s *node, struct Info *info)", node->id,
-        node->id);
 
-    if (header) {
-        out(";\n");
-    } else {
-        out(" {\n");
+    if (!header) {
+        out("static void trav_%s(struct %s *node, struct Info *info) {\n",
+                node->id, node->id);
         out("   switch (current_traversal) {\n");
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
@@ -145,6 +142,11 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
             out("#include \"traversal-%s.h\"\n", t->id);
+        }
+        for (int i = 0; i < array_size(config->nodes); ++i) {
+            struct Node *node = (struct Node *)array_get(config->nodes, i);
+            out("static void trav_%s(struct %s *node, struct Info *info);\n",
+                    node->id, node->id);
         }
 
         out("TraversalType current_traversal = 0; // TODO: create stack\n");
