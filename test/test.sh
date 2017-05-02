@@ -40,7 +40,8 @@ function check_return {
         cmd=$BIN
     fi
 
-    if $cmd $CFLAGS $file -o ./test/generated_out/ > tmp.out 2>&1
+    if $cmd $CFLAGS $file --header-dir ./test/generated_out/ \
+        --source-dir ./test/generated_out/ > tmp.out 2>&1
     then
         if [ $expect_failure -eq 1 ]; then
             echo_fail
