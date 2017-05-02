@@ -5,11 +5,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "array.h"
-#include "imap.h"
-#include "ast.h"
-#include "create-ast.h"
+#include "astgen/ast.h"
+#include "astgen/create-ast.h"
+
 #include "ast.lexer.h"
+
+#include "lib/array.h"
+#include "lib/imap.h"
 
 extern void lexer_init();
 extern int yylex();

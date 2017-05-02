@@ -1,12 +1,12 @@
-#include "array.h"
-#include "ast.h"
-#include "filegen-driver.h"
-#include "filegen-util.h"
-#include "memory.h"
-#include "str-ast.h"
 #include <stdio.h>
 
-#define out(...) fprintf(fp, __VA_ARGS__)
+#include "astgen/ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/filegen-util.h"
+#include "astgen/str-ast.h"
+
+#include "lib/memory.h"
+#include "lib/array.h"
 
 static void template_enum(struct Enum *arg_enum, FILE *fp) {
     out("typedef enum {\n");

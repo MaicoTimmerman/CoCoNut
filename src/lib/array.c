@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "array.h"
-#include "memory.h"
+#include "lib/array.h"
+#include "lib/memory.h"
 
 struct array {
     void **data;

@@ -1,7 +1,10 @@
-#include "array.h"
-#include "ast.h"
-#include "memory.h"
 #include <stdio.h>
+
+#include "astgen/ast.h"
+
+#include "lib/array.h"
+#include "lib/memory.h"
+
 
 static void free_phase(void *p) {
     struct Phase *phase = p;

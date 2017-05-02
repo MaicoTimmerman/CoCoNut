@@ -1,13 +1,14 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "array.h"
-#include "ast.h"
-#include "filegen-driver.h"
-#include "filegen-util.h"
-#include "memory.h"
-#include "smap.h"
-#include "str-ast.h"
+#include "astgen/ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/filegen-util.h"
+#include "astgen/str-ast.h"
+
+#include "lib/memory.h"
+#include "lib/smap.h"
+#include "lib/array.h"
 
 // TODO make enum of mandatory/forbidden/optional.
 static const int MANDATORY = 0;
