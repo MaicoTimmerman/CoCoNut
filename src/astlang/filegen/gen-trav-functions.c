@@ -21,6 +21,36 @@ static void generate_replace_node(struct Node *node, FILE *fp, bool header) {
     }
 }
 
+static void generate_start_node(struct Config *config, FILE *fp, bool header) {
+    for (int i = 0; i < array_size(config->nodes); ++i) {
+        struct Node *node = (struct Node *)array_get(config->nodes, i);
+        // Generate start functions
+        out("void trav_start_%s(struct %s *node, TraversalType trav)", node->id, node->id);
+        if (header) {
+            out(";\n");
+        } else {
+            out(" {\n");
+            out("    // Inside of the struct Info* is unknown, thus hide under void.\n");
+            out("    void* info;\n");
+            out("\n");
+            out("    trav_push(trav);\n");
+            out("    switch(trav) {\n");
+            for (int j = 0; j < array_size(config->traversals); ++j) {
+                struct Traversal *trav = (struct Traversal *)array_get(config->traversals, j);
+                out("    case " TRAV_FMT ":\n", trav->id);
+                out("        info = %s_createinfo();\n", trav->id);
+                out("        trav_%s(node, info);\n", node->id);
+                out("        %s_freeinfo(info);\n", trav->id);
+                out("        break;\n");
+            }
+            out("    }\n");
+            out("    trav_pop();\n");
+            out("}\n");
+        }
+
+    }
+}
+
 static void generate_node_child_node(struct Node *node, struct Child *child,
                                      FILE *fp) {
     out("    trav_%s(node->%s, info);\n", child->type, child->id);
@@ -124,7 +154,7 @@ static void generate_stack_functions(FILE *fp, bool header) {
         out("struct TravStack {\n");
         out("    struct TravStack *prev;\n");
         out("    TraversalType current;\n");
-        out("};\n");
+        out("};\n\n");
     }
 
     out("void trav_push(TraversalType trav)");
@@ -135,7 +165,8 @@ static void generate_stack_functions(FILE *fp, bool header) {
         out("    struct TravStack *new = (struct TravStack*)mem_alloc(sizeof(struct TravStack));\n");
         out("    new->current = trav;\n");
         out("    new->prev = current_traversal;\n");
-        out("}\n");
+        out("    current_traversal = new;\n");
+        out("}\n\n");
     }
 
     out("void trav_pop(void)");
@@ -143,12 +174,14 @@ static void generate_stack_functions(FILE *fp, bool header) {
         out(";\n");
     } else {
         out(" {\n");
-        out("    if (current_traversal == NULL)\n");
+        out("    if (current_traversal == NULL) {\n");
         out("        fprintf(stderr, \"Cannot pop of empty stack.\");\n");
+        out("        return;\n");
+        out("    }\n");
         out("    struct TravStack *prev = current_traversal->prev;\n");
         out("    mem_free(current_traversal);\n");
         out("    current_traversal = prev;\n");
-        out("}\n");
+        out("}\n\n");
     }
 
     out("TraversalType trav_current(void)");
@@ -157,7 +190,7 @@ static void generate_stack_functions(FILE *fp, bool header) {
     } else {
         out(" {\n");
         out("    return current_traversal->current;\n");
-        out("}\n");
+        out("}\n\n");
     }
 }
 
@@ -178,17 +211,19 @@ static void generate(struct Config *config, FILE *fp, bool header) {
 
     if (header) {
         out("struct Info;\n");
+        generate_stack_functions(fp, header);
+
         out("NodeType node_replacement_type;\n");
         out("void *node_replacement;\n");
-        out("// Stack of traversals, so that new traversals can be started inside other traversals. \n");
-        out("static struct TravStack *current_traversal;\n");
 
-        generate_stack_functions(fp, header);
     } else {
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
             out("#include \"traversal-%s.h\"\n", t->id);
         }
+        out("\n");
+        out("// Stack of traversals, so that new traversals can be started inside other traversals. \n");
+        out("static struct TravStack *current_traversal;\n");
 
         generate_stack_functions(fp, header);
 
@@ -205,9 +240,17 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         generate_trav_node(array_get(config->nodes, i), fp, config, header);
     }
 
+    out("\n");
+    out("// Replace functions\n");
+
     for (int i = 0; i < array_size(config->nodes); ++i) {
         generate_replace_node(array_get(config->nodes, i), fp, header);
     }
+
+    out("\n");
+    out("// start functions functions\n");
+
+    generate_start_node(config, fp, header);
 }
 
 
