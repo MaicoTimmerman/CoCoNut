@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-BIN=${BIN-./bin/ast}
+BIN=${BIN-./bin/astgen}
 CFLAGS=${CFLAGS-}
 # RUN_FUNCTIONAL=${RUN_FUNCTIONAL-1}
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-int main(int argc, char *argv[]) {
+// TODO: fix this to be the real main
+int compiler_main(int argc, char *argv[]) {
     // STUB!
     return 0;
 }
