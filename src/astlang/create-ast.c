@@ -39,6 +39,7 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
 struct Phase *create_phase_header(char *id, bool root, bool cycle) {
     struct Phase *p = mem_alloc(sizeof(struct Phase));
     p->id = id;
+    p->info = NULL;
     p->root = root;
     p->cycle = cycle;
 
@@ -67,6 +68,7 @@ struct Pass *create_pass(char *id, char *func) {
 
     p->id = id;
     p->func = func;
+    p->info = NULL;
 
     p->common_info = create_commoninfo();
     return p;
@@ -77,6 +79,7 @@ struct Traversal *create_traversal(char *id, char *func, array *nodes) {
     struct Traversal *t = mem_alloc(sizeof(struct Traversal));
     t->id = id;
     t->func = func;
+    t->info = NULL;
     t->nodes = nodes;
 
     t->common_info = create_commoninfo();
@@ -90,6 +93,7 @@ struct Enum *create_enum(char *id, char *prefix, array *values) {
     e->id = id;
     e->values = values;
     e->prefix = prefix;
+    e->info = NULL;
 
     e->common_info = create_commoninfo();
     return e;
@@ -101,6 +105,7 @@ struct Nodeset *create_nodeset(char *id, array *nodes) {
     n->id = id;
     n->nodes = nodes;
     n->root = false;
+    n->info = NULL;
 
     n->common_info = create_commoninfo();
     return n;
@@ -118,6 +123,7 @@ struct Node *create_nodebody(array *children, array *attrs) {
     struct Node *n = mem_alloc(sizeof(struct Node));
     n->children = children;
     n->attrs = attrs;
+    n->info = NULL;
 
     n->common_info = create_commoninfo();
     return n;
@@ -204,13 +210,7 @@ struct AttrValue *create_attrval_string(char *value) {
     struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
     v->type = AV_string;
 
-    // Calculate the position of the quotes remove it by overwriting it with
-    // the null char '\0'.
-    size_t len = strlen(value);
-    value[len - 1] = '\0';
-
-    // strdup creates a new pointer, thus free the old value.
-    v->value.string_value = strdup(value + 1);
+    v->value.string_value = value;
     mem_free(value);
 
     v->common_info = create_commoninfo();

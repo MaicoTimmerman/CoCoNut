@@ -334,6 +334,7 @@ enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     | T_ENUM T_ID '{' info ',' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     {
         $$ = create_enum($2, $8, $10);
+        $$->info = $4;
         new_location($$, &@$);
         new_location($2, &@2);
         new_location($8, &@8);
@@ -341,6 +342,7 @@ enum: T_ENUM T_ID '{' T_PREFIX '=' T_ID ',' enumvalues '}' ';'
     | T_ENUM T_ID '{' info ',' enumvalues ',' T_PREFIX '=' T_ID '}' ';'
     {
         $$ = create_enum($2, $10, $6);
+        $$->info = $4;
         new_location($$, &@$);
         new_location($2, &@2);
         new_location($10, &@10);

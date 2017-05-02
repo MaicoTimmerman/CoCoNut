@@ -17,8 +17,11 @@
 #include "gen-copy-functions.h"
 #include "gen-create-functions.h"
 #include "gen-free-functions.h"
+#include "gen-pass-header.h"
+#include "gen-phase-driver.h"
 #include "gen-trav-functions.h"
 #include "gen-user-trav-header.h"
+
 #include "print-ast.h"
 
 extern struct Config *parse(FILE *fp);
@@ -48,8 +51,7 @@ static FILE *open_input_file(char *path) {
 
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
-        fprintf(stderr, "%s: cannot open file: %s\n", path,
-                strerror(errno));
+        fprintf(stderr, "%s: cannot open file: %s\n", path, strerror(errno));
         exit(1);
     }
 
@@ -153,11 +155,21 @@ int main(int argc, char *argv[]) {
     filegen_add("consistency-ast.h", generate_consistency_header);
     filegen_add("consistency-ast.c", generate_consistency_definitions);
 
+    filegen_add("phase-driver.h", generate_phase_driver_header);
+    filegen_add("phase-driver.c", generate_phase_driver_definitions);
+
     for (int i = 0; i < array_size(parse_result->traversals); i++) {
         struct Traversal *trav = array_get(parse_result->traversals, i);
-        char header[8 + strlen(trav->id)];
+        char header[13 + strlen(trav->id)];
         sprintf(header, "traversal-%s.h", trav->id);
         filegen_add_with_userdata(header, generate_user_trav_header, trav);
+    }
+
+    for (int i = 0; i < array_size(parse_result->passes); i++) {
+        struct Pass *pass = array_get(parse_result->passes, i);
+        char header[8 + strlen(pass->id)];
+        sprintf(header, "pass-%s.h", pass->id);
+        filegen_add_with_userdata(header, generate_pass_header, pass);
     }
 
     int ret = filegen_generate(parse_result);
