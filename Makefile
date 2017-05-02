@@ -21,7 +21,7 @@ clean:
 
 %.o: %.c
 	@echo "Compiling source code: $(notdir $@)"
-	@$(CC) $(CFLAGS) -I includes/ -o $@ -c $<
+	@$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
 %.lexer.h: %.lexer.c
 	@echo "Generating header from LEX specification $(notdir $@)"

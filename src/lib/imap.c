@@ -1,8 +1,9 @@
-#include "imap.h"
-#include "memory.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "lib/imap.h"
+#include "lib/memory.h"
 
 imap_t *imap_init(int size) {
     imap_t *imap = (imap_t *)malloc(sizeof(imap_t));

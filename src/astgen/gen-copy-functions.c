@@ -1,10 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "ast.h"
-#include "filegen-driver.h"
-#include "filegen-util.h"
-#include "memory.h"
+#include "astgen/ast.h"
+#include "astgen/filegen-driver.h"
+#include "astgen/filegen-util.h"
+
+#include "lib/memory.h"
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
     out("static struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,

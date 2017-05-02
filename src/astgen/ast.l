@@ -3,10 +3,11 @@
 #include <stdbool.h>
 #include <regex.h>
 
-#include "ast.h"
+#include "astgen/ast.h"
+#include "astgen/print.h"
+#include "lib/array.h"
+
 #include "ast.parser.h"
-#include "print.h"
-#include "array.h"
 
 #define YY_DECL int yylex()
 #define LEX_KEYWORD(k) if (yy_lex_keywords) \

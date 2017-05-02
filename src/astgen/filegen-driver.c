@@ -6,9 +6,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "array.h"
-#include "ast.h"
-#include "memory.h"
+#include "astgen/ast.h"
+
+#include "lib/array.h"
+#include "lib/memory.h"
 
 struct FileGen {
     char *fn;

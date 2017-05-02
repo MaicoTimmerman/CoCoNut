@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "array.h"
-#include "ast.h"
-#include "check-ast.h"
-#include "memory.h"
-#include "print.h"
-#include "smap.h"
+#include "astgen/ast.h"
+#include "astgen/check-ast.h"
+#include "astgen/print.h"
+
+#include "lib/array.h"
+#include "lib/memory.h"
+#include "lib/smap.h"
 
 struct Info {
     smap_t *enum_name;
