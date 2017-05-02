@@ -1,47 +1,64 @@
+# -------------------- Compiler flags ---------------------
 CC           := gcc
-CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD -Werror=implicit-function-declaration
-SOURCE_DIRS   = src/lib/ src/astgen/ src/core/
-SRC           = $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)*.c))
-PARSER        = src/astgen/ast.parser.c
-LEXER         = src/astgen/ast.lexer.c
+CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD \
+				-Werror=implicit-function-declaration
 
-TARGET = astgen
+
+# ----------------------- AST-gen variables ---------------
+AST_SOURCES   = src/lib/ src/astgen/
+AST_SRC       = $(foreach dir,$(AST_SOURCES),$(wildcard $(dir)*.c))
+AST_PARSER    = src/astgen/ast.parser.c
+AST_LEXER     = src/astgen/ast.lexer.c
+AST_TARGET    = astgen
+
+# ----------------------- Compiler variables --------------------
+SOURCES   	  = src/lib/ src/core/
+SRC           = $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)*.c))
+TARGET 	 	  = civcc
+
+# ----------------------- Other variables --------------------
+COLOR_GREEN	  = "\\e[1m\\e[32m"
+COLOR_RESET	  = "\\e[0m"
 
 .PHONY: clean test format doc
 
-$(TARGET): $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
-	@echo "Linking executable: $@"
+# ----------------------- AST-gen rules --------------------
+$(AST_TARGET): $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
+	@echo -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	@mkdir -p bin/
-	@$(CC) -o bin/$@ $(PARSER:.c=.o) $(LEXER:.c=.o) $(SRC:.c=.o)
-
-clean:
-	@rm -f bin/$(TARGET) $(SRC:.c=.o) $(SRC:.c=.d) $(LEXER) $(LEXER:.c=.o) $(LEXER:.c=.d) \
-		$(LEXER:.c=.h) $(PARSER) $(PARSER:.c=.output) $(PARSER:.c=.o) \
-		$(PARSER:.c=.h) $(PARSER:.c=.d)
+	@$(CC) -o bin/$@ $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
 
 %.o: %.c
-	@echo "Compiling source code: $(notdir $@)"
+	@echo -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $(notdir $@)"
 	@$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
 %.lexer.h: %.lexer.c
-	@echo "Generating header from LEX specification $(notdir $@)"
+	@echo -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $(notdir $@)"
 
-%.lexer.c: $(LEXER:.lexer.c=.l)
-	@echo "Generating source code from LEX specification: $(notdir $@)"
-	@flex -o $@ --header-file=$(LEXER:.c=.h) $<
+%.lexer.c: %.l
+	@echo -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $(notdir $@)"
+	@flex -o $@ --header-file=$(AST_LEXER:.c=.h) $<
 
-%.parser.c: $(PARSER:.parser.c=.y) $(LEXER:.c=.h)
-	@echo "Generating source code from YACC specification: $(notdir $@)"
+%.parser.c: %.y %.lexer.h
+	@echo -e "$(COLOR_GREEN) BISON$(COLOR_RESET)     $(notdir $@)"
 	@bison -dv -o $@ $<
+
+
+# ----------------------- Other rules --------------------
+clean:
+	@rm -f bin/$(AST_TARGET)  $(AST_SRC:.c=.o) $(AST_SRC:.c=.d) \
+		$(AST_LEXER) $(AST_LEXER:.c=.o) $(AST_LEXER:.c=.d) \
+		$(AST_LEXER:.c=.h) $(AST_PARSER) $(AST_PARSER:.c=.output) \
+		$(AST_PARSER:.c=.o) $(AST_PARSER:.c=.h) $(AST_PARSER:.c=.d)
 
 doc:
 	$(MAKE) --directory doc html
 
-test: $(TARGET)
+test: $(AST_TARGET)
 	@test/test.sh test
 
 format:
 	@echo "Applying clang-format on all files"
 	@find . -name "*.h" -o -name "*.c" | xargs -n1 clang-format -i
 
--include $(SRC:.c=.d)
+-include $(AST_SRC:.c=.d)
