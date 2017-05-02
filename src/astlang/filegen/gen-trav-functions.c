@@ -35,7 +35,9 @@ static void generate_start_node(struct Config *config, FILE *fp, bool header) {
                 "under void.\n");
             out("    void* info;\n");
             out("\n");
+            out("    // Set the new traversal as current traversal.\n");
             out("    trav_push(trav);\n");
+            out("\n");
             out("    switch(trav) {\n");
             for (int j = 0; j < array_size(config->traversals); ++j) {
                 struct Traversal *trav =

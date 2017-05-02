@@ -32,6 +32,16 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
 
     out("void free_%s_node(struct %s* nodeset) {", nodeset->id, nodeset->id);
     out(" // skip children. \n");
+
+    out("    switch(nodeset->type) {\n");
+    for (int i = 0; i < array_size(nodeset->nodes); ++i) {
+        struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
+        out("    case " NS_FMT ":\n", nodeset->id, node->id);
+        out("        free_%s_node(nodeset->value.val_%s);\n", node->id,
+            node->id);
+        out("        break;\n");
+    }
+    out("    }\n");
     out("    mem_free(nodeset);\n");
     out("}\n");
 }
@@ -79,7 +89,7 @@ static void generate_free_node(struct Node *node, FILE *fp, bool header) {
     out("}\n");
 }
 
-static void generate(struct Config *config, FILE *fp, bool header) {
+void generate(struct Config *config, FILE *fp, bool header) {
     out("#include \"ast.h\"\n");
 
     if (header) {
