@@ -92,5 +92,8 @@ tags
 
 # End of https://www.gitignore.io/api/c,vim,flex
 
-ast
-src/templates/*def
+include/generated/
+src/generated/
+src/astgen/ast.parser.h
+src/astgen/ast.parser.output
+
