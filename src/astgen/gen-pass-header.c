@@ -7,7 +7,7 @@ void generate_pass_header(struct Config *config, FILE *fp, void *userdata) {
     struct Pass *pass = userdata;
 
     out("#pragma once\n\n");
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
 
     char *root_node_name = config->root_node != NULL
                                ? config->root_node->id

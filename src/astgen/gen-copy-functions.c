@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <stdio.h>
 
 #include "astgen/ast.h"
@@ -105,11 +104,11 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     if (header)
         out("#pragma once\n");
 
-    out("#include \"ast.h\"\n");
-    out("#include \"imap.h\"\n");
+    out("#include \"generated/ast.h\"\n");
+    out("#include \"lib/imap.h\"\n");
     if (!header) {
-        out("#include \"memory.h\"\n");
-        out("#include \"copy-ast.h\"\n");
+        out("#include \"lib/memory.h\"\n");
+        out("#include \"generated/copy-ast.h\"\n");
         out("#include <string.h>\n");
         out("#include <stdbool.h>\n");
     }

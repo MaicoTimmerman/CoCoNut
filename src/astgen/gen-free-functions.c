@@ -90,11 +90,11 @@ static void generate_free_node(struct Node *node, FILE *fp, bool header) {
 }
 
 void generate(struct Config *config, FILE *fp, bool header) {
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
 
     if (header) {
-        out("#include \"memory.h\"\n");
-        out("#include \"free-ast.h\"\n");
+        out("#include \"lib/memory.h\"\n");
+        out("#include \"generated/free-ast.h\"\n");
     } else {
         out("#pragma once\n");
     }

@@ -58,13 +58,13 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("#pragma once\n");
     } else {
         out("#include <stdio.h>\n");
-        out("#include \"ast.h\"\n");
-        out("#include \"trav-ast.h\"\n");
+        out("#include \"generated/ast.h\"\n");
+        out("#include \"generated/trav-ast.h\"\n");
 
         for (int i = 0; i < array_size(config->passes); i++) {
             struct Pass *p = array_get(config->passes, i);
 
-            out("#include \"pass-%s.h\"\n", p->id);
+            out("#include \"generated/pass-%s.h\"\n", p->id);
         }
     }
 

@@ -204,12 +204,12 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("#pragma once\n");
     }
 
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
 
     if (!header) {
-        out("#include \"enum.h\"\n");
-        out("#include \"trav-ast.h\"\n");
-        out("#include \"memory.h\"\n");
+        out("#include \"generated/enum.h\"\n");
+        out("#include \"generated/trav-ast.h\"\n");
+        out("#include \"lib/memory.h\"\n");
         out("#include <stdio.h>\n");
     }
     out("\n");
@@ -224,7 +224,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
     } else {
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
-            out("#include \"traversal-%s.h\"\n", t->id);
+            out("#include \"generated/traversal-%s.h\"\n", t->id);
         }
         out("\n");
         out("// Stack of traversals, so that new traversals can be started "

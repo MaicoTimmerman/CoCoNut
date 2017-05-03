@@ -101,9 +101,9 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     if (header)
         out("#pragma once\n");
 
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
     if (!header)
-        out("#include \"memory.h\"\n");
+        out("#include \"lib/memory.h\"\n");
 
     out("\n");
 

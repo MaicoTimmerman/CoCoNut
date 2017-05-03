@@ -114,11 +114,11 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     }
 
     if (!header) {
-        out("#include \"consistency-ast.h\"\n");
-        out("#include \"memory.h\"\n");
+        out("#include \"lib/memory.h\"\n");
+        out("#include \"generated/consistency-ast.h\"\n");
     }
 
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
     out("#include <stdbool.h>\n\n");
 
     if (header) {

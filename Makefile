@@ -7,7 +7,7 @@ AST_FILE	  			= test/pass/civic.ast
 BIN_DIR 	  			= bin/
 AST_GENERATED_SOURCES 	= src/generated/
 AST_GENERATED_HEADERS	= include/generated/
-SOURCES   	  			= src/core/
+SOURCES   	  			= src/core/ src/generated/ src/traversal/ src/passes/
 TARGET 	 	  			= civcc
 
 
@@ -92,7 +92,9 @@ clean:
 	@rm -f $(AST_TARGET_BIN) $(TARGET_BIN)
 	@rm -f $(AST_LEXER) $(AST_LEXER:.c=.h) \
 		$(AST_PARSER) $(AST_PARSER:.c=.output) \
-		$(AST_PARSER:.c=.h)
+		$(AST_PARSER:.c=.h) \
+		$(AST_GENERATED_SOURCES)* \
+		$(AST_GENERATED_HEADERS)*
 	@find . -type f -name '*.o' -exec rm {} \;
 	@find . -type f -name '*.d' -exec rm {} \;
 	@echo -e "$(COLOR_GREEN) DONE$(COLOR_RESET)"
