@@ -7,7 +7,7 @@ AST_FILE	  			= test/pass/civic.ast
 BIN_DIR 	  			= bin/
 AST_GENERATED_SOURCES 	= src/generated/
 AST_GENERATED_HEADERS	= include/generated/
-SOURCES   	  			= src/core/ src/generated/ src/traversal/ src/passes/
+SOURCES   	  			= src/core/ src/traversal/ src/passes/
 TARGET 	 	  			= civcc
 
 
@@ -38,18 +38,23 @@ AST_TARGET_BIN  = $(BIN_DIR)$(AST_TARGET)
 # ----------------------- Compiler rules --------------------
 
 
-.PHONY: all clean test format doc
+.PHONY: all compile_generated clean test format doc
 
 all: $(TARGET_BIN) ;
 
-$(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o)
+$(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
 	@echo -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	@mkdir -p $(BIN_DIR)
-	@$(CC) -o $@ $(SRC:.c=.o) $(AST_GENERATED_SRC:.c=.o) $(LIB_SRC:.c=.o)
+	@$(CC) -o $@ $(SRC:.c=.o) $(LIB_SRC:.c=.o) $(wildcard $(AST_GENERATED_SOURCES)*.o)
 
-%.o: %.c $(AST_GENERATED_SRC_GENFILE)
+%.o: %.c compile_generated
 	@echo -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
 	@$(CC) $(CFLAGS) -I include/ -o $@ -c $<
+
+compile_generated: $(AST_GENERATED_SRC_GENFILE)
+	@make -C $(AST_GENERATED_SOURCES) CC="$(CC)" CFLAGS="$(CFLAGS)" \
+		COLOR_GREEN="$(COLOR_GREEN)" COLOR_RESET="$(COLOR_RESET)"
+
 
 # ----------------------- AST-gen rules --------------------
 
@@ -93,8 +98,8 @@ clean:
 	@rm -f $(AST_LEXER) $(AST_LEXER:.c=.h) \
 		$(AST_PARSER) $(AST_PARSER:.c=.output) \
 		$(AST_PARSER:.c=.h) \
-		$(AST_GENERATED_SOURCES)* \
-		$(AST_GENERATED_HEADERS)*
+		$(AST_GENERATED_SOURCES)*.c \
+		$(AST_GENERATED_HEADERS)*.h
 	@find . -type f -name '*.o' -exec rm {} \;
 	@find . -type f -name '*.d' -exec rm {} \;
 	@echo -e "$(COLOR_GREEN) DONE$(COLOR_RESET)"

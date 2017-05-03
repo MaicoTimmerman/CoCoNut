@@ -93,7 +93,8 @@ tags
 # End of https://www.gitignore.io/api/c,vim,flex
 
 include/generated/
-src/generated/
+src/generated/*
+!src/generated/Makefile
 src/astgen/ast.parser.h
 src/astgen/ast.parser.output
 

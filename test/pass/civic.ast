@@ -1,9 +1,8 @@
 root phase RootPhase {
     passes {
-        A
+        Print
     }
 };
-pass A;
 
 enum BasicType {
     prefix = BT,
