@@ -1,4 +1,3 @@
-#include "generated/ast.h"
 #include "generated/trav-ast.h"
 #include "lib/memory.h"
 #include <stdio.h>

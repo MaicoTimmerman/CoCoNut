@@ -206,6 +206,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         out("#pragma once\n");
     }
 
+    // TODO: Figure out which node headers are needed, instead of ast.h.
     out("#include \"generated/ast.h\"\n");
 
     if (!header) {
