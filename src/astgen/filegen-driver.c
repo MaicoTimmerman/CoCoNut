@@ -11,6 +11,9 @@
 #include "lib/array.h"
 #include "lib/memory.h"
 
+#define COLOR_GREEN "\e[1m\e[32m"
+#define COLOR_RESET "\e[0m"
+
 struct FileGen {
     char *fn;
     union {
@@ -87,7 +90,7 @@ int filegen_generate(struct Config *config) {
         strcpy(full_path, output_directory);
         strcat(full_path, g->fn);
 
-        printf("Generating %s\n", full_path);
+        printf(COLOR_GREEN " GEN      " COLOR_RESET "%s\n", full_path);
 
         FILE *fp = fopen(full_path, "w");
         if (!fp) {
