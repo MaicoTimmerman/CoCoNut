@@ -8,7 +8,8 @@
 static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
                                   bool header) {
 
-    out("void free_%s_tree(struct %s *nodeset)", nodeset->id, nodeset->id);
+    out("void " FREE_TREE_FORMAT "(struct %s *nodeset)", nodeset->id,
+        nodeset->id);
 
     if (header) {
         out(" {\n");
@@ -21,7 +22,7 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
     out("    switch(nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
-        out("    case " NS_FMT ":\n", nodeset->id, node->id);
+        out("    case " NS_FORMAT ":\n", nodeset->id, node->id);
         out("        free_%s_tree(nodeset->value.val_%s);\n", node->id,
             node->id);
         out("        break;\n");
@@ -30,14 +31,15 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
     out("    mem_free(nodeset);\n");
     out("}\n");
 
-    out("void free_%s_node(struct %s* nodeset) {", nodeset->id, nodeset->id);
+    out("void " FREE_NODE_FORMAT "(struct %s* nodeset) {", nodeset->id,
+        nodeset->id);
     out(" // skip children. \n");
 
     out("    switch(nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
-        out("    case " NS_FMT ":\n", nodeset->id, node->id);
-        out("        free_%s_node(nodeset->value.val_%s);\n", node->id,
+        out("    case " NS_FORMAT ":\n", nodeset->id, node->id);
+        out("        " FREE_NODE_FORMAT "(nodeset->value.val_%s);\n", node->id,
             node->id);
         out("        break;\n");
     }
@@ -47,7 +49,7 @@ static void generate_free_nodeset(struct Nodeset *nodeset, FILE *fp,
 }
 
 static void generate_free_node(struct Node *node, FILE *fp, bool header) {
-    out("void free_%s_tree(struct %s* node)", node->id, node->id);
+    out("void " FREE_TREE_FORMAT "(struct %s* node)", node->id, node->id);
 
     if (header) {
         out(" {\n");
@@ -58,7 +60,7 @@ static void generate_free_node(struct Node *node, FILE *fp, bool header) {
 
     for (int i = 0; i < array_size(node->children); ++i) {
         struct Child *child = (struct Child *)array_get(node->children, i);
-        out("    free_%s_tree(node->%s);\n", child->type, child->id);
+        out("    " FREE_TREE_FORMAT "(node->%s);\n", child->type, child->id);
     }
 
     // Only need to free strings, as all other attributes are literals or
@@ -74,7 +76,7 @@ static void generate_free_node(struct Node *node, FILE *fp, bool header) {
     out("    mem_free(node);\n");
     out("}\n");
 
-    out("void free_%s_node(struct %s* node) {", node->id, node->id);
+    out("void " FREE_NODE_FORMAT "(struct %s* node) {", node->id, node->id);
     out(" // skip children.\n");
 
     // Only need to free strings, as all other attributes are literals or

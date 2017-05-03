@@ -42,7 +42,8 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
     }
 
     // Define outsize function.
-    out("struct %s *copy_%s(struct %s *node)", node->id, node->id, node->id);
+    out("struct %s *" COPY_NODE_FORMAT "(struct %s *node)", node->id, node->id,
+        node->id);
 
     if (header) {
         out(";\n\n");
@@ -76,7 +77,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("    switch (nodeset->type) {\n");
         for (int i = 0; i < array_size(nodeset->nodes); i++) {
             struct Node *node = array_get(nodeset->nodes, i);
-            out("        case " NS_FMT ":\n", nodeset->id, node->id);
+            out("        case " NS_FORMAT ":\n", nodeset->id, node->id);
             out("            res->value.val_%s = "
                 "_copy_%s(nodeset->value.val_%s, imap);\n",
                 node->id, node->id, node->id);
@@ -87,8 +88,8 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("}\n\n");
     }
 
-    out("struct %s *copy_%s(struct %s *nodeset)", nodeset->id, nodeset->id,
-        nodeset->id);
+    out("struct %s *" COPY_NODE_FORMAT "(struct %s *nodeset)", nodeset->id,
+        nodeset->id, nodeset->id);
     if (header) {
         out(";\n\n");
         return;

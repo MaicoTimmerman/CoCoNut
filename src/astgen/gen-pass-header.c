@@ -12,6 +12,6 @@ void generate_pass_header(struct Config *config, FILE *fp, void *userdata) {
     char *root_node_name = config->root_node != NULL
                                ? config->root_node->id
                                : config->root_nodeset->id;
-    out("%s *pass_%s_entry(%s *syntaxtree);\n", root_node_name, pass->id,
-        root_node_name);
+    out("%s *" PASS_ENTRY_FORMAT "(%s *syntaxtree);\n", root_node_name,
+        pass->id, root_node_name);
 }

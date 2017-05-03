@@ -22,25 +22,25 @@ static void generate_nodetype_enum(struct Config *config, FILE *fp) {
     out("typedef enum {\n");
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        out("   " NT_FMT ",\n", n->id);
+        out("   " NT_FORMAT ",\n", n->id);
     }
 
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
-        out("   " NT_FMT ",\n", n->id);
+        out("   " NT_FORMAT ",\n", n->id);
     }
 
-    out("} NodeType;\n\n");
+    out("} " NT_ENUM_NAME ";\n\n");
 }
 
 static void generate_traversal_enum(struct Config *config, FILE *fp) {
     out("typedef enum {\n");
     for (int i = 0; i < array_size(config->traversals); i++) {
         struct Traversal *t = array_get(config->traversals, i);
-        out("   " TRAV_FMT ",\n", t->id);
+        out("   " TRAV_FORMAT ",\n", t->id);
     }
 
-    out("} TraversalType;\n\n");
+    out("} " TRAV_ENUM_NAME ";\n\n");
 }
 
 static void template_ast_h(struct Config *config, FILE *fp) {
@@ -87,10 +87,10 @@ static void template_ast_h(struct Config *config, FILE *fp) {
         out("// Nodeset %s\n", nodeset->id);
         out("typedef enum { ");
         for (int j = 0; j < array_size(nodeset->nodes); ++j) {
-            out(NS_FMT ", ", nodeset->id,
+            out(NS_FORMAT ", ", nodeset->id,
                 ((struct Node *)array_get(nodeset->nodes, j))->id);
         }
-        out("} " NS_ENUMTYPE_FMT ";\n", nodeset->id);
+        out("} " NS_ENUMTYPE_FORMAT ";\n", nodeset->id);
 
         out("typedef struct %s {\n", nodeset->id);
         out("    union {\n");
@@ -99,7 +99,7 @@ static void template_ast_h(struct Config *config, FILE *fp) {
             out("        struct %s *val_%s;\n", node->id, node->id);
         }
         out("    } value;\n");
-        out("    " NS_ENUMTYPE_FMT " type;\n", nodeset->id);
+        out("    " NS_ENUMTYPE_FORMAT " type;\n", nodeset->id);
         out("} %s;\n\n", nodeset->id);
     }
 }
