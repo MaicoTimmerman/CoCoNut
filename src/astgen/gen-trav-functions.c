@@ -73,6 +73,7 @@ static void generate_node_child_node(struct Node *node, struct Child *child,
 
 static void generate_node_child_nodeset(struct Node *node, struct Child *child,
                                         FILE *fp) {
+    out("    if (!node->%s) return;\n", child->id);
     out("    switch (node->%s->type) {\n", child->id);
 
     struct Nodeset *nodeset = child->nodeset;
@@ -93,6 +94,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
     if (!header) {
         out("static void trav_%s(struct %s *node, struct Info *info) {\n",
             node->id, node->id);
+        out("   if (!node) return;\n");
         out("   switch (trav_current()) {\n");
         for (int i = 0; i < array_size(config->traversals); i++) {
             struct Traversal *t = array_get(config->traversals, i);
