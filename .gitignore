@@ -97,4 +97,5 @@ src/generated/*
 !src/generated/Makefile
 src/astgen/ast.parser.h
 src/astgen/ast.parser.output
-
+doc/ast.png
+doc/ast.dot

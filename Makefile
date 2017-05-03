@@ -5,10 +5,13 @@ CFLAGS       := -Wall -std=gnu11 -g -Og -pedantic -MMD \
 
 AST_FILE	  			= test/pass/civic.ast
 BIN_DIR 	  			= bin/
+DOC_DIR 	  			= doc/
 AST_GENERATED_SOURCES 	= src/generated/
 AST_GENERATED_HEADERS	= include/generated/
+# TODO: Slashes
 SOURCES   	  			= src/core/ src/traversal/ src/passes/
 TARGET 	 	  			= civcc
+# TODO HIDE
 
 
 # ----------------------- Other variables --------------------
@@ -107,6 +110,12 @@ clean:
 
 doc:
 	$(MAKE) --directory doc html
+
+png: $(AST_TARGET_BIN)
+	@$(ECHO) -e "$(COLOR_GREEN) GEN$(COLOR_RESET)"
+	@$(AST_TARGET_BIN) --dot $(DOC_DIR) $(AST_FILE)
+	@$(ECHO) -e "$(COLOR_GREEN) DOT$(COLOR_RESET)"
+	@dot -Tpng $(DOC_DIR)ast.dot > $(DOC_DIR)ast.png
 
 test: $(AST_TARGET_BIN)
 	@test/test.sh test

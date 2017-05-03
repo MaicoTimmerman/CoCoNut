@@ -16,6 +16,7 @@
 #include "astgen/gen-consistency-functions.h"
 #include "astgen/gen-copy-functions.h"
 #include "astgen/gen-create-functions.h"
+#include "astgen/gen-dot-definition.h"
 #include "astgen/gen-free-functions.h"
 #include "astgen/gen-pass-header.h"
 #include "astgen/gen-phase-driver.h"
@@ -37,6 +38,8 @@ static void usage(char *program) {
            "files to.\n");
     printf("                               Defaults to ./src/generated/\n");
     printf("  --verbose/-v                 Enable verbose mode.\n");
+    printf("  --dot <directory>            Will produce ast.dot in "
+           "<directory>.\n");
     printf("                               Prints the AST after parsing the "
            "input file\n");
 }
@@ -72,14 +75,17 @@ static FILE *open_input_file(char *path) {
 
 int main(int argc, char *argv[]) {
     int verbose_flag = 0;
+    int ret = 0;
     int option_index;
     int c = 0;
     char *header_dir = NULL;
     char *source_dir = NULL;
+    char *dot_dir = NULL;
 
     struct option long_options[] = {{"verbose", no_argument, &verbose_flag, 1},
                                     {"header-dir", required_argument, 0, 21},
                                     {"source-dir", required_argument, 0, 22},
+                                    {"dot", required_argument, 0, 23},
                                     {"help", no_argument, 0, 'h'},
                                     {"version", no_argument, 0, 0},
                                     {0, 0, 0, 0}};
@@ -103,6 +109,9 @@ int main(int argc, char *argv[]) {
             break;
         case 22: // Source file output directory.
             source_dir = optarg;
+            break;
+        case 23: // ast.dot output directory.
+            dot_dir = optarg;
             break;
         case 'h':
             usage(argv[0]);
@@ -140,6 +149,14 @@ int main(int argc, char *argv[]) {
         print_config(parse_result);
     }
 
+    if (dot_dir) {
+        filegen_init(dot_dir);
+        filegen_add("ast.dot", generate_dot_definition);
+        ret += filegen_generate(parse_result);
+        filegen_cleanup();
+        exit(ret);
+    }
+
     // Generated all the header files.
     filegen_init(header_dir);
     filegen_add("enum.h", generate_enum_definitions);
@@ -166,8 +183,7 @@ int main(int argc, char *argv[]) {
         filegen_add_with_userdata(header, generate_pass_header, pass);
     }
 
-    int ret;
-    ret = filegen_generate(parse_result);
+    ret += filegen_generate(parse_result);
     filegen_cleanup();
 
     // Genereate all the source files.
@@ -179,7 +195,7 @@ int main(int argc, char *argv[]) {
     // filegen_add("consistency-ast.c", generate_consistency_definitions);
     filegen_add("phase-driver.c", generate_phase_driver_definitions);
 
-    ret = filegen_generate(parse_result);
+    ret += filegen_generate(parse_result);
     filegen_cleanup();
 
     free_config(parse_result);
