@@ -51,8 +51,10 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
         out("    if (node == NULL) return NULL; // Cannot copy nothing.\n");
         out("\n");
         out("    imap_t *imap = imap_init(64);\n");
-        out("    _copy_%s(node, imap);\n", node->id);
+        out("    struct %s * res = _copy_%s(node, imap);\n", node->id,
+            node->id);
         out("    imap_free(imap);\n");
+        out("    return res;\n");
         out("}\n");
     }
 }
@@ -94,8 +96,10 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("{\n");
         out("    if (nodeset == NULL) return NULL; // Cannot copy nothing.\n");
         out("    imap_t *imap = imap_init(64);\n");
-        out("    _copy_%s(nodeset, imap);\n", nodeset->id);
+        out("    struct %s * res = _copy_%s(nodeset, imap);\n", nodeset->id,
+            nodeset->id);
         out("    imap_free(imap);\n");
+        out("    return res;\n");
         out("}\n");
     }
 }
