@@ -12,7 +12,7 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
     struct Traversal *trav = userdata;
 
     out("#pragma once\n\n");
-    out("#include \"ast.h\"\n");
+    out("#include \"generated/ast.h\"\n");
     out("struct Info;\n");
     out("struct Info *%s_createinfo(void);\n", trav->id);
     out("void %s_freeinfo(struct Info *);\n", trav->id);

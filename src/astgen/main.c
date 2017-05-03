@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     filegen_add("create-ast.h", generate_create_header);
     filegen_add("trav-ast.h", generate_trav_header);
     filegen_add("copy-ast.h", generate_copy_header);
-    filegen_add("consistency-ast.h", generate_consistency_header);
+    // filegen_add("consistency-ast.h", generate_consistency_header);
     filegen_add("phase-driver.h", generate_phase_driver_header);
 
     for (int i = 0; i < array_size(parse_result->traversals); i++) {
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
     filegen_add("create-ast.c", generate_create_definitions);
     filegen_add("trav-ast.c", generate_trav_definitions);
     filegen_add("copy-ast.c", generate_copy_definitions);
-    filegen_add("consistency-ast.c", generate_consistency_definitions);
+    // filegen_add("consistency-ast.c", generate_consistency_definitions);
     filegen_add("phase-driver.c", generate_phase_driver_definitions);
 
     ret = filegen_generate(parse_result);

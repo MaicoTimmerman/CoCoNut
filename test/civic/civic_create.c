@@ -1,5 +1,6 @@
-#include "../src/generated/ast.h"
-#include "../src/generated/create-ast.h"
+#include "generated/ast.h"
+#include "generated/create-ast.h"
+#include "generated/phase-driver.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -49,12 +50,12 @@ int main() {
     stmtla3->next = stmtla4;
     stmtla4->next = stmtreturn;
 
-    FunDef *main = create_FunDef(
+    FunDef *mainfun = create_FunDef(
         create_FunHeader(NULL, BT_int, strdup("main")),
         create_FunBody(vda1, NULL, stmtla1), NULL, NULL, false, true);
 
-    Root *program =
-        create_Root(create_Decls(create_Decl_FunDef(main), NULL), NULL, NULL);
+    Root *program = create_Root(
+        create_Decls(create_Decl_FunDef(mainfun), NULL), NULL, NULL);
 
     phasedriver_run(program);
 
