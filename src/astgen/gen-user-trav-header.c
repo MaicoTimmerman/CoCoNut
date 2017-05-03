@@ -20,7 +20,7 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
     if (trav->nodes != NULL) {
         for (int i = 0; i < array_size(trav->nodes); i++) {
             char *node = array_get(trav->nodes, i);
-            out("void " TRAVERSAL_HANDLER_FMT
+            out("void " TRAVERSAL_HANDLER_FORMAT
                 "(%s *node, struct Info *info);\n",
                 trav->id, node, node);
         }
@@ -28,7 +28,7 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
     } else {
         for (int i = 0; i < array_size(config->nodes); i++) {
             struct Node *n = array_get(config->nodes, i);
-            out("void " TRAVERSAL_HANDLER_FMT
+            out("void " TRAVERSAL_HANDLER_FORMAT
                 "(%s *node, struct Info *info);\n",
                 trav->id, n->id, n->id);
         }

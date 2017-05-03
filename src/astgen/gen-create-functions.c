@@ -10,7 +10,7 @@
 #include "lib/smap.h"
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
-    out("struct %s *create_%s(", node->id, node->id);
+    out("struct %s *" CREATE_NODE_FORMAT "(", node->id, node->id);
 
     int arg_count = 0;
     bool first = true;
@@ -79,8 +79,8 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     for (int i = 0; i < array_size(nodeset->nodes); i++) {
         struct Node *node = array_get(nodeset->nodes, i);
 
-        out("struct %s *create_%s_%s(struct %s *_%s)", nodeset->id,
-            nodeset->id, node->id, node->id, node->id);
+        out("struct %s *" CREATE_NODESET_FORMAT "(struct %s *_%s)",
+            nodeset->id, nodeset->id, node->id, node->id, node->id);
 
         if (header) {
             out(";\n\n");
@@ -89,7 +89,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
             out("   struct %s *res = mem_alloc(sizeof(struct %s));\n",
                 nodeset->id, nodeset->id);
 
-            out("   res->type = " NS_FMT ";\n", nodeset->id, node->id);
+            out("   res->type = " NS_FORMAT ";\n", nodeset->id, node->id);
             out("   res->value.val_%s = _%s;\n", node->id, node->id);
             out("   return res;\n");
             out("}\n\n");
