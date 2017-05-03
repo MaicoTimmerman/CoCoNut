@@ -83,6 +83,8 @@
 // arg1 = node or nodeset identifier
 #define COPY_NODE_FORMAT            COPY_FUNC_PREFIX "%s"
 
+// Format of functions to replace a node
+// arg1 = node identifier
 #define REPLACE_NODE_FORMAT         REPLACE_NODE_FUNC_PREFIX "%s"
 
 // Formats of functions to free a subtree or only the node
