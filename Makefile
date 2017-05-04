@@ -33,7 +33,6 @@ ECHO = $(shell which echo)
 all: $(TARGET_BIN) ;
 
 $(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
-	$(ECHO) $<
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
 	$(DEBUG)$(CC) -o $@ $(SRC:.c=.o) $(LIB_SRC:.c=.o) $(wildcard $(AST_GENERATED_SOURCES)*.o)
