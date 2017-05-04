@@ -5,7 +5,7 @@ YELLOW="\e[93m"
 RED="\e[91m"
 BOLD="\e[1m"
 
-find . -name "*.h" -o -name "*.c" | xargs -n1 clang-format -output-replacements-xml | grep "replacement\ " > /dev/null
+find . -name "*.h" -o -name "*.c" | egrep  -v "^(./src/generated/|./include/generated)" | xargs -n1 clang-format -output-replacements-xml | grep "replacement\ " > /dev/null
 if [ $? -ne 1 ]
 then
     echo -ne $YELLOW$BOLD

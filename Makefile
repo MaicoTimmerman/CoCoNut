@@ -108,7 +108,7 @@ test: $(AST_TARGET_BIN)
 
 format:
 	$(DEBUG)$(ECHO) "Applying clang-format on all files"
-	$(DEBUG)find . -name "*.h" -o -name "*.c" | xargs -n1 clang-format -i
+	$(DEBUG)find . -name "*.h" -o -name "*.c" | egrep  -v "^(./src/generated/|./include/generated)" | xargs -n1 clang-format -i
 
 -include $(AST_SRC:.c=.d)
 -include $(SRC:.c=.d)
