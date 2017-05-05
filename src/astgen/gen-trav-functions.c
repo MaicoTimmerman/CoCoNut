@@ -2,11 +2,127 @@
 #include "astgen/filegen-driver.h"
 #include "astgen/filegen-util.h"
 #include "astgen/str-ast.h"
+#include "lib/imap.h"
 #include "lib/memory.h"
+#include "lib/smap.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+
+// Map from node name to index in reachability matrix
+static smap_t *node_index = NULL;
+
+// Node reachability matrix
+static bool **node_reachability = NULL;
+
+static bool **traversal_node_handles = NULL;
+
+static void compute_reachable_nodes(struct Config *config) {
+    node_index = smap_init(32);
+
+    size_t num_nodes = array_size(config->nodes);
+    size_t num_nodesets = array_size(config->nodesets);
+
+    // Add nodes to node_index map
+    for (int i = 0; i < num_nodes; i++) {
+        struct Node *node = array_get(config->nodes, i);
+        int *index = mem_alloc(sizeof(int));
+        *index = i;
+        smap_insert(node_index, node->id, index);
+    }
+
+    for (int i = 0; i < num_nodesets; i++) {
+        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        int *index = mem_alloc(sizeof(int));
+        *index = i + num_nodes;
+        smap_insert(node_index, nodeset->id, index);
+    }
+
+    // Allocate node reachability matrix
+
+    size_t num_total = num_nodes + num_nodesets;
+
+    node_reachability = mem_alloc(sizeof(bool *) * num_total);
+
+    for (int i = 0; i < num_total; i++) {
+        node_reachability[i] = mem_alloc(sizeof(bool) * num_total);
+        memset(node_reachability[i], 0, sizeof(bool) * num_total);
+    }
+
+    // Initialise reachability matrix with adjacency matrix
+
+    for (int i = 0; i < num_nodes; i++) {
+        struct Node *node = array_get(config->nodes, i);
+
+        for (int j = 0; j < array_size(node->children); j++) {
+            struct Child *child = array_get(node->children, j);
+
+            int *index = smap_retrieve(node_index, child->type);
+            node_reachability[*index][i] = true;
+        }
+    }
+
+    for (int i = 0; i < num_nodesets; i++) {
+        struct Nodeset *nodeset = array_get(config->nodesets, i);
+
+        for (int j = 0; j < array_size(nodeset->nodes); j++) {
+            struct Node *node = array_get(nodeset->nodes, j);
+            int *index = smap_retrieve(node_index, node->id);
+            node_reachability[*index][num_nodes + i] = true;
+        }
+    }
+
+    // Compute reachability of nodes using the Floyd-Warshall algorithm
+    for (int k = 0; k < num_total; k++) {
+        for (int i = 0; i < num_total; i++) {
+            for (int j = 0; j < num_total; j++) {
+
+                if (node_reachability[k][i] && node_reachability[j][k])
+                    node_reachability[j][i] = true;
+            }
+        }
+    }
+
+    // Fill traversal_node_handles table
+
+    size_t num_traversals = array_size(config->traversals);
+
+    traversal_node_handles = mem_alloc(sizeof(bool *) * num_traversals);
+
+    for (int i = 0; i < num_traversals; i++) {
+        struct Traversal *traversal = array_get(config->traversals, i);
+
+        traversal_node_handles[i] = mem_alloc(sizeof(bool) * num_total);
+
+        // Traversal handles all nodes
+        if (traversal->nodes == NULL) {
+            for (int j = 0; j < num_total; j++) {
+                traversal_node_handles[i][j] = true;
+            }
+        } else {
+            memset(traversal_node_handles[i], 0, sizeof(bool) * num_total);
+
+            for (int j = 0; j < array_size(traversal->nodes); j++) {
+                char *node_name = array_get(traversal->nodes, j);
+                int *index = smap_retrieve(node_index, node_name);
+
+                // List of nodes from where the handled node can be reached
+                bool *reach_nodes = node_reachability[*index];
+
+                // Add the handled node itself to the list of nodes that need
+                // to be traversed
+                traversal_node_handles[i][*index] = true;
+
+                // Add the nodes in reach_node
+                for (int k = 0; k < num_total; k++) {
+                    if (reach_nodes[k])
+                        traversal_node_handles[i][k] = true;
+                }
+            }
+        }
+    }
+}
 
 static void generate_replace_node(struct Node *node, FILE *fp, bool header) {
     // Generate replace functions
@@ -110,12 +226,25 @@ static void generate_trav_node(struct Node *node, FILE *fp,
                 }
             }
 
+            out("   case " TRAV_FORMAT ":\n", t->id);
+
             if (handles_node) {
-                out("   case " TRAV_FORMAT ":\n", t->id);
                 out("       " TRAVERSAL_HANDLER_FORMAT "(node, info);\n",
                     t->id, node->id);
-                out("       break;\n");
+            } else {
+
+                for (int j = 0; j < array_size(node->children); j++) {
+                    struct Child *c = array_get(node->children, j);
+
+                    int *index = smap_retrieve(node_index, c->type);
+                    bool handles_child = traversal_node_handles[i][*index];
+
+                    if (handles_child)
+                        out("       trav_%s_%s(node, info);\n", node->id,
+                            c->id);
+                }
             }
+            out("       break;\n");
         }
 
         out("   default:\n");
@@ -265,6 +394,8 @@ static void generate(struct Config *config, FILE *fp, bool header) {
 }
 
 void generate_trav_definitions(struct Config *config, FILE *fp) {
+    compute_reachable_nodes(config);
+
     generate(config, fp, false);
 }
 
