@@ -94,7 +94,7 @@ root node Root {
 node Decls {
     children {
         child Decl decl { construct, mandatory },
-        child Decl next { construct }
+        child Decls next { construct }
     }
 };
 
