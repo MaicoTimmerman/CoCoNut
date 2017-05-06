@@ -6,10 +6,7 @@
 #include "lib/array.h"
 
 struct NodeCommonInfo {
-    int line_start;
-    int line_end;
-    int column_start;
-    int column_end;
+    char dummy;
 };
 
 enum NodeType { NT_node, NT_nodeset };
