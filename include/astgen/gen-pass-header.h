@@ -2,4 +2,4 @@
 
 #include "astgen/ast.h"
 
-void generate_pass_header(struct Config *config, FILE *fp, void *userdata);
+void generate_pass_header(struct Config *config, FILE *fp, struct Pass *);

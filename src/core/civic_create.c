@@ -3,6 +3,7 @@
 #include "generated/create-ast.h"
 #include "generated/free-ast.h"
 #include "generated/phase-driver.h"
+#include "generated/trav-ast.h"
 #include <stdbool.h>
 #include <string.h>
 

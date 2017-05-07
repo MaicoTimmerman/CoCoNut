@@ -8,8 +8,7 @@
 #include <stdio.h>
 
 void generate_user_trav_header(struct Config *config, FILE *fp,
-                               void *userdata) {
-    struct Traversal *trav = userdata;
+                               struct Traversal *trav) {
 
     out("#pragma once\n\n");
     out("#include \"generated/ast.h\"\n");

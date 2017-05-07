@@ -97,27 +97,6 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
 }
 
-static void generate(struct Config *c, FILE *fp, bool header) {
-    if (header)
-        out("#pragma once\n");
-
-    out("#include \"generated/ast.h\"\n");
-    if (!header)
-        out("#include \"lib/memory.h\"\n");
-
-    out("\n");
-
-    out("// Node create functions\n");
-    for (int i = 0; i < array_size(c->nodes); i++) {
-        generate_node(array_get(c->nodes, i), fp, header);
-    }
-
-    out("// Nodeset create functions\n");
-    for (int i = 0; i < array_size(c->nodesets); i++) {
-        generate_nodeset(array_get(c->nodesets, i), fp, header);
-    }
-}
-
 void generate_create_node_header(struct Config *c, FILE *fp, struct Node *n) {
     out("#pragma once\n");
     out("#include <stdbool.h>\n");

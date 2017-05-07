@@ -178,19 +178,8 @@ int main(int argc, char *argv[]) {
     // filegen_add("consistency-ast.h", generate_consistency_header);
     filegen_add("phase-driver.h", generate_phase_driver_header);
 
-    for (int i = 0; i < array_size(parse_result->traversals); i++) {
-        struct Traversal *trav = array_get(parse_result->traversals, i);
-        char header[13 + strlen(trav->id)];
-        sprintf(header, "traversal-%s.h", trav->id);
-        filegen_add_with_userdata(header, generate_user_trav_header, trav);
-    }
-
-    for (int i = 0; i < array_size(parse_result->passes); i++) {
-        struct Pass *pass = array_get(parse_result->passes, i);
-        char header[8 + strlen(pass->id)];
-        sprintf(header, "pass-%s.h", pass->id);
-        filegen_add_with_userdata(header, generate_pass_header, pass);
-    }
+    filegen_all_traversals("traversal-%s.h", generate_user_trav_header);
+    filegen_all_passes("pass-%s.h", generate_pass_header);
 
     ret += filegen_generate(parse_result);
 
