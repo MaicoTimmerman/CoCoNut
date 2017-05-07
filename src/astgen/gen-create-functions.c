@@ -118,10 +118,53 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     }
 }
 
-void generate_create_definitions(struct Config *c, FILE *fp) {
-    generate(c, fp, false);
+void generate_create_node_header(struct Config *c, FILE *fp, struct Node *n) {
+    out("#pragma once\n");
+    out("#include <stdbool.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"generated/ast.h\"\n\n");
+    generate_node(n, fp, true);
 }
 
-void generate_create_header(struct Config *c, FILE *fp) {
-    generate(c, fp, true);
+void generate_create_node_definitions(struct Config *c, FILE *fp,
+                                      struct Node *n) {
+    out("#include \"lib/memory.h\"\n");
+    out("#include \"generated/create-%s.h\"\n", n->id);
+
+    for (int i = 0; i < array_size(n->children); ++i) {
+        struct Child *child = (struct Child *)array_get(n->children, i);
+        out("#include \"generated/create-%s.h\"\n", child->type);
+    }
+    generate_node(n, fp, false);
+}
+
+void generate_create_nodeset_header(struct Config *c, FILE *fp,
+                                    struct Nodeset *n) {
+    out("#pragma once\n");
+    out("#include \"generated/ast.h\"\n\n");
+    generate_nodeset(n, fp, true);
+}
+
+void generate_create_nodeset_definitions(struct Config *c, FILE *fp,
+                                         struct Nodeset *n) {
+    out("#include \"lib/memory.h\"\n");
+    out("\n");
+
+    for (int i = 0; i < array_size(n->nodes); ++i) {
+        struct Node *node = (struct Node *)array_get(n->nodes, i);
+        out("#include \"generated/create-%s.h\"\n", node->id);
+    }
+    generate_nodeset(n, fp, false);
+}
+
+void generate_create_header(struct Config *config, FILE *fp) {
+    out("#pragma once\n");
+    for (int i = 0; i < array_size(config->nodes); ++i) {
+        struct Node *node = array_get(config->nodes, i);
+        out("#include \"generated/create-%s.h\"\n", node->id);
+    }
+    for (int i = 0; i < array_size(config->nodesets); ++i) {
+        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        out("#include \"generated/create-%s.h\"\n", nodeset->id);
+    }
 }
