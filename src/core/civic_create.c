@@ -1,5 +1,7 @@
 #include "generated/ast.h"
+#include "generated/copy-ast.h"
 #include "generated/create-ast.h"
+#include "generated/free-ast.h"
 #include "generated/phase-driver.h"
 #include <stdbool.h>
 #include <string.h>

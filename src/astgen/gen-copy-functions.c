@@ -7,7 +7,7 @@
 #include "lib/memory.h"
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
-    out("static struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,
+    out("struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,
         node->id, node->id);
 
     if (header) {
@@ -62,8 +62,8 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
 
 static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
 
-    out("static struct %s *_copy_%s(struct %s *nodeset, imap_t *imap)",
-        nodeset->id, nodeset->id, nodeset->id);
+    out("struct %s *_copy_%s(struct %s *nodeset, imap_t *imap)", nodeset->id,
+        nodeset->id, nodeset->id);
 
     if (header) {
         out(";\n\n");
@@ -105,36 +105,62 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
 }
 
-static void generate(struct Config *c, FILE *fp, bool header) {
-    if (header)
-        out("#pragma once\n");
-
-    out("#include \"generated/ast.h\"\n");
+void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
+    out("#pragma once\n");
+    out("#include <stdbool.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"lib/memory.h\"\n");
     out("#include \"lib/imap.h\"\n");
-    if (!header) {
-        out("#include \"lib/memory.h\"\n");
-        out("#include \"generated/copy-ast.h\"\n");
-        out("#include <string.h>\n");
-        out("#include <stdbool.h>\n");
+    out("#include \"generated/ast.h\"\n\n");
+
+    generate_node(n, fp, true);
+}
+
+void generate_copy_node_definitions(struct Config *c, FILE *fp,
+                                    struct Node *n) {
+    out("#include \"generated/copy-%s.h\"\n", n->id);
+
+    for (int i = 0; i < array_size(n->children); ++i) {
+        struct Child *child = (struct Child *)array_get(n->children, i);
+        out("#include \"generated/copy-%s.h\"\n", child->type);
     }
 
+    generate_node(n, fp, false);
+}
+
+void generate_copy_nodeset_header(struct Config *c, FILE *fp,
+                                  struct Nodeset *n) {
+    out("#pragma once\n");
+    out("#include <stdbool.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/imap.h\"\n");
+    out("#include \"generated/ast.h\"\n\n");
+
+    generate_nodeset(n, fp, true);
+}
+
+void generate_copy_nodeset_definitions(struct Config *c, FILE *fp,
+                                       struct Nodeset *n) {
+    out("#include \"generated/copy-%s.h\"\n", n->id);
     out("\n");
 
-    out("// Node create functions\n");
-    for (int i = 0; i < array_size(c->nodes); i++) {
-        generate_node(array_get(c->nodes, i), fp, header);
+    for (int i = 0; i < array_size(n->nodes); ++i) {
+        struct Node *node = (struct Node *)array_get(n->nodes, i);
+        out("#include \"generated/copy-%s.h\"\n", node->id);
     }
 
-    out("// Nodeset create functions\n");
-    for (int i = 0; i < array_size(c->nodesets); i++) {
-        generate_nodeset(array_get(c->nodesets, i), fp, header);
+    generate_nodeset(n, fp, false);
+}
+
+void generate_copy_header(struct Config *config, FILE *fp) {
+    out("#pragma once\n");
+    for (int i = 0; i < array_size(config->nodes); ++i) {
+        struct Node *node = array_get(config->nodes, i);
+        out("#include \"generated/copy-%s.h\"\n", node->id);
     }
-}
-
-void generate_copy_definitions(struct Config *c, FILE *fp) {
-    generate(c, fp, false);
-}
-
-void generate_copy_header(struct Config *c, FILE *fp) {
-    generate(c, fp, true);
+    for (int i = 0; i < array_size(config->nodesets); ++i) {
+        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        out("#include \"generated/copy-%s.h\"\n", nodeset->id);
+    }
 }

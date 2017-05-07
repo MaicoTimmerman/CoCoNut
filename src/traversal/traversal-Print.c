@@ -82,6 +82,7 @@ void Print_FunHeader(FunHeader *node, struct Info *info) {
     print_basictype(node->rettype);
     printf(" %s(", node->id);
     trav_FunHeader_params(node, info);
+    printf(")");
 }
 
 void Print_Param(Param *node, struct Info *info) {

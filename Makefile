@@ -42,7 +42,7 @@ $(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
 	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
 compile_generated: $(AST_GENERATED_SRC_GENFILE)
-	$(DEBUG)make -C $(AST_GENERATED_SOURCES) CC="$(CC)" CFLAGS="$(CFLAGS)" \
+	$(DEBUG)make -C $(AST_GENERATED_SOURCES) -j4 CC="$(CC)" CFLAGS="$(CFLAGS)" \
 		COLOR_GREEN="$(COLOR_GREEN)" COLOR_RESET="$(COLOR_RESET)"
 
 

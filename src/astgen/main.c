@@ -166,12 +166,15 @@ int main(int argc, char *argv[]) {
     filegen_all_nodes("free-%s.h", generate_free_node_header);
     filegen_all_nodesets("free-%s.h", generate_free_nodeset_header);
 
-    // TODO set create to individual nodes.
     filegen_add("create-ast.h", generate_create_header);
     filegen_all_nodes("create-%s.h", generate_create_node_header);
     filegen_all_nodesets("create-%s.h", generate_create_nodeset_header);
-    filegen_add("trav-ast.h", generate_trav_header);
+
     filegen_add("copy-ast.h", generate_copy_header);
+    filegen_all_nodes("copy-%s.h", generate_copy_node_header);
+    filegen_all_nodesets("copy-%s.h", generate_copy_nodeset_header);
+
+    filegen_add("trav-ast.h", generate_trav_header);
     // filegen_add("consistency-ast.h", generate_consistency_header);
     filegen_add("phase-driver.h", generate_phase_driver_header);
 
@@ -200,8 +203,10 @@ int main(int argc, char *argv[]) {
     filegen_all_nodes("create-%s.c", generate_create_node_definitions);
     filegen_all_nodesets("create-%s.c", generate_create_nodeset_definitions);
 
+    filegen_all_nodes("copy-%s.c", generate_copy_node_definitions);
+    filegen_all_nodesets("copy-%s.c", generate_copy_nodeset_definitions);
+
     filegen_add("trav-ast.c", generate_trav_definitions);
-    filegen_add("copy-ast.c", generate_copy_definitions);
     // filegen_add("consistency-ast.c", generate_consistency_definitions);
     filegen_add("phase-driver.c", generate_phase_driver_definitions);
 
