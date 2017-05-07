@@ -1,0 +1,5 @@
+-I ./include
+-Wall
+-std=gnu11
+-pedantic
+-Werror=implicit-function-declaration
