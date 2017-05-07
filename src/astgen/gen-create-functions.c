@@ -122,38 +122,55 @@ void generate_create_node_header(struct Config *c, FILE *fp, struct Node *n) {
     out("#pragma once\n");
     out("#include <stdbool.h>\n");
     out("#include <string.h>\n");
+    out("#include \"lib/memory.h\"\n");
     out("#include \"generated/ast.h\"\n\n");
     generate_node(n, fp, true);
 }
 
 void generate_create_node_definitions(struct Config *c, FILE *fp,
                                       struct Node *n) {
-    out("#include \"lib/memory.h\"\n");
     out("#include \"generated/create-%s.h\"\n", n->id);
+
+    smap_t *map = smap_init(32);
 
     for (int i = 0; i < array_size(n->children); ++i) {
         struct Child *child = (struct Child *)array_get(n->children, i);
-        out("#include \"generated/create-%s.h\"\n", child->type);
+        if (smap_retrieve(map, child->type) == NULL) {
+            out("#include \"generated/create-%s.h\"\n", child->type);
+            smap_insert(map, child->type, child);
+        }
     }
+
+    smap_free(map);
+
     generate_node(n, fp, false);
 }
 
 void generate_create_nodeset_header(struct Config *c, FILE *fp,
                                     struct Nodeset *n) {
     out("#pragma once\n");
+    out("#include \"lib/memory.h\"\n");
     out("#include \"generated/ast.h\"\n\n");
     generate_nodeset(n, fp, true);
 }
 
 void generate_create_nodeset_definitions(struct Config *c, FILE *fp,
                                          struct Nodeset *n) {
-    out("#include \"lib/memory.h\"\n");
+    out("#include \"generated/create-%s.h\"\n", n->id);
     out("\n");
+
+    smap_t *map = smap_init(32);
 
     for (int i = 0; i < array_size(n->nodes); ++i) {
         struct Node *node = (struct Node *)array_get(n->nodes, i);
-        out("#include \"generated/create-%s.h\"\n", node->id);
+        if (smap_retrieve(map, node->id) == NULL) {
+            out("#include \"generated/create-%s.h\"\n", node->id);
+            smap_insert(map, node->id, node);
+        }
     }
+
+    smap_free(map);
+
     generate_nodeset(n, fp, false);
 }
 

@@ -5,6 +5,7 @@
 #include "astgen/filegen-util.h"
 
 #include "lib/memory.h"
+#include "lib/smap.h"
 
 static void generate_node(struct Node *node, FILE *fp, bool header) {
     out("struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,
@@ -111,7 +112,22 @@ void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
     out("#include <string.h>\n");
     out("#include \"lib/memory.h\"\n");
     out("#include \"lib/imap.h\"\n");
-    out("#include \"generated/ast.h\"\n\n");
+    out("#include \"generated/ast.h\"\n");
+    out("\n");
+
+    // Create a map of child node types, so that there aren't duplicate
+    // includes.
+    smap_t *map = smap_init(32);
+
+    for (int i = 0; i < array_size(n->children); ++i) {
+        struct Child *child = (struct Child *)array_get(n->children, i);
+        if (smap_retrieve(map, child->type) == NULL) {
+            out("#include \"generated/copy-%s.h\"\n", child->type);
+            smap_insert(map, child->type, child);
+        }
+    }
+
+    smap_free(map);
 
     generate_node(n, fp, true);
 }
@@ -119,11 +135,7 @@ void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
 void generate_copy_node_definitions(struct Config *c, FILE *fp,
                                     struct Node *n) {
     out("#include \"generated/copy-%s.h\"\n", n->id);
-
-    for (int i = 0; i < array_size(n->children); ++i) {
-        struct Child *child = (struct Child *)array_get(n->children, i);
-        out("#include \"generated/copy-%s.h\"\n", child->type);
-    }
+    out("\n");
 
     generate_node(n, fp, false);
 }
@@ -135,7 +147,19 @@ void generate_copy_nodeset_header(struct Config *c, FILE *fp,
     out("#include <string.h>\n");
     out("#include \"lib/memory.h\"\n");
     out("#include \"lib/imap.h\"\n");
-    out("#include \"generated/ast.h\"\n\n");
+    out("#include \"generated/ast.h\"\n");
+    out("\n");
+
+    smap_t *map = smap_init(32);
+    for (int i = 0; i < array_size(n->nodes); ++i) {
+        struct Node *node = (struct Node *)array_get(n->nodes, i);
+
+        if (smap_retrieve(map, node->id) == NULL) {
+            out("#include \"generated/copy-%s.h\"\n", node->id);
+            smap_insert(map, node->id, node);
+        }
+    }
+    smap_free(map);
 
     generate_nodeset(n, fp, true);
 }
@@ -144,11 +168,6 @@ void generate_copy_nodeset_definitions(struct Config *c, FILE *fp,
                                        struct Nodeset *n) {
     out("#include \"generated/copy-%s.h\"\n", n->id);
     out("\n");
-
-    for (int i = 0; i < array_size(n->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(n->nodes, i);
-        out("#include \"generated/copy-%s.h\"\n", node->id);
-    }
 
     generate_nodeset(n, fp, false);
 }
