@@ -13,7 +13,6 @@
 // TODO make enum of mandatory/forbidden/optional.
 static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
-static const int OPTIONAL = 2;
 
 static void generate_node(struct Node *node, FILE *fp, int node_id,
                           bool header) {

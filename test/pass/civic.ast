@@ -25,6 +25,8 @@ enum BinOpEnum {
     }
 };
 
+pass A;
+
 traversal Print;
 traversal ByteCode;
 traversal RenameFor {
