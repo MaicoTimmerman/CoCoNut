@@ -78,3 +78,7 @@ int array_size(struct array *a) {
 void array_clear(struct array *a) {
     a->size = 0;
 }
+
+void array_sort(struct array *a, int (*compare)(const void *, const void *)) {
+    qsort(a->data, a->size, sizeof(void *), compare);
+}

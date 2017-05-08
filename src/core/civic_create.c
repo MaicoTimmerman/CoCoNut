@@ -20,10 +20,10 @@
 /// }
 int main() {
     // VARDECS
-    VarDec *vda1 = create_VarDec(NULL, NULL, BT_int, strdup("a1"));
-    VarDec *vda2 = create_VarDec(NULL, NULL, BT_int, strdup("a2"));
-    VarDec *vda3 = create_VarDec(NULL, NULL, BT_int, strdup("a3"));
-    VarDec *vda4 = create_VarDec(NULL, NULL, BT_int, strdup("a4"));
+    VarDec *vda1 = create_VarDec(NULL, NULL, strdup("a1"), BT_int);
+    VarDec *vda2 = create_VarDec(NULL, NULL, strdup("a2"), BT_int);
+    VarDec *vda3 = create_VarDec(NULL, NULL, strdup("a3"), BT_int);
+    VarDec *vda4 = create_VarDec(NULL, NULL, strdup("a4"), BT_int);
     vda1->next = vda2;
     vda2->next = vda3;
     vda3->next = vda4;
@@ -43,19 +43,20 @@ int main() {
     Return *returna4 =
         create_Return(create_Expr_Var(create_Var(strdup("a4"))));
 
-    StmtList *stmtla1 = create_StmtList(create_Stmt_VarLet(a1), NULL);
-    StmtList *stmtla2 = create_StmtList(create_Stmt_VarLet(a2), NULL);
-    StmtList *stmtla3 = create_StmtList(create_Stmt_VarLet(a3), NULL);
-    StmtList *stmtla4 = create_StmtList(create_Stmt_VarLet(a4), NULL);
-    StmtList *stmtreturn = create_StmtList(create_Stmt_Return(returna4), NULL);
+    StmtList *stmtla1 = create_StmtList(NULL, create_Stmt_VarLet(a1));
+    StmtList *stmtla2 = create_StmtList(NULL, create_Stmt_VarLet(a2));
+    StmtList *stmtla3 = create_StmtList(NULL, create_Stmt_VarLet(a3));
+    StmtList *stmtla4 = create_StmtList(NULL, create_Stmt_VarLet(a4));
+    StmtList *stmtreturn = create_StmtList(NULL, create_Stmt_Return(returna4));
     stmtla1->next = stmtla2;
     stmtla2->next = stmtla3;
     stmtla3->next = stmtla4;
     stmtla4->next = stmtreturn;
 
-    FunDef *mainfun = create_FunDef(
-        create_FunHeader(NULL, BT_int, strdup("main")),
-        create_FunBody(vda1, NULL, stmtla1), NULL, NULL, false, true);
+    FunDef *mainfun =
+        create_FunDef(create_FunBody(NULL, stmtla1, vda1),
+                      create_FunHeader(NULL, strdup("main"), BT_int), NULL,
+                      NULL, false, true);
 
     Root *program = create_Root(
         create_Decls(create_Decl_FunDef(mainfun), NULL), NULL, NULL);

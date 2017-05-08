@@ -38,4 +38,7 @@ int array_size(struct array *a);
 /* Remove all elements from array 'a' */
 void array_clear(struct array *a);
 
+/* Sort all elements from array 'a' using inplace qsort. */
+void array_sort(struct array *a, int (*compare)(const void *, const void *));
+
 #endif

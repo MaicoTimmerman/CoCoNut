@@ -13,10 +13,15 @@
 #define IND5 IND IND IND IND IND
 
 static void print_phase(struct Phase *phase) {
+    if (phase->root)
+        printf("root ");
     if (phase->cycle)
         printf("cycle ");
 
     printf("phase %s {\n", phase->id);
+
+    if (phase->info)
+        printf(IND "info = %s,\n", phase->info);
 
     array *elems;
     if (phase->type == PH_subphases) {
@@ -41,10 +46,24 @@ static void print_phase(struct Phase *phase) {
 
 static void print_pass(struct Pass *pass) {
     printf("pass %s", pass->id);
-    if (pass->func != NULL) {
-        printf(" {\n" IND "func = %s\n};\n\n", pass->func);
+    if (pass->func == NULL) {
+        if (pass->info == NULL) {
+            printf(";\n\n");
+        } else {
+            printf(" {\n");
+            printf(IND "info = %s\n", pass->info);
+            printf("};\n\n");
+        }
     } else {
-        printf(";\n\n");
+        printf(" {\n");
+        printf(IND "func = %s", pass->func);
+        if (pass->info) {
+            printf(",\n");
+            printf(IND "info = %s\n", pass->info);
+        } else {
+            printf("\n");
+        }
+        printf("};\n\n");
     }
 }
 
@@ -86,7 +105,7 @@ static void print_nodeset(struct Nodeset *nodeset) {
     printf("nodeset %s {\n", nodeset->id);
     int num_nodes = array_size(nodeset->nodes);
     for (int i = 0; i < num_nodes; i++) {
-        printf(IND "%s", (char *)array_get(nodeset->nodes, i));
+        printf(IND "%s", ((struct Node *)array_get(nodeset->nodes, i))->id);
         if (i < num_nodes - 1)
             printf(",\n");
         else
@@ -235,8 +254,16 @@ static void print_attr(struct Attr *a) {
 static void print_node(struct Node *node) {
     int previous_block = 0;
 
-    if (node->children != NULL) {
-        printf("node %s {\n", node->id);
+    if (node->root)
+        printf("root ");
+
+    printf("node %s {\n", node->id);
+
+    if (node->info) {
+        printf("info = %s,\n", node->info);
+    }
+
+    if (node->children) {
 
         printf(IND "children {\n");
         int num_children = array_size(node->children);
