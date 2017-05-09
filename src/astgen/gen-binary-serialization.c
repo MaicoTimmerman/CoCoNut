@@ -14,29 +14,33 @@
 
 static smap_t *string_pool_indices;
 static array *string_pool_constants;
-static imap_t *node_indices;
 
 static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
     // Generate declarations
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        out("static int gen_node_trav_%s(%s *node, FILE *fp);\n", n->id,
+        out("static void gen_node_trav_%s(%s *node, FILE *fp);\n", n->id,
             n->id);
     }
 
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
-        out("static int gen_node_trav_%s(%s *nodeset, FILE *fp);\n", n->id,
+        out("static void gen_node_trav_%s(%s *nodeset, FILE *fp);\n", n->id,
             n->id);
     }
     out("\n");
 
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        out("static int gen_node_trav_%s(%s *node, FILE *fp) {\n", n->id,
+        out("static void gen_node_trav_%s(%s *node, FILE *fp) {\n", n->id,
             n->id);
-        /* out("    if (node == NULL) return;\n\n"); */
-        out("    uint16_t child_count = 0;\n");
+        out("    if (node == NULL) return;\n\n");
+
+        out("    //  Write index in string pool representing the type of the node\n");
+        out("    uint16_t type_index = %d;\n",
+                *((int *) smap_retrieve(string_pool_indices, n->id)));
+        out("    WRITE(2, type_index);\n\n");
+        out("    uint16_t child_count = 0;\n\n");
 
         for (int j = 0; j < array_size(n->children); j++) {
             struct Child *c = array_get(n->children, j);
@@ -52,20 +56,16 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
         }
 
         if (array_size(n->children) > 0) {
-            out("    uint16_t type_index;\n");
             out("    uint32_t node_index;\n\n");
 
             for (int j = 0; j < array_size(n->children); j++) {
                 struct Child *c = array_get(n->children, j);
                 out("    if (node->%s != NULL) {\n", c->id);
-                out("        node_index = gen_node_trav_%s(node->%s, fp);\n",
-                        c->type, c->id);
-                out("        name_index = %d;\n",
-                    *((int *)smap_retrieve(string_pool_indices, c->id)));
+                out("        node_index = *((int *)imap_retrieve(node_indices, node->%s));\n",
+                        c->id);
                 out("        type_index = %d;\n",
                     *((int *)smap_retrieve(string_pool_indices, c->type)));
                 out("        WRITE(2, name_index);\n");
-                out("        WRITE(2, type_index);\n");
                 out("        WRITE(4, node_index);\n");
                 out("    }\n");
             }
@@ -80,7 +80,15 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
                 struct Attr *attr = array_get(n->attrs, j);
 
                 out("    // Attribute %s\n", attr->id);
-                out("    name_index = %d;\n",
+
+                const char *indent = "    ";
+
+                if (attr->type == AT_string || attr->type == AT_link) {
+                    indent = "        ";
+                    out("    if (node->%s != NULL) {\n", attr->id);
+                }
+
+                out("%sname_index = %d;\n", indent,
                         *((int *) smap_retrieve(string_pool_indices, attr->id)));
 
                 switch (attr->type) {
@@ -124,10 +132,10 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
                         out("    tag = AT_bool;\n");
                         break;
                     case AT_string:
-                        out("    tag = AT_string;\n");
+                        out("        tag = AT_string;\n");
                         break;
                     case AT_link:
-                        out("    tag = AT_link;\n");
+                        out("        tag = AT_link;\n");
                         break;
                     case AT_enum:
                         out("    tag = AT_enum;\n");
@@ -138,8 +146,8 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
                         break;
                 }
 
-                out("    WRITE(1, tag);\n");
-                out("    WRITE(2, name_index);\n");
+                out("%sWRITE(1, tag);\n", indent);
+                out("%sWRITE(2, name_index);\n", indent);
 
                 switch (attr->type) {
                     case AT_int:
@@ -175,14 +183,16 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
                         out("    WRITE(1, node->%s);\n", attr->id);
                         break;
                     case AT_string:
-                        out("    const int value_%s = *((int*) smap_retrieve(attrs_index, node->%s));\n",
+                        out("        const int value_%s = *((int*) smap_retrieve(attrs_index, node->%s));\n",
                                 attr->id, attr->id);
-                        out("    WRITE(2, value_%s);\n", attr->id);
+                        out("        WRITE(2, value_%s);\n", attr->id);
+                        out("    }\n");
                         break;
                     case AT_link:
-                        out("    const int value_%s = 0; // TODO\n",
-                                attr->id);
-                        out("    WRITE(4, value_%s);\n", attr->id);
+                        out("        const int value_%s = *((int *) imap_retrieve(node_indices, node->%s));\n",
+                            attr->id, attr->id);
+                        out("        WRITE(4, value_%s);\n", attr->id);
+                        out("    }\n");
                         break;
                     case AT_enum:
                         out("    const int value_%s = get_%s_value_index(node->%s);\n",
@@ -198,30 +208,30 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
             }
         }
 
-        out("\n");
-        /* for (int j = 0; j < array_size(n->children); j++) { */
-        /*     struct Child *c = array_get(n->children, j); */
-        /*     out("    gen_node_trav_%s(node->%s, fp);\n", c->type, c->id); */
-        /* } */
-        out("    return 0;\n");
+        for (int j = 0; j < array_size(n->children); j++) {
+            struct Child *c = array_get(n->children, j);
+            out("    gen_node_trav_%s(node->%s, fp);\n", c->type, c->id);
+        }
+
         out("}\n\n");
     }
 
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
-        out("static int gen_node_trav_%s(%s *nodeset, FILE *fp) {\n", n->id,
+        out("static void gen_node_trav_%s(%s *nodeset, FILE *fp) {\n", n->id,
             n->id);
+        out("    if (nodeset == NULL) return;\n\n");
         out("    switch (nodeset->type) {\n");
 
         for (int j = 0; j < array_size(n->nodes); j++) {
             struct Node *child_node = array_get(n->nodes, j);
             out("    case " NS_FORMAT ":\n", n->id, child_node->id);
-            out("        return gen_node_trav_%s(nodeset->value.val_%s, fp);\n",
+            out("        gen_node_trav_%s(nodeset->value.val_%s, fp);\n",
                 child_node->id, child_node->id);
+            out("        break;\n");
         }
 
         out("    }\n");
-        out("    return -1;\n");
         out("}\n\n");
     }
 }
@@ -264,6 +274,7 @@ static void generate_string_traversals(struct Config *config, FILE *fp) {
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
         out("static void attr_string_trav_%s(%s *nodeset) {\n", n->id, n->id);
+        out("    if (nodeset == NULL) return;\n\n");
         out("    switch (nodeset->type) {\n");
 
         for (int j = 0; j < array_size(n->nodes); j++) {
@@ -279,7 +290,7 @@ static void generate_string_traversals(struct Config *config, FILE *fp) {
     }
 }
 
-static void fill_static_string_pool(struct Config *config) {
+static void populate_static_string_pool(struct Config *config) {
     string_pool_indices = smap_init(32);
     string_pool_constants = array_init(32);
 
@@ -386,15 +397,65 @@ static void generate_enum_to_index_table(struct Config *config,
     }
 }
 
-static void fill_node_indices_map(struct Config *config) {
-
-    node_indices = imap_init(32);
+static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
 
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        int *index = mem_alloc(sizeof(int));
-        *index = i;
-        imap_insert(node_indices, n, index);
+        out("static void populate_node_indices_trav_%s(%s *node);\n",
+                n->id, n->id);
+    }
+
+    for (int i = 0; i < array_size(config->nodesets); i++) {
+        struct Nodeset *n = array_get(config->nodesets, i);
+        out("static void populate_node_indices_trav_%s(%s *nodeset);\n",
+                n->id, n->id);
+    }
+
+    out("\n");
+
+    for (int i = 0; i < array_size(config->nodes); i++) {
+        struct Node *n = array_get(config->nodes, i);
+        out("static void populate_node_indices_trav_%s(%s *node) {\n",
+                n->id, n->id);
+
+        out("    if (node == NULL) return;\n\n");
+        out("    int *index = mem_alloc(sizeof(int));\n");
+        out("    *index = node_index_counter++;\n");
+        out("    imap_insert(node_indices, node, index);\n\n");
+
+        for (int j = 0; j < array_size(n->children); j++) {
+            struct Child *c = array_get(n->children, j);
+            out("    populate_node_indices_trav_%s(node->%s);\n",
+                    c->type, c->id);
+        }
+
+        out("}\n\n");
+    }
+
+    for (int i = 0; i < array_size(config->nodesets); i++) {
+        struct Nodeset *n = array_get(config->nodesets, i);
+        out("static void populate_node_indices_trav_%s(%s *nodeset) {\n",
+                n->id, n->id);
+        out("    if (nodeset == NULL) return;\n\n");
+
+        out("    // Add the pointer to the nodeset itself with the same index as the node\n");
+        out("    int *index = mem_alloc(sizeof(int));\n");
+        out("    *index = node_index_counter;\n");
+        out("    imap_insert(node_indices, nodeset, index);\n\n");
+        out("    switch (nodeset->type) {\n");
+
+        for (int j = 0; j < array_size(n->nodes); j++) {
+            struct Node *child_node = array_get(n->nodes, j);
+            out("    case " NS_FORMAT ":\n", n->id, child_node->id);
+            out("        populate_node_indices_trav_%s(nodeset->value.val_%s);\n",
+                child_node->id, child_node->id);
+            out("        break;\n");
+        }
+
+        out("   }\n");
+
+        out("}\n\n");
+
     }
 }
 
@@ -413,8 +474,7 @@ void generate_binary_serialization_definitions(struct Config *config,
     char *root_node_name =
         config->root_node ? config->root_node->id : config->root_nodeset->id;
 
-    fill_static_string_pool(config);
-    fill_node_indices_map(config);
+    populate_static_string_pool(config);
 
     out("#include <stdio.h>\n");
     out("#include <stdint.h>\n");
@@ -423,6 +483,7 @@ void generate_binary_serialization_definitions(struct Config *config,
     out("#include \"framework/serialization-binary-format.h\"\n");
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/smap.h\"\n");
+    out("#include \"lib/imap.h\"\n");
     out("#include \"lib/memory.h\"\n");
     out("\n");
 
@@ -432,6 +493,9 @@ void generate_binary_serialization_definitions(struct Config *config,
 
     out("static array *string_attrs;\n");
     out("static smap_t *attrs_index;\n\n");
+    out("static imap_t *node_indices;\n");
+    out("static int node_index_counter = 0;\n");
+    out("\n");
 
     generate_enum_to_index_table(config, fp);
 
@@ -439,11 +503,16 @@ void generate_binary_serialization_definitions(struct Config *config,
 
     generate_node_gen_traversal(config, fp);
 
+    generate_populate_node_index_map(config, fp);
+
     out("void serialization_write_binfile(%s *syntaxtree, FILE *fp) {\n",
         root_node_name);
 
     out("    string_attrs = array_init(32);\n");
-    out("    attrs_index = smap_init(32);\n\n");
+    out("    attrs_index = smap_init(32);\n");
+    out("    node_indices = imap_init(32);\n\n");
+
+    out("    populate_node_indices_trav_%s(syntaxtree);\n\n", root_node_name);
 
     out("    // Write magic\n");
     out("    uint32_t magic = 0xAC1DC0DE;\n");
@@ -527,6 +596,9 @@ void generate_binary_serialization_definitions(struct Config *config,
         out("\n");
     }
 
+    out("    printf(\"# nodes: %%d\\n\", node_index_counter);\n");
+    out("    WRITE(4, node_index_counter);\n");
+
     out("    gen_node_trav_%s(syntaxtree, fp);\n", root_node_name);
 
     out("    smap_free(attrs_index);\n");
@@ -537,6 +609,6 @@ void generate_binary_serialization_definitions(struct Config *config,
     smap_map(string_pool_indices, free_int_index_string);
     smap_free(string_pool_indices);
 
-    imap_map(node_indices, free_int_index_int);
-    imap_free(node_indices);
+    /* imap_map(node_indices, free_int_index_int); */
+    /* imap_free(node_indices); */
 }
