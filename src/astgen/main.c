@@ -13,6 +13,7 @@
 #include "astgen/print-ast.h"
 
 #include "astgen/gen-ast-definition.h"
+#include "astgen/gen-binary-serialization.h"
 #include "astgen/gen-consistency-functions.h"
 #include "astgen/gen-copy-functions.h"
 #include "astgen/gen-create-functions.h"
@@ -194,6 +195,8 @@ int main(int argc, char *argv[]) {
     filegen_add("copy-ast.c", generate_copy_definitions);
     // filegen_add("consistency-ast.c", generate_consistency_definitions);
     filegen_add("phase-driver.c", generate_phase_driver_definitions);
+    filegen_add("binary-serialization-write.c",
+                generate_binary_serialization_definitions);
 
     ret += filegen_generate(parse_result);
     filegen_cleanup();
