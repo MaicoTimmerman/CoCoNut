@@ -56,7 +56,7 @@ int main() {
     FunDef *mainfun =
         create_FunDef(create_FunBody(NULL, stmtla1, vda1),
                       create_FunHeader(NULL, strdup("main"), BT_int), NULL,
-                      NULL, false, true);
+                      NULL, true, false);
 
     Root *program = create_Root(
         create_Decls(create_Decl_FunDef(mainfun), NULL), NULL, NULL);

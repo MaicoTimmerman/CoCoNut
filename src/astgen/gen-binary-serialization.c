@@ -7,10 +7,9 @@
 #include "astgen/str-ast.h"
 
 #include "lib/array.h"
+#include "lib/imap.h"
 #include "lib/memory.h"
 #include "lib/smap.h"
-#include "lib/imap.h"
-
 
 static smap_t *string_pool_indices;
 static array *string_pool_constants;
@@ -36,9 +35,10 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
             n->id);
         out("    if (node == NULL) return;\n\n");
 
-        out("    //  Write index in string pool representing the type of the node\n");
+        out("    //  Write index in string pool representing the type of the "
+            "node\n");
         out("    uint16_t type_index = %d;\n",
-                *((int *) smap_retrieve(string_pool_indices, n->id)));
+            *((int *)smap_retrieve(string_pool_indices, n->id)));
         out("    WRITE(2, type_index);\n\n");
         out("    uint16_t child_count = 0;\n\n");
 
@@ -61,8 +61,9 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
             for (int j = 0; j < array_size(n->children); j++) {
                 struct Child *c = array_get(n->children, j);
                 out("    if (node->%s != NULL) {\n", c->id);
-                out("        node_index = *((int *)imap_retrieve(node_indices, node->%s));\n",
-                        c->id);
+                out("        node_index = *((int "
+                    "*)imap_retrieve(node_indices, node->%s));\n",
+                    c->id);
                 out("        type_index = %d;\n",
                     *((int *)smap_retrieve(string_pool_indices, c->type)));
                 out("        WRITE(2, name_index);\n");
@@ -89,122 +90,122 @@ static void generate_node_gen_traversal(struct Config *config, FILE *fp) {
                 }
 
                 out("%sname_index = %d;\n", indent,
-                        *((int *) smap_retrieve(string_pool_indices, attr->id)));
+                    *((int *)smap_retrieve(string_pool_indices, attr->id)));
 
                 switch (attr->type) {
-                    case AT_int:
-                        out("    tag = AT_int;\n");
-                        break;
-                    case AT_uint:
-                        out("    tag = AT_uint;\n");
-                        break;
-                    case AT_int8:
-                        out("    tag = AT_int8;\n");
-                        break;
-                    case AT_int16:
-                        out("    tag = AT_int16;\n");
-                        break;
-                    case AT_int32:
-                        out("    tag = AT_int32;\n");
-                        break;
-                    case AT_int64:
-                        out("    tag = AT_int64;\n");
-                        break;
-                    case AT_uint8:
-                        out("    tag = AT_uint8;\n");
-                        break;
-                    case AT_uint16:
-                        out("    tag = AT_uint16;\n");
-                        break;
-                    case AT_uint32:
-                        out("    tag = AT_uint32;\n");
-                        break;
-                    case AT_uint64:
-                        out("    tag = AT_uint64;\n");
-                        break;
-                    case AT_float:
-                        out("    tag = AT_float;\n");
-                        break;
-                    case AT_double:
-                        out("    tag = AT_double;\n");
-                        break;
-                    case AT_bool:
-                        out("    tag = AT_bool;\n");
-                        break;
-                    case AT_string:
-                        out("        tag = AT_string;\n");
-                        break;
-                    case AT_link:
-                        out("        tag = AT_link;\n");
-                        break;
-                    case AT_enum:
-                        out("    tag = AT_enum;\n");
-                        break;
-                    default:
-                        fprintf(stderr, "%s:%s:%d: Invalid attribute type: %d",
-                                __FILE__, __func__, __LINE__, attr->type);
-                        break;
+                case AT_int:
+                    out("    tag = AT_int;\n");
+                    break;
+                case AT_uint:
+                    out("    tag = AT_uint;\n");
+                    break;
+                case AT_int8:
+                    out("    tag = AT_int8;\n");
+                    break;
+                case AT_int16:
+                    out("    tag = AT_int16;\n");
+                    break;
+                case AT_int32:
+                    out("    tag = AT_int32;\n");
+                    break;
+                case AT_int64:
+                    out("    tag = AT_int64;\n");
+                    break;
+                case AT_uint8:
+                    out("    tag = AT_uint8;\n");
+                    break;
+                case AT_uint16:
+                    out("    tag = AT_uint16;\n");
+                    break;
+                case AT_uint32:
+                    out("    tag = AT_uint32;\n");
+                    break;
+                case AT_uint64:
+                    out("    tag = AT_uint64;\n");
+                    break;
+                case AT_float:
+                    out("    tag = AT_float;\n");
+                    break;
+                case AT_double:
+                    out("    tag = AT_double;\n");
+                    break;
+                case AT_bool:
+                    out("    tag = AT_bool;\n");
+                    break;
+                case AT_string:
+                    out("        tag = AT_string;\n");
+                    break;
+                case AT_link:
+                    out("        tag = AT_link;\n");
+                    break;
+                case AT_enum:
+                    out("    tag = AT_enum;\n");
+                    break;
+                default:
+                    fprintf(stderr, "%s:%s:%d: Invalid attribute type: %d",
+                            __FILE__, __func__, __LINE__, attr->type);
+                    break;
                 }
 
                 out("%sWRITE(1, tag);\n", indent);
                 out("%sWRITE(2, name_index);\n", indent);
 
                 switch (attr->type) {
-                    case AT_int:
-                        out("    WRITE(sizeof(int), node->%s);\n", attr->id);
-                        break;
-                    case AT_uint:
-                        out("    WRITE(sizeof(unsigned int), node->%s);\n",
-                                attr->id);
-                        break;
-                    case AT_int8:
-                    case AT_uint8:
-                        out("    WRITE(1, node->%s);\n", attr->id);
-                        break;
-                    case AT_int16:
-                    case AT_uint16:
-                        out("    WRITE(2, node->%s);\n", attr->id);
-                        break;
-                    case AT_int32:
-                    case AT_uint32:
-                        out("    WRITE(4, node->%s);\n", attr->id);
-                        break;
-                    case AT_int64:
-                    case AT_uint64:
-                        out("    WRITE(8, node->%s);\n", attr->id);
-                        break;
-                    case AT_float:
-                        out("    WRITE(sizeof(float), node->%s);\n", attr->id);
-                        break;
-                    case AT_double:
-                        out("    WRITE(sizeof(double), node->%s);\n", attr->id);
-                        break;
-                    case AT_bool:
-                        out("    WRITE(1, node->%s);\n", attr->id);
-                        break;
-                    case AT_string:
-                        out("        const int value_%s = *((int*) smap_retrieve(attrs_index, node->%s));\n",
-                                attr->id, attr->id);
-                        out("        WRITE(2, value_%s);\n", attr->id);
-                        out("    }\n");
-                        break;
-                    case AT_link:
-                        out("        const int value_%s = *((int *) imap_retrieve(node_indices, node->%s));\n",
-                            attr->id, attr->id);
-                        out("        WRITE(4, value_%s);\n", attr->id);
-                        out("    }\n");
-                        break;
-                    case AT_enum:
-                        out("    const int value_%s = get_%s_value_index(node->%s);\n",
-                                attr->id, attr->type_id, attr->id);
-                        out("    WRITE(2, value_%s);\n", attr->id);
-                        break;
-                    default:
-                        break;
+                case AT_int:
+                    out("    WRITE(sizeof(int), node->%s);\n", attr->id);
+                    break;
+                case AT_uint:
+                    out("    WRITE(sizeof(unsigned int), node->%s);\n",
+                        attr->id);
+                    break;
+                case AT_int8:
+                case AT_uint8:
+                    out("    WRITE(1, node->%s);\n", attr->id);
+                    break;
+                case AT_int16:
+                case AT_uint16:
+                    out("    WRITE(2, node->%s);\n", attr->id);
+                    break;
+                case AT_int32:
+                case AT_uint32:
+                    out("    WRITE(4, node->%s);\n", attr->id);
+                    break;
+                case AT_int64:
+                case AT_uint64:
+                    out("    WRITE(8, node->%s);\n", attr->id);
+                    break;
+                case AT_float:
+                    out("    WRITE(sizeof(float), node->%s);\n", attr->id);
+                    break;
+                case AT_double:
+                    out("    WRITE(sizeof(double), node->%s);\n", attr->id);
+                    break;
+                case AT_bool:
+                    out("    WRITE(1, node->%s);\n", attr->id);
+                    break;
+                case AT_string:
+                    out("        const int value_%s = *((int*) "
+                        "smap_retrieve(attrs_index, node->%s));\n",
+                        attr->id, attr->id);
+                    out("        WRITE(2, value_%s);\n", attr->id);
+                    out("    }\n");
+                    break;
+                case AT_link:
+                    out("        const int value_%s = *((int *) "
+                        "imap_retrieve(node_indices, node->%s));\n",
+                        attr->id, attr->id);
+                    out("        WRITE(4, value_%s);\n", attr->id);
+                    out("    }\n");
+                    break;
+                case AT_enum:
+                    out("    const int value_%s = "
+                        "get_%s_value_index(node->%s);\n",
+                        attr->id, attr->type_id, attr->id);
+                    out("    WRITE(2, value_%s);\n", attr->id);
+                    break;
+                default:
+                    break;
                 }
-
-
-
             }
         }
 
@@ -376,13 +377,11 @@ static void populate_static_string_pool(struct Config *config) {
     }
 }
 
-static void generate_enum_to_index_table(struct Config *config,
-        FILE *fp) {
+static void generate_enum_to_index_table(struct Config *config, FILE *fp) {
 
     for (int i = 0; i < array_size(config->enums); i++) {
         struct Enum *e = array_get(config->enums, i);
-        out("static int get_%s_value_index(%s e) {\n",
-                e->id, e->id);
+        out("static int get_%s_value_index(%s e) {\n", e->id, e->id);
         out("    switch (e) {\n");
         for (int j = 0; j < array_size(e->values); j++) {
             char *value = array_get(e->values, j);
@@ -401,22 +400,22 @@ static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
 
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        out("static void populate_node_indices_trav_%s(%s *node);\n",
-                n->id, n->id);
+        out("static void populate_node_indices_trav_%s(%s *node);\n", n->id,
+            n->id);
     }
 
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
-        out("static void populate_node_indices_trav_%s(%s *nodeset);\n",
-                n->id, n->id);
+        out("static void populate_node_indices_trav_%s(%s *nodeset);\n", n->id,
+            n->id);
     }
 
     out("\n");
 
     for (int i = 0; i < array_size(config->nodes); i++) {
         struct Node *n = array_get(config->nodes, i);
-        out("static void populate_node_indices_trav_%s(%s *node) {\n",
-                n->id, n->id);
+        out("static void populate_node_indices_trav_%s(%s *node) {\n", n->id,
+            n->id);
 
         out("    if (node == NULL) return;\n\n");
         out("    int *index = mem_alloc(sizeof(int));\n");
@@ -425,8 +424,8 @@ static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
 
         for (int j = 0; j < array_size(n->children); j++) {
             struct Child *c = array_get(n->children, j);
-            out("    populate_node_indices_trav_%s(node->%s);\n",
-                    c->type, c->id);
+            out("    populate_node_indices_trav_%s(node->%s);\n", c->type,
+                c->id);
         }
 
         out("}\n\n");
@@ -435,10 +434,11 @@ static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
     for (int i = 0; i < array_size(config->nodesets); i++) {
         struct Nodeset *n = array_get(config->nodesets, i);
         out("static void populate_node_indices_trav_%s(%s *nodeset) {\n",
-                n->id, n->id);
+            n->id, n->id);
         out("    if (nodeset == NULL) return;\n\n");
 
-        out("    // Add the pointer to the nodeset itself with the same index as the node\n");
+        out("    // Add the pointer to the nodeset itself with the same index "
+            "as the node\n");
         out("    int *index = mem_alloc(sizeof(int));\n");
         out("    *index = node_index_counter;\n");
         out("    imap_insert(node_indices, nodeset, index);\n\n");
@@ -447,7 +447,8 @@ static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
         for (int j = 0; j < array_size(n->nodes); j++) {
             struct Node *child_node = array_get(n->nodes, j);
             out("    case " NS_FORMAT ":\n", n->id, child_node->id);
-            out("        populate_node_indices_trav_%s(nodeset->value.val_%s);\n",
+            out("        "
+                "populate_node_indices_trav_%s(nodeset->value.val_%s);\n",
                 child_node->id, child_node->id);
             out("        break;\n");
         }
@@ -455,7 +456,6 @@ static void generate_populate_node_index_map(struct Config *config, FILE *fp) {
         out("   }\n");
 
         out("}\n\n");
-
     }
 }
 
