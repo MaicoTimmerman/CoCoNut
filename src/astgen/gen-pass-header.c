@@ -3,7 +3,7 @@
 #include "astgen/filegen-util.h"
 #include <stdio.h>
 
-void generate_pass_header(struct Config *config, FILE *fp, struct Pass *pass) {
+void generate_pass_header(Config *config, FILE *fp, Pass *pass) {
 
     out("#pragma once\n\n");
     out("#include \"generated/ast.h\"\n");

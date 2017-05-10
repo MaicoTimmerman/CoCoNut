@@ -27,11 +27,11 @@ enum FileGenType {
 struct FileGen {
     char *filename;
     union {
-        void (*func)(struct Config *, FILE *);
-        void (*func_node)(struct Config *, FILE *, struct Node *);
-        void (*func_nodeset)(struct Config *, FILE *, struct Nodeset *);
-        void (*func_traversal)(struct Config *, FILE *, struct Traversal *);
-        void (*func_pass)(struct Config *, FILE *, struct Pass *);
+        void (*func)(Config *, FILE *);
+        void (*func_node)(Config *, FILE *, Node *);
+        void (*func_nodeset)(Config *, FILE *, Nodeset *);
+        void (*func_traversal)(Config *, FILE *, Traversal *);
+        void (*func_pass)(Config *, FILE *, Pass *);
     } function;
     void *main_func;
     enum FileGenType gen_type;
@@ -122,7 +122,7 @@ cleanup:
     return rv;
 }
 
-void filegen_add(char *filename, void (*main_func)(struct Config *, FILE *)) {
+void filegen_add(char *filename, void (*main_func)(Config *, FILE *)) {
 
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->filename = strdup(filename);
@@ -132,8 +132,7 @@ void filegen_add(char *filename, void (*main_func)(struct Config *, FILE *)) {
 }
 
 void filegen_all_nodes(char *fileformatter,
-                       void (*main_func)(struct Config *, FILE *,
-                                         struct Node *)) {
+                       void (*main_func)(Config *, FILE *, Node *)) {
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->filename = strdup(fileformatter);
     g->function.func_node = main_func;
@@ -142,8 +141,7 @@ void filegen_all_nodes(char *fileformatter,
 }
 
 void filegen_all_nodesets(char *fileformatter,
-                          void (*main_func)(struct Config *, FILE *,
-                                            struct Nodeset *)) {
+                          void (*main_func)(Config *, FILE *, Nodeset *)) {
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->filename = strdup(fileformatter);
     g->function.func_nodeset = main_func;
@@ -152,8 +150,7 @@ void filegen_all_nodesets(char *fileformatter,
 }
 
 void filegen_all_traversals(char *fileformatter,
-                            void (*main_func)(struct Config *, FILE *,
-                                              struct Traversal *)) {
+                            void (*main_func)(Config *, FILE *, Traversal *)) {
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->filename = strdup(fileformatter);
     g->function.func_traversal = main_func;
@@ -162,8 +159,7 @@ void filegen_all_traversals(char *fileformatter,
 }
 
 void filegen_all_passes(char *fileformatter,
-                        void (*main_func)(struct Config *, FILE *,
-                                          struct Pass *)) {
+                        void (*main_func)(Config *, FILE *, Pass *)) {
     struct FileGen *g = malloc(sizeof(struct FileGen));
     g->filename = strdup(fileformatter);
     g->function.func_pass = main_func;
@@ -171,7 +167,7 @@ void filegen_all_passes(char *fileformatter,
     array_append(file_generations, g);
 }
 
-int filegen_generate(struct Config *config) {
+int filegen_generate(Config *config) {
 
     if (mkdir(output_directory, 0755) == 0) {
         printf("Created output directory %s\n", output_directory);
@@ -211,7 +207,7 @@ int filegen_generate(struct Config *config) {
 
         case FGT_nodes:
             for (int i = 0; i < array_size(config->nodes); ++i) {
-                struct Node *node = array_get(config->nodes, i);
+                Node *node = array_get(config->nodes, i);
                 full_path = get_full_path(g->filename, node->id, out_dir_len);
 
                 if (hash_match(node->common_info, full_path)) {
@@ -227,7 +223,7 @@ int filegen_generate(struct Config *config) {
 
         case FGT_nodesets:
             for (int i = 0; i < array_size(config->nodesets); ++i) {
-                struct Nodeset *nodeset = array_get(config->nodesets, i);
+                Nodeset *nodeset = array_get(config->nodesets, i);
                 full_path =
                     get_full_path(g->filename, nodeset->id, out_dir_len);
 
@@ -244,7 +240,7 @@ int filegen_generate(struct Config *config) {
 
         case FGT_traversal:
             for (int i = 0; i < array_size(config->traversals); ++i) {
-                struct Traversal *traversal = array_get(config->traversals, i);
+                Traversal *traversal = array_get(config->traversals, i);
                 full_path =
                     get_full_path(g->filename, traversal->id, out_dir_len);
 
@@ -261,7 +257,7 @@ int filegen_generate(struct Config *config) {
 
         case FGT_pass:
             for (int i = 0; i < array_size(config->passes); ++i) {
-                struct Pass *pass = array_get(config->passes, i);
+                Pass *pass = array_get(config->passes, i);
                 full_path = get_full_path(g->filename, pass->id, out_dir_len);
 
                 if (hash_match(pass->common_info, full_path)) {

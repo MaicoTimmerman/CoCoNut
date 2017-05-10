@@ -7,8 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void generate_user_trav_header(struct Config *config, FILE *fp,
-                               struct Traversal *trav) {
+void generate_user_trav_header(Config *config, FILE *fp, Traversal *trav) {
 
     out("#pragma once\n\n");
     out("#include \"generated/ast.h\"\n");
@@ -26,7 +25,7 @@ void generate_user_trav_header(struct Config *config, FILE *fp,
 
     } else {
         for (int i = 0; i < array_size(config->nodes); i++) {
-            struct Node *n = array_get(config->nodes, i);
+            Node *n = array_get(config->nodes, i);
             out("void " TRAVERSAL_HANDLER_FORMAT
                 "(%s *node, struct Info *info);\n",
                 trav->id, n->id, n->id);

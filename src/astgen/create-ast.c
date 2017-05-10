@@ -9,7 +9,7 @@
 #include "lib/array.h"
 #include "lib/memory.h"
 
-extern struct ParserLocation yy_parser_location;
+extern ParserLocation yy_parser_location;
 
 static NodeCommonInfo *create_commoninfo() {
     NodeCommonInfo *info = (NodeCommonInfo *)mem_alloc(sizeof(NodeCommonInfo));
@@ -17,10 +17,10 @@ static NodeCommonInfo *create_commoninfo() {
     return info;
 }
 
-struct Config *create_config(array *phases, array *passes, array *traversals,
-                             array *enums, array *nodesets, array *nodes) {
+Config *create_config(array *phases, array *passes, array *traversals,
+                      array *enums, array *nodesets, array *nodes) {
 
-    struct Config *c = mem_alloc(sizeof(struct Config));
+    Config *c = mem_alloc(sizeof(Config));
     c->phases = phases;
     c->passes = passes;
     c->traversals = traversals;
@@ -32,8 +32,8 @@ struct Config *create_config(array *phases, array *passes, array *traversals,
     return c;
 }
 
-struct Phase *create_phase_header(char *id, bool root, bool cycle) {
-    struct Phase *p = mem_alloc(sizeof(struct Phase));
+Phase *create_phase_header(char *id, bool root, bool cycle) {
+    Phase *p = mem_alloc(sizeof(Phase));
     p->id = id;
     p->info = NULL;
     p->root = root;
@@ -43,10 +43,9 @@ struct Phase *create_phase_header(char *id, bool root, bool cycle) {
     return p;
 }
 
-struct Phase *create_phase(struct Phase *phase_header, array *phases,
-                           array *passes) {
+Phase *create_phase(Phase *phase_header, array *phases, array *passes) {
 
-    struct Phase *p = phase_header;
+    Phase *p = phase_header;
     if (phases == NULL) {
         p->type = PH_passes;
     } else {
@@ -59,8 +58,8 @@ struct Phase *create_phase(struct Phase *phase_header, array *phases,
     return p;
 }
 
-struct Pass *create_pass(char *id, char *func) {
-    struct Pass *p = mem_alloc(sizeof(struct Pass));
+Pass *create_pass(char *id, char *func) {
+    Pass *p = mem_alloc(sizeof(Pass));
 
     p->id = id;
     p->func = func;
@@ -70,9 +69,9 @@ struct Pass *create_pass(char *id, char *func) {
     return p;
 }
 
-struct Traversal *create_traversal(char *id, char *func, array *nodes) {
+Traversal *create_traversal(char *id, char *func, array *nodes) {
 
-    struct Traversal *t = mem_alloc(sizeof(struct Traversal));
+    Traversal *t = mem_alloc(sizeof(Traversal));
     t->id = id;
     t->func = func;
     t->info = NULL;
@@ -82,9 +81,9 @@ struct Traversal *create_traversal(char *id, char *func, array *nodes) {
     return t;
 }
 
-struct Enum *create_enum(char *id, char *prefix, array *values) {
+Enum *create_enum(char *id, char *prefix, array *values) {
 
-    struct Enum *e = mem_alloc(sizeof(struct Enum));
+    Enum *e = mem_alloc(sizeof(Enum));
 
     e->id = id;
     e->values = values;
@@ -95,9 +94,9 @@ struct Enum *create_enum(char *id, char *prefix, array *values) {
     return e;
 }
 
-struct Nodeset *create_nodeset(char *id, array *nodes) {
+Nodeset *create_nodeset(char *id, array *nodes) {
 
-    struct Nodeset *n = mem_alloc(sizeof(struct Nodeset));
+    Nodeset *n = mem_alloc(sizeof(Nodeset));
     n->id = id;
     n->nodes = nodes;
     n->root = false;
@@ -107,15 +106,15 @@ struct Nodeset *create_nodeset(char *id, array *nodes) {
     return n;
 }
 
-struct Node *create_node(char *id, struct Node *nodebody) {
+Node *create_node(char *id, Node *nodebody) {
 
     nodebody->id = id;
     nodebody->root = false;
     return nodebody;
 }
 
-struct Node *create_nodebody(array *children, array *attrs) {
-    struct Node *n = mem_alloc(sizeof(struct Node));
+Node *create_nodebody(array *children, array *attrs) {
+    Node *n = mem_alloc(sizeof(Node));
     n->children = children;
     n->attrs = attrs;
     n->info = NULL;
@@ -124,10 +123,10 @@ struct Node *create_nodebody(array *children, array *attrs) {
     return n;
 }
 
-struct Child *create_child(int construct, int mandatory,
-                           array *mandatory_phases, char *id, char *type) {
+Child *create_child(int construct, int mandatory, array *mandatory_phases,
+                    char *id, char *type) {
 
-    struct Child *c = mem_alloc(sizeof(struct Child));
+    Child *c = mem_alloc(sizeof(Child));
     c->construct = construct;
     c->mandatory = mandatory;
     c->mandatory_phases = mandatory_phases;
@@ -141,10 +140,9 @@ struct Child *create_child(int construct, int mandatory,
     return c;
 }
 
-struct MandatoryPhase *create_mandatory_singlephase(char *phase,
-                                                    int negation) {
+MandatoryPhase *create_mandatory_singlephase(char *phase, int negation) {
 
-    struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
+    MandatoryPhase *p = mem_alloc(sizeof(MandatoryPhase));
     p->value.single = phase;
     p->type = MP_single;
     p->negation = negation;
@@ -153,11 +151,11 @@ struct MandatoryPhase *create_mandatory_singlephase(char *phase,
     return p;
 }
 
-struct MandatoryPhase *
-create_mandatory_phaserange(char *phase_start, char *phase_end, int negation) {
+MandatoryPhase *create_mandatory_phaserange(char *phase_start, char *phase_end,
+                                            int negation) {
 
-    struct MandatoryPhase *p = mem_alloc(sizeof(struct MandatoryPhase));
-    struct PhaseRange *range = mem_alloc(sizeof(struct PhaseRange));
+    MandatoryPhase *p = mem_alloc(sizeof(MandatoryPhase));
+    PhaseRange *range = mem_alloc(sizeof(PhaseRange));
     range->start = phase_start;
     range->end = phase_end;
     p->value.range = range;
@@ -168,17 +166,15 @@ create_mandatory_phaserange(char *phase_start, char *phase_end, int negation) {
     return p;
 }
 
-struct Attr *create_attr(struct Attr *attrhead,
-                         struct AttrValue *default_value) {
+Attr *create_attr(Attr *attrhead, AttrValue *default_value) {
     attrhead->default_value = default_value;
 
     return attrhead;
 }
 
-struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
-                                       char *id) {
+Attr *create_attrhead_primitive(int construct, enum AttrType type, char *id) {
 
-    struct Attr *a = mem_alloc(sizeof(struct Attr));
+    Attr *a = mem_alloc(sizeof(Attr));
     a->construct = construct;
     a->type = type;
     a->type_id = NULL;
@@ -188,9 +184,9 @@ struct Attr *create_attrhead_primitive(int construct, enum AttrType type,
     return a;
 }
 
-struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
+Attr *create_attrhead_idtype(int construct, char *type, char *id) {
 
-    struct Attr *a = mem_alloc(sizeof(struct Attr));
+    Attr *a = mem_alloc(sizeof(Attr));
     a->construct = construct;
     a->type = AT_link_or_enum;
     a->type_id = type;
@@ -200,8 +196,8 @@ struct Attr *create_attrhead_idtype(int construct, char *type, char *id) {
     return a;
 }
 
-struct AttrValue *create_attrval_string(char *value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_string(char *value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_string;
 
     v->value.string_value = value;
@@ -211,8 +207,8 @@ struct AttrValue *create_attrval_string(char *value) {
     return v;
 }
 
-struct AttrValue *create_attrval_int(int64_t value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_int(int64_t value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_int;
     v->value.int_value = value;
 
@@ -220,8 +216,8 @@ struct AttrValue *create_attrval_int(int64_t value) {
     return v;
 }
 
-struct AttrValue *create_attrval_uint(uint64_t value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_uint(uint64_t value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_uint;
     v->value.uint_value = value;
 
@@ -229,8 +225,8 @@ struct AttrValue *create_attrval_uint(uint64_t value) {
     return v;
 }
 
-struct AttrValue *create_attrval_float(float value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_float(float value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_float;
     v->value.float_value = value;
 
@@ -238,8 +234,8 @@ struct AttrValue *create_attrval_float(float value) {
     return v;
 }
 
-struct AttrValue *create_attrval_double(double value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_double(double value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_double;
     v->value.double_value = value;
 
@@ -247,8 +243,8 @@ struct AttrValue *create_attrval_double(double value) {
     return v;
 }
 
-struct AttrValue *create_attrval_bool(bool value) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_bool(bool value) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_bool;
     v->value.bool_value = value;
 
@@ -256,8 +252,8 @@ struct AttrValue *create_attrval_bool(bool value) {
     return v;
 }
 
-struct AttrValue *create_attrval_id(char *id) {
-    struct AttrValue *v = mem_alloc(sizeof(struct AttrValue));
+AttrValue *create_attrval_id(char *id) {
+    AttrValue *v = mem_alloc(sizeof(AttrValue));
     v->type = AV_id;
     v->value.string_value = id;
 

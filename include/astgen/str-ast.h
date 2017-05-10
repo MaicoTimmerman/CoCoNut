@@ -2,4 +2,4 @@
 
 #include "astgen/ast.h"
 
-char *str_attr_type(struct Attr *attr);
+char *str_attr_type(Attr *attr);

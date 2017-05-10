@@ -18,7 +18,7 @@ static bool **node_reachability = NULL;
 
 static bool **traversal_node_handles = NULL;
 
-static void compute_reachable_nodes(struct Config *config) {
+static void compute_reachable_nodes(Config *config) {
     node_index = smap_init(32);
 
     size_t num_nodes = array_size(config->nodes);
@@ -26,14 +26,14 @@ static void compute_reachable_nodes(struct Config *config) {
 
     // Add nodes to node_index map
     for (int i = 0; i < num_nodes; i++) {
-        struct Node *node = array_get(config->nodes, i);
+        Node *node = array_get(config->nodes, i);
         int *index = mem_alloc(sizeof(int));
         *index = i;
         smap_insert(node_index, node->id, index);
     }
 
     for (int i = 0; i < num_nodesets; i++) {
-        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        Nodeset *nodeset = array_get(config->nodesets, i);
         int *index = mem_alloc(sizeof(int));
         *index = i + num_nodes;
         smap_insert(node_index, nodeset->id, index);
@@ -53,10 +53,10 @@ static void compute_reachable_nodes(struct Config *config) {
     // Initialise reachability matrix with adjacency matrix
 
     for (int i = 0; i < num_nodes; i++) {
-        struct Node *node = array_get(config->nodes, i);
+        Node *node = array_get(config->nodes, i);
 
         for (int j = 0; j < array_size(node->children); j++) {
-            struct Child *child = array_get(node->children, j);
+            Child *child = array_get(node->children, j);
 
             int *index = smap_retrieve(node_index, child->type);
             node_reachability[*index][i] = true;
@@ -64,10 +64,10 @@ static void compute_reachable_nodes(struct Config *config) {
     }
 
     for (int i = 0; i < num_nodesets; i++) {
-        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        Nodeset *nodeset = array_get(config->nodesets, i);
 
         for (int j = 0; j < array_size(nodeset->nodes); j++) {
-            struct Node *node = array_get(nodeset->nodes, j);
+            Node *node = array_get(nodeset->nodes, j);
             int *index = smap_retrieve(node_index, node->id);
             node_reachability[*index][num_nodes + i] = true;
         }
@@ -91,7 +91,7 @@ static void compute_reachable_nodes(struct Config *config) {
     traversal_node_handles = mem_alloc(sizeof(bool *) * num_traversals);
 
     for (int i = 0; i < num_traversals; i++) {
-        struct Traversal *traversal = array_get(config->traversals, i);
+        Traversal *traversal = array_get(config->traversals, i);
 
         traversal_node_handles[i] = mem_alloc(sizeof(bool) * num_total);
 
@@ -124,7 +124,7 @@ static void compute_reachable_nodes(struct Config *config) {
     }
 }
 
-static void generate_replace_node(struct Node *node, FILE *fp, bool header) {
+static void generate_replace_node(Node *node, FILE *fp, bool header) {
     // Generate replace functions
     out("void " REPLACE_NODE_FORMAT "(struct %s *node)", node->id, node->id);
     if (header) {
@@ -137,9 +137,9 @@ static void generate_replace_node(struct Node *node, FILE *fp, bool header) {
     }
 }
 
-static void generate_start_node(struct Config *config, FILE *fp, bool header) {
+static void generate_start_node(Config *config, FILE *fp, bool header) {
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(config->nodes, i);
+        Node *node = (Node *)array_get(config->nodes, i);
         // Generate start functions
         out("void " TRAV_START_FORMAT "(struct %s *node, TraversalType trav)",
             node->id, node->id);
@@ -156,8 +156,8 @@ static void generate_start_node(struct Config *config, FILE *fp, bool header) {
             out("\n");
             out("    switch(trav) {\n");
             for (int j = 0; j < array_size(config->traversals); ++j) {
-                struct Traversal *trav =
-                    (struct Traversal *)array_get(config->traversals, j);
+                Traversal *trav =
+                    (Traversal *)array_get(config->traversals, j);
                 out("    case " TRAV_FORMAT ":\n", trav->id);
                 out("        info = %s_createinfo();\n", trav->id);
                 out("        " TRAV_PREFIX "%s(node, info);\n", node->id);
@@ -171,8 +171,7 @@ static void generate_start_node(struct Config *config, FILE *fp, bool header) {
     }
 }
 
-static void generate_node_child_node(struct Node *node, struct Child *child,
-                                     FILE *fp) {
+static void generate_node_child_node(Node *node, Child *child, FILE *fp) {
     out("    " TRAV_PREFIX "%s(node->%s, info);\n", child->type, child->id);
 
     out("    if (node_replacement != NULL) {\n");
@@ -188,15 +187,14 @@ static void generate_node_child_node(struct Node *node, struct Child *child,
     out("    }\n");
 }
 
-static void generate_node_child_nodeset(struct Node *node, struct Child *child,
-                                        FILE *fp) {
+static void generate_node_child_nodeset(Node *node, Child *child, FILE *fp) {
     out("    if (!node->%s) return;\n", child->id);
     out("    switch (node->%s->type) {\n", child->id);
 
-    struct Nodeset *nodeset = child->nodeset;
+    Nodeset *nodeset = child->nodeset;
 
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        struct Node *cnode = (struct Node *)array_get(nodeset->nodes, i);
+        Node *cnode = (Node *)array_get(nodeset->nodes, i);
         out("    case " NS_FORMAT ":\n", nodeset->id, cnode->id);
         out("        trav_%s(node->%s->value.val_%s, info);\n", cnode->id,
             child->id, cnode->id);
@@ -205,8 +203,8 @@ static void generate_node_child_nodeset(struct Node *node, struct Child *child,
     out("    }\n");
 }
 
-static void generate_trav_node(struct Node *node, FILE *fp,
-                               struct Config *config, bool header) {
+static void generate_trav_node(Node *node, FILE *fp, Config *config,
+                               bool header) {
 
     if (!header) {
         out("static void " TRAV_PREFIX
@@ -215,7 +213,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
         out("   if (!node) return;\n");
         out("   switch (" TRAV_PREFIX "current()) {\n");
         for (int i = 0; i < array_size(config->traversals); i++) {
-            struct Traversal *t = array_get(config->traversals, i);
+            Traversal *t = array_get(config->traversals, i);
 
             bool handles_node = t->nodes == NULL;
             for (int j = 0; j < array_size(t->nodes); j++) {
@@ -234,7 +232,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
             } else {
 
                 for (int j = 0; j < array_size(node->children); j++) {
-                    struct Child *c = array_get(node->children, j);
+                    Child *c = array_get(node->children, j);
 
                     int *index = smap_retrieve(node_index, c->type);
                     bool handles_child = traversal_node_handles[i][*index];
@@ -249,7 +247,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
 
         out("   default:\n");
         for (int i = 0; i < array_size(node->children); i++) {
-            struct Child *c = array_get(node->children, i);
+            Child *c = array_get(node->children, i);
             out("       trav_%s_%s(node, info);\n", node->id, c->id);
         }
         out("       break;\n");
@@ -258,7 +256,7 @@ static void generate_trav_node(struct Node *node, FILE *fp,
     }
 
     for (int i = 0; i < array_size(node->children); ++i) {
-        struct Child *child = (struct Child *)array_get(node->children, i);
+        Child *child = (Child *)array_get(node->children, i);
         out("void " TRAV_PREFIX "%s_%s(struct %s *node, struct Info *info)",
             node->id, child->id, node->id);
 
@@ -332,7 +330,7 @@ static void generate_stack_functions(FILE *fp, bool header) {
     }
 }
 
-static void generate(struct Config *config, FILE *fp, bool header) {
+static void generate(Config *config, FILE *fp, bool header) {
     if (header) {
         out("#pragma once\n");
     }
@@ -357,7 +355,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
 
     } else {
         for (int i = 0; i < array_size(config->traversals); i++) {
-            struct Traversal *t = array_get(config->traversals, i);
+            Traversal *t = array_get(config->traversals, i);
             out("#include \"generated/traversal-%s.h\"\n", t->id);
         }
         out("\n");
@@ -368,7 +366,7 @@ static void generate(struct Config *config, FILE *fp, bool header) {
         generate_stack_functions(fp, header);
 
         for (int i = 0; i < array_size(config->nodes); ++i) {
-            struct Node *node = (struct Node *)array_get(config->nodes, i);
+            Node *node = (Node *)array_get(config->nodes, i);
             out("static void trav_%s(struct %s *node, struct Info *info);\n",
                 node->id, node->id);
         }
@@ -393,12 +391,12 @@ static void generate(struct Config *config, FILE *fp, bool header) {
     generate_start_node(config, fp, header);
 }
 
-void generate_trav_definitions(struct Config *config, FILE *fp) {
+void generate_trav_definitions(Config *config, FILE *fp) {
     compute_reachable_nodes(config);
 
     generate(config, fp, false);
 }
 
-void generate_trav_header(struct Config *config, FILE *fp) {
+void generate_trav_header(Config *config, FILE *fp) {
     generate(config, fp, true);
 }

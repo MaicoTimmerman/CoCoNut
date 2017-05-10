@@ -20,9 +20,9 @@ struct Info {
     smap_t *phase_name;
     smap_t *pass_name;
 
-    struct Node *root_node;
-    struct Nodeset *root_nodeset;
-    struct Phase *root_phase;
+    Node *root_node;
+    Nodeset *root_nodeset;
+    Phase *root_phase;
 };
 
 static struct Info *create_info(void) {
@@ -55,12 +55,12 @@ static void free_info(struct Info *info) {
 }
 
 static void *check_name_exists(struct Info *info, char *name) {
-    struct Enum *enum_orig;
-    struct Node *node_orig;
-    struct Nodeset *nodeset_orig;
-    struct Traversal *traversal_orig;
-    struct Phase *phase_orig;
-    struct Pass *pass_orig;
+    Enum *enum_orig;
+    Node *node_orig;
+    Nodeset *nodeset_orig;
+    Traversal *traversal_orig;
+    Phase *phase_orig;
+    Pass *pass_orig;
 
     if ((enum_orig = smap_retrieve(info->enum_name, name)) != NULL)
         return enum_orig->id;
@@ -82,7 +82,7 @@ static int check_enums(array *enums, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(enums); ++i) {
-        struct Enum *cur_enum = (struct Enum *)array_get(enums, i);
+        Enum *cur_enum = (Enum *)array_get(enums, i);
         void *orig_def;
 
         // TODO check if name of enum overlaps with autogen enum.
@@ -115,7 +115,7 @@ static int check_nodes(array *nodes, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(nodes); ++i) {
-        struct Node *cur_node = (struct Node *)array_get(nodes, i);
+        Node *cur_node = (Node *)array_get(nodes, i);
         void *orig_def;
 
         if ((orig_def = check_name_exists(info, cur_node->id))) {
@@ -148,7 +148,7 @@ static int check_nodesets(array *nodesets, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(nodesets); ++i) {
-        struct Nodeset *cur_nodeset = (struct Nodeset *)array_get(nodesets, i);
+        Nodeset *cur_nodeset = (Nodeset *)array_get(nodesets, i);
         void *orig_def;
 
         if ((orig_def = check_name_exists(info, cur_nodeset->id)) != NULL) {
@@ -181,7 +181,7 @@ static int check_phases(array *phases, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(phases); ++i) {
-        struct Phase *cur_phase = (struct Phase *)array_get(phases, i);
+        Phase *cur_phase = (Phase *)array_get(phases, i);
         void *orig_def;
 
         if ((orig_def = check_name_exists(info, cur_phase->id)) != NULL) {
@@ -201,7 +201,7 @@ static int check_passes(array *passes, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(passes); ++i) {
-        struct Pass *cur_pass = (struct Pass *)array_get(passes, i);
+        Pass *cur_pass = (Pass *)array_get(passes, i);
         void *orig_def;
 
         if ((orig_def = check_name_exists(info, cur_pass->id)) != NULL) {
@@ -220,8 +220,7 @@ static int check_traversals(array *traversals, struct Info *info) {
     int error = 0;
 
     for (int i = 0; i < array_size(traversals); ++i) {
-        struct Traversal *cur_traversal =
-            (struct Traversal *)array_get(traversals, i);
+        Traversal *cur_traversal = (Traversal *)array_get(traversals, i);
         void *orig_def;
 
         if ((orig_def = check_name_exists(info, cur_traversal->id)) != NULL) {
@@ -237,8 +236,7 @@ static int check_traversals(array *traversals, struct Info *info) {
     return error;
 }
 
-static int check_mandatory_phase(struct MandatoryPhase *phase,
-                                 struct Info *info) {
+static int check_mandatory_phase(MandatoryPhase *phase, struct Info *info) {
     int error = 0;
 
     switch (phase->type) {
@@ -252,7 +250,7 @@ static int check_mandatory_phase(struct MandatoryPhase *phase,
 
     case MP_range:; // Crazy GCC won't allow declaration behind statement.
 
-        struct PhaseRange *phase_range = phase->value.range;
+        PhaseRange *phase_range = phase->value.range;
         if (smap_retrieve(info->phase_name, phase_range->start) == NULL) {
             print_error(phase_range->start,
                         "Unknown mandatory phase range start '%s'",
@@ -273,15 +271,15 @@ static int check_mandatory_phase(struct MandatoryPhase *phase,
     return error;
 }
 
-static int check_node(struct Node *node, struct Info *info) {
+static int check_node(Node *node, struct Info *info) {
     int error = 0;
 
     smap_t *child_name = smap_init(16);
 
     if (node->children) {
         for (int i = 0; i < array_size(node->children); ++i) {
-            struct Child *child = (struct Child *)array_get(node->children, i);
-            struct Child *orig_child;
+            Child *child = (Child *)array_get(node->children, i);
+            Child *orig_child;
 
             // Check if there is no duplicate naming.
             if ((orig_child = smap_retrieve(child_name, child->id)) != NULL) {
@@ -294,10 +292,10 @@ static int check_node(struct Node *node, struct Info *info) {
                 smap_insert(child_name, child->id, child);
             }
 
-            struct Node *child_node =
-                (struct Node *)smap_retrieve(info->node_name, child->type);
-            struct Nodeset *child_nodeset = (struct Nodeset *)smap_retrieve(
-                info->nodeset_name, child->type);
+            Node *child_node =
+                (Node *)smap_retrieve(info->node_name, child->type);
+            Nodeset *child_nodeset =
+                (Nodeset *)smap_retrieve(info->nodeset_name, child->type);
 
             if (!child_node && !child_nodeset) {
                 print_error(child->type,
@@ -311,9 +309,8 @@ static int check_node(struct Node *node, struct Info *info) {
 
             if (!child->mandatory_phases) {
                 for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
-                    struct MandatoryPhase *phase =
-                        (struct MandatoryPhase *)array_get(
-                            child->mandatory_phases, i);
+                    MandatoryPhase *phase = (MandatoryPhase *)array_get(
+                        child->mandatory_phases, i);
 
                     error = check_mandatory_phase(phase, info);
                 }
@@ -325,8 +322,8 @@ static int check_node(struct Node *node, struct Info *info) {
 
     if (node->attrs) {
         for (int i = 0; i < array_size(node->attrs); i++) {
-            struct Attr *attr = (struct Attr *)array_get(node->attrs, i);
-            struct Attr *orig_attr;
+            Attr *attr = (Attr *)array_get(node->attrs, i);
+            Attr *orig_attr;
 
             if ((orig_attr = smap_retrieve(attr_name, attr->id)) != NULL) {
                 print_error(attr->id,
@@ -339,10 +336,10 @@ static int check_node(struct Node *node, struct Info *info) {
             }
 
             if (attr->type == AT_link_or_enum) {
-                struct Node *attr_node = (struct Node *)smap_retrieve(
-                    info->node_name, attr->type_id);
-                struct Enum *attr_enum = (struct Enum *)smap_retrieve(
-                    info->enum_name, attr->type_id);
+                Node *attr_node =
+                    (Node *)smap_retrieve(info->node_name, attr->type_id);
+                Enum *attr_enum =
+                    (Enum *)smap_retrieve(info->enum_name, attr->type_id);
 
                 if (attr_node) {
                     attr->type = AT_link;
@@ -365,7 +362,7 @@ static int check_node(struct Node *node, struct Info *info) {
     return error;
 }
 
-static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
+static int check_nodeset(Nodeset *nodeset, struct Info *info) {
     int error = 0;
 
     smap_t *node_name = smap_init(16);
@@ -384,11 +381,10 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
             smap_insert(node_name, node, node);
         }
 
-        struct Node *nodeset_node =
-            (struct Node *)smap_retrieve(info->node_name, node);
+        Node *nodeset_node = (Node *)smap_retrieve(info->node_name, node);
 
-        struct Nodeset *nodeset_nodeset =
-            (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
+        Nodeset *nodeset_nodeset =
+            (Nodeset *)smap_retrieve(info->nodeset_name, node);
 
         if (nodeset_nodeset) {
             print_error(node, "Nodeset '%s' contains other nodeset '%s'",
@@ -409,7 +405,7 @@ static int check_nodeset(struct Nodeset *nodeset, struct Info *info) {
     return error;
 }
 
-static int check_enum(struct Enum *arg_enum, struct Info *info) {
+static int check_enum(Enum *arg_enum, struct Info *info) {
 
     int error = 0;
     smap_t *value_name = smap_init(16);
@@ -435,7 +431,7 @@ static int check_enum(struct Enum *arg_enum, struct Info *info) {
     return error;
 }
 
-static int check_traversal(struct Traversal *traversal, struct Info *info) {
+static int check_traversal(Traversal *traversal, struct Info *info) {
 
     // TODO: check collission of func
 
@@ -460,10 +456,9 @@ static int check_traversal(struct Traversal *traversal, struct Info *info) {
             smap_insert(node_name, node, node);
         }
 
-        struct Node *traversal_node =
-            (struct Node *)smap_retrieve(info->node_name, node);
-        struct Nodeset *traversal_nodeset =
-            (struct Nodeset *)smap_retrieve(info->nodeset_name, node);
+        Node *traversal_node = (Node *)smap_retrieve(info->node_name, node);
+        Nodeset *traversal_nodeset =
+            (Nodeset *)smap_retrieve(info->nodeset_name, node);
 
         if (!traversal_node && !traversal_nodeset) {
             print_error(node, "Unknown type of node '%s' in traversal '%s'",
@@ -477,7 +472,7 @@ static int check_traversal(struct Traversal *traversal, struct Info *info) {
     return error;
 }
 
-static int check_pass(struct Pass *pass, struct Info *info) {
+static int check_pass(Pass *pass, struct Info *info) {
 
     int error = 0;
 
@@ -486,8 +481,7 @@ static int check_pass(struct Pass *pass, struct Info *info) {
     return error;
 }
 
-static int check_phase(struct Phase *phase, struct Info *info,
-                       smap_t *phase_order) {
+static int check_phase(Phase *phase, struct Info *info, smap_t *phase_order) {
 
     int error = 0;
 
@@ -508,11 +502,10 @@ static int check_phase(struct Phase *phase, struct Info *info,
             smap_insert(pass_name, pass, pass);
         }
 
-        struct Pass *phase_pass =
-            (struct Pass *)smap_retrieve(info->pass_name, pass);
+        Pass *phase_pass = (Pass *)smap_retrieve(info->pass_name, pass);
 
-        struct Traversal *phase_trav =
-            (struct Traversal *)smap_retrieve(info->traversal_name, pass);
+        Traversal *phase_trav =
+            (Traversal *)smap_retrieve(info->traversal_name, pass);
 
         if (!phase_pass && !phase_trav) {
             print_error(pass,
@@ -537,8 +530,8 @@ static int check_phase(struct Phase *phase, struct Info *info,
             smap_insert(subphase_name, subphase, subphase);
         }
 
-        struct Phase *phase_subphase =
-            (struct Phase *)smap_retrieve(info->phase_name, subphase);
+        Phase *phase_subphase =
+            (Phase *)smap_retrieve(info->phase_name, subphase);
 
         // Subphase does not exist at all
         if (!phase_subphase) {
@@ -576,8 +569,8 @@ static int check_phase(struct Phase *phase, struct Info *info,
     return error;
 }
 
-struct Phase *build_phase_tree(struct Phase *phase, struct Info *info) {
-    struct Phase *tree_node = mem_alloc(sizeof(struct Phase));
+Phase *build_phase_tree(Phase *phase, struct Info *info) {
+    Phase *tree_node = mem_alloc(sizeof(Phase));
     tree_node->id = phase->id;
     if (phase->info)
         tree_node->info = phase->info;
@@ -593,10 +586,9 @@ struct Phase *build_phase_tree(struct Phase *phase, struct Info *info) {
 
         for (int i = 0; i < array_size(phase->subphases); i++) {
             char *subphase_name = array_get(phase->subphases, i);
-            struct Phase *subphase =
-                smap_retrieve(info->phase_name, subphase_name);
+            Phase *subphase = smap_retrieve(info->phase_name, subphase_name);
 
-            struct Phase *subphase_tree = build_phase_tree(subphase, info);
+            Phase *subphase_tree = build_phase_tree(subphase, info);
 
             array_append(tree_node->subphases, subphase_tree);
         }
@@ -605,14 +597,13 @@ struct Phase *build_phase_tree(struct Phase *phase, struct Info *info) {
         tree_node->passes = array_init(32);
 
         for (int i = 0; i < array_size(phase->passes); i++) {
-            struct PhaseLeaf *leaf = mem_alloc(sizeof(struct PhaseLeaf));
+            PhaseLeaf *leaf = mem_alloc(sizeof(PhaseLeaf));
 
             char *pass_name = array_get(phase->passes, i);
-            struct Traversal *trav =
-                smap_retrieve(info->traversal_name, pass_name);
+            Traversal *trav = smap_retrieve(info->traversal_name, pass_name);
 
             if (!trav) {
-                struct Pass *pass = smap_retrieve(info->pass_name, pass_name);
+                Pass *pass = smap_retrieve(info->pass_name, pass_name);
                 leaf->type = PL_pass;
                 leaf->value.pass = pass;
 
@@ -627,12 +618,12 @@ struct Phase *build_phase_tree(struct Phase *phase, struct Info *info) {
     return tree_node;
 }
 
-int check_config(struct Config *config) {
+int check_config(Config *config) {
 
     int success = 0;
     struct Info *info = create_info();
     smap_t *phase_order = smap_init(16);
-    struct Phase *cur_phase;
+    Phase *cur_phase;
     bool root_phase_seen = false;
     bool phase_errors = false;
 
@@ -693,7 +684,7 @@ int check_config(struct Config *config) {
         success++;
     } else {
         if (!phase_errors) {
-            struct Phase *tree = build_phase_tree(info->root_phase, info);
+            Phase *tree = build_phase_tree(info->root_phase, info);
             config->phase_tree = tree;
         } else {
             config->phase_tree = NULL;

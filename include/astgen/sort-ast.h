@@ -1,3 +1,3 @@
 #pragma once
 
-void sort_config(struct Config *config);
+void sort_config(Config *config);

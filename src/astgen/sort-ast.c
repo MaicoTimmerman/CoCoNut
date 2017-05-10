@@ -7,64 +7,62 @@
 #include "lib/smap.h"
 
 static int compare_nodes(const void *n1, const void *n2) {
-    return strcmp((*((struct Node **)n1))->id, ((*(struct Node **)n2))->id);
+    return strcmp((*((Node **)n1))->id, ((*(Node **)n2))->id);
 }
 
 static int compare_nodesets(const void *n1, const void *n2) {
-    return strcmp((*((struct Nodeset **)n1))->id,
-                  ((*(struct Nodeset **)n2))->id);
+    return strcmp((*((Nodeset **)n1))->id, ((*(Nodeset **)n2))->id);
 }
 
 static int compare_traversals(const void *n1, const void *n2) {
-    return strcmp((*((struct Traversal **)n1))->id,
-                  ((*(struct Traversal **)n2))->id);
+    return strcmp((*((Traversal **)n1))->id, ((*(Traversal **)n2))->id);
 }
 
 static int compare_enums(const void *n1, const void *n2) {
-    return strcmp((*((struct Enum **)n1))->id, ((*(struct Enum **)n2))->id);
+    return strcmp((*((Enum **)n1))->id, ((*(Enum **)n2))->id);
 }
 
 static int compare_phases(const void *n1, const void *n2) {
-    return strcmp((*((struct Phase **)n1))->id, ((*(struct Phase **)n2))->id);
+    return strcmp((*((Phase **)n1))->id, ((*(Phase **)n2))->id);
 }
 
 static int compare_passes(const void *n1, const void *n2) {
-    return strcmp((*((struct Pass **)n1))->id, ((*(struct Pass **)n2))->id);
+    return strcmp((*((Pass **)n1))->id, ((*(Pass **)n2))->id);
 }
 
 static int compare_children(const void *n1, const void *n2) {
-    return strcmp((*((struct Child **)n1))->id, ((*(struct Child **)n2))->id);
+    return strcmp((*((Child **)n1))->id, ((*(Child **)n2))->id);
 }
 
 static int compare_attributes(const void *n1, const void *n2) {
-    return strcmp((*((struct Attr **)n1))->id, ((*(struct Attr **)n2))->id);
+    return strcmp((*((Attr **)n1))->id, ((*(Attr **)n2))->id);
 }
 
 static int compare_strings(const void *n1, const void *n2) {
     return strcmp(*((char **)n1), *((char **)n2));
 }
 
-static void sort_node(struct Node *n) {
+static void sort_node(Node *n) {
     if (n->attrs)
         array_sort(n->attrs, compare_attributes);
     if (n->children)
         array_sort(n->children, compare_children);
 }
 
-static void sort_nodesets(struct Nodeset *n) {
+static void sort_nodesets(Nodeset *n) {
     array_sort(n->nodes, compare_nodesets);
 }
 
-static void sort_traversals(struct Traversal *n) {
+static void sort_traversals(Traversal *n) {
     if (n->nodes)
         array_sort(n->nodes, compare_strings);
 }
 
-static void sort_enums(struct Enum *n) {
+static void sort_enums(Enum *n) {
     array_sort(n->values, compare_strings);
 }
 
-void sort_config(struct Config *config) {
+void sort_config(Config *config) {
     array_sort(config->nodes, compare_nodes);
     array_sort(config->nodesets, compare_nodesets);
     array_sort(config->traversals, compare_traversals);

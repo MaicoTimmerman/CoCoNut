@@ -9,14 +9,14 @@
 #include "lib/memory.h"
 #include "lib/smap.h"
 
-static void generate_node(struct Node *node, FILE *fp, bool header) {
+static void generate_node(Node *node, FILE *fp, bool header) {
     out("struct %s *" CREATE_NODE_FORMAT "(", node->id, node->id);
 
     int arg_count = 0;
     bool first = true;
 
     for (int i = 0; i < array_size(node->children); i++) {
-        struct Child *c = array_get(node->children, i);
+        Child *c = array_get(node->children, i);
         if (c->construct) {
             if (first) {
                 first = false;
@@ -31,7 +31,7 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
     }
 
     for (int i = 0; i < array_size(node->attrs); i++) {
-        struct Attr *attr = array_get(node->attrs, i);
+        Attr *attr = array_get(node->attrs, i);
         if (attr->construct) {
             if (first) {
                 first = false;
@@ -57,14 +57,14 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
             node->id);
 
         for (int i = 0; i < array_size(node->children); i++) {
-            struct Child *c = array_get(node->children, i);
+            Child *c = array_get(node->children, i);
             if (c->construct) {
                 out("   res->%s = %s;\n", c->id, c->id);
             }
         }
 
         for (int i = 0; i < array_size(node->attrs); i++) {
-            struct Attr *attr = array_get(node->attrs, i);
+            Attr *attr = array_get(node->attrs, i);
             if (attr->construct) {
                 out("   res->%s = %s;\n", attr->id, attr->id);
             }
@@ -75,9 +75,9 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
     }
 }
 
-static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
+static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
     for (int i = 0; i < array_size(nodeset->nodes); i++) {
-        struct Node *node = array_get(nodeset->nodes, i);
+        Node *node = array_get(nodeset->nodes, i);
 
         out("struct %s *" CREATE_NODESET_FORMAT "(struct %s *_%s)",
             nodeset->id, nodeset->id, node->id, node->id, node->id);
@@ -97,7 +97,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
 }
 
-void generate_create_node_header(struct Config *c, FILE *fp, struct Node *n) {
+void generate_create_node_header(Config *c, FILE *fp, Node *n) {
     out("#pragma once\n");
     out("#include <stdbool.h>\n");
     out("#include <string.h>\n");
@@ -106,14 +106,13 @@ void generate_create_node_header(struct Config *c, FILE *fp, struct Node *n) {
     generate_node(n, fp, true);
 }
 
-void generate_create_node_definitions(struct Config *c, FILE *fp,
-                                      struct Node *n) {
+void generate_create_node_definitions(Config *c, FILE *fp, Node *n) {
     out("#include \"generated/create-%s.h\"\n", n->id);
 
     smap_t *map = smap_init(32);
 
     for (int i = 0; i < array_size(n->children); ++i) {
-        struct Child *child = (struct Child *)array_get(n->children, i);
+        Child *child = (Child *)array_get(n->children, i);
         if (smap_retrieve(map, child->type) == NULL) {
             out("#include \"generated/create-%s.h\"\n", child->type);
             smap_insert(map, child->type, child);
@@ -125,23 +124,21 @@ void generate_create_node_definitions(struct Config *c, FILE *fp,
     generate_node(n, fp, false);
 }
 
-void generate_create_nodeset_header(struct Config *c, FILE *fp,
-                                    struct Nodeset *n) {
+void generate_create_nodeset_header(Config *c, FILE *fp, Nodeset *n) {
     out("#pragma once\n");
     out("#include \"lib/memory.h\"\n");
     out("#include \"generated/ast.h\"\n\n");
     generate_nodeset(n, fp, true);
 }
 
-void generate_create_nodeset_definitions(struct Config *c, FILE *fp,
-                                         struct Nodeset *n) {
+void generate_create_nodeset_definitions(Config *c, FILE *fp, Nodeset *n) {
     out("#include \"generated/create-%s.h\"\n", n->id);
     out("\n");
 
     smap_t *map = smap_init(32);
 
     for (int i = 0; i < array_size(n->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(n->nodes, i);
+        Node *node = (Node *)array_get(n->nodes, i);
         if (smap_retrieve(map, node->id) == NULL) {
             out("#include \"generated/create-%s.h\"\n", node->id);
             smap_insert(map, node->id, node);
@@ -153,14 +150,14 @@ void generate_create_nodeset_definitions(struct Config *c, FILE *fp,
     generate_nodeset(n, fp, false);
 }
 
-void generate_create_header(struct Config *config, FILE *fp) {
+void generate_create_header(Config *config, FILE *fp) {
     out("#pragma once\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        struct Node *node = array_get(config->nodes, i);
+        Node *node = array_get(config->nodes, i);
         out("#include \"generated/create-%s.h\"\n", node->id);
     }
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        Nodeset *nodeset = array_get(config->nodesets, i);
         out("#include \"generated/create-%s.h\"\n", nodeset->id);
     }
 }

@@ -14,8 +14,7 @@
 static const int MANDATORY = 0;
 static const int FORBIDDEN = 1;
 
-static void generate_node(struct Node *node, FILE *fp, int node_id,
-                          bool header) {
+static void generate_node(Node *node, FILE *fp, int node_id, bool header) {
     out("void check_%s(struct %s *node, struct Info *info)", node->id,
         node->id);
 
@@ -25,7 +24,7 @@ static void generate_node(struct Node *node, FILE *fp, int node_id,
         out(" {\n");
 
         for (int i = 0; i < array_size(node->children); ++i) {
-            struct Child *child = (struct Child *)array_get(node->children, i);
+            Child *child = (Child *)array_get(node->children, i);
             out("    // Check mandatoryness for %s\n", child->id);
             out("    if (node->%s == NULL && "
                 "mandatory_phases[info->phase_id][%d][%d] == %d)\n",
@@ -41,7 +40,7 @@ static void generate_node(struct Node *node, FILE *fp, int node_id,
     }
 }
 
-static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
+static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
     out("void check_%s(struct %s *nodeset, struct Info *info)", nodeset->id,
         nodeset->id);
 
@@ -53,7 +52,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
     out("    switch (nodeset->type) {\n");
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
+        Node *node = (Node *)array_get(nodeset->nodes, i);
         out("    case " NS_FORMAT ":\n", nodeset->id, node->id);
         out("        check_%s(nodeset->value.val_%s, info);\n", node->id,
             node->id);
@@ -67,17 +66,17 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
 /*     for every node, */
 /*         for every child, */
 /*         for every manatory phase, */
-static void generate_mandatory_array(struct Config *config, FILE *fp) {
+static void generate_mandatory_array(Config *config, FILE *fp) {
     out("bool mandatory_phases[][][] = {\n");
     for (int i = 0; i < array_size(config->phases); ++i) {
-        struct Phase *phase = (struct Phase *)array_get(config->phases, i);
+        Phase *phase = (Phase *)array_get(config->phases, i);
         out("// Phase %s\n", phase->id);
         for (int j = 0; j < array_size(config->nodes); ++j) {
-            struct Node *node = (struct Node *)array_get(config->nodes, j);
+            Node *node = (Node *)array_get(config->nodes, j);
             out("    {\n");
             out("// Node %s\n", node->id);
             for (int k = 0; k < array_size(node->children); ++k) {
-                struct Child *c = (struct Child *)array_get(node->children, k);
+                Child *c = (Child *)array_get(node->children, k);
                 out("// Node %s -> Child %s\n", node->id, c->id);
             }
             out("    },\n");
@@ -107,7 +106,7 @@ static void generate_info(FILE *fp) {
     out("}\n");
 }
 
-static void generate(struct Config *c, FILE *fp, bool header) {
+static void generate(Config *c, FILE *fp, bool header) {
     if (header) {
         out("#pragma once\n");
     }
@@ -138,10 +137,10 @@ static void generate(struct Config *c, FILE *fp, bool header) {
     }
 }
 
-void generate_consistency_definitions(struct Config *c, FILE *fp) {
+void generate_consistency_definitions(Config *c, FILE *fp) {
     generate(c, fp, false);
 }
 
-void generate_consistency_header(struct Config *c, FILE *fp) {
+void generate_consistency_header(Config *c, FILE *fp) {
     generate(c, fp, true);
 }

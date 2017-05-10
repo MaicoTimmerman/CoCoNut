@@ -12,7 +12,7 @@ static void free_commoninfo(NodeCommonInfo *info) {
 }
 
 static void free_phase(void *p) {
-    struct Phase *phase = p;
+    Phase *phase = p;
 
     switch (phase->type) {
     case PH_subphases:
@@ -29,7 +29,7 @@ static void free_phase(void *p) {
 }
 
 static void free_pass(void *p) {
-    struct Pass *pass = p;
+    Pass *pass = p;
 
     mem_free(pass->id);
     free_commoninfo(pass->common_info);
@@ -37,7 +37,7 @@ static void free_pass(void *p) {
 }
 
 static void free_traversal(void *p) {
-    struct Traversal *traversal = p;
+    Traversal *traversal = p;
     if (traversal->nodes != NULL)
         array_cleanup(traversal->nodes, mem_free);
 
@@ -47,7 +47,7 @@ static void free_traversal(void *p) {
 }
 
 static void free_enum(void *p) {
-    struct Enum *attr_enum = p;
+    Enum *attr_enum = p;
     if (attr_enum->values != NULL)
         array_cleanup(attr_enum->values, mem_free);
 
@@ -58,7 +58,7 @@ static void free_enum(void *p) {
 }
 
 static void free_nodeset(void *p) {
-    struct Nodeset *nodeset = p;
+    Nodeset *nodeset = p;
     if (nodeset->nodes != NULL)
         array_cleanup(nodeset->nodes, NULL);
 
@@ -68,7 +68,7 @@ static void free_nodeset(void *p) {
 }
 
 static void free_mandatory(void *p) {
-    struct MandatoryPhase *ph = p;
+    MandatoryPhase *ph = p;
 
     if (ph->type == MP_single) {
         mem_free(ph->value.single);
@@ -83,7 +83,7 @@ static void free_mandatory(void *p) {
 }
 
 static void free_child(void *p) {
-    struct Child *c = p;
+    Child *c = p;
     if (c->mandatory_phases != NULL)
         array_cleanup(c->mandatory_phases, free_mandatory);
 
@@ -96,7 +96,7 @@ static void free_child(void *p) {
 }
 
 static void free_attr(void *p) {
-    struct Attr *a = p;
+    Attr *a = p;
     mem_free(a->id);
     if (a->type_id != NULL)
         mem_free(a->type_id);
@@ -115,7 +115,7 @@ static void free_attr(void *p) {
 }
 
 static void free_node(void *p) {
-    struct Node *node = p;
+    Node *node = p;
 
     if (node->children != NULL)
         array_cleanup(node->children, free_child);
@@ -128,7 +128,7 @@ static void free_node(void *p) {
     mem_free(node);
 }
 
-static void free_phase_tree(struct Phase *tree) {
+static void free_phase_tree(Phase *tree) {
     if (tree == NULL)
         return;
 
@@ -145,7 +145,7 @@ static void free_phase_tree(struct Phase *tree) {
     mem_free(tree);
 }
 
-void free_config(struct Config *config) {
+void free_config(Config *config) {
     array_cleanup(config->phases, free_phase);
     array_cleanup(config->passes, free_pass);
     array_cleanup(config->traversals, free_traversal);

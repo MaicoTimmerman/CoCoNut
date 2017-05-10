@@ -5,10 +5,10 @@
 
 #include "lib/array.h"
 
-static void generate_node(struct Node *node, FILE *fp) {
+static void generate_node(Node *node, FILE *fp) {
     out("    \"%s\" [label=\"%s", node->id, node->id);
     for (int i = 0; i < array_size(node->attrs); i++) {
-        struct Attr *a = (struct Attr *)array_get(node->attrs, i);
+        Attr *a = (Attr *)array_get(node->attrs, i);
         out("|%s", a->id);
     }
 
@@ -19,15 +19,15 @@ static void generate_node(struct Node *node, FILE *fp) {
     out(" shape=\"record\"];\n");
 }
 
-static void generate_children(struct Node *node, FILE *fp) {
+static void generate_children(Node *node, FILE *fp) {
     for (int i = 0; i < array_size(node->children); i++) {
-        struct Child *child = (struct Child *)array_get(node->children, i);
+        Child *child = (Child *)array_get(node->children, i);
         out("    %s -> %s [label=\"%s\"];\n", node->id, child->type,
             child->id);
     }
 }
 
-static void generate_nodeset(struct Nodeset *nodeset, FILE *fp) {
+static void generate_nodeset(Nodeset *nodeset, FILE *fp) {
     out("    \"%s\"", nodeset->id);
 
     if (nodeset->root) {
@@ -35,14 +35,14 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp) {
     }
     out(";\n");
 }
-static void generate_nodeset_edges(struct Nodeset *nodeset, FILE *fp) {
+static void generate_nodeset_edges(Nodeset *nodeset, FILE *fp) {
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(nodeset->nodes, i);
+        Node *node = (Node *)array_get(nodeset->nodes, i);
         out("    %s -> %s;\n", nodeset->id, node->id);
     }
 }
 
-void generate_dot_definition(struct Config *config, FILE *fp) {
+void generate_dot_definition(Config *config, FILE *fp) {
     out("digraph ast {\n");
 
     for (int i = 0; i < array_size(config->nodes); i++) {

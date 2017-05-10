@@ -7,7 +7,7 @@
 #include "lib/memory.h"
 #include "lib/smap.h"
 
-static void generate_node(struct Node *node, FILE *fp, bool header) {
+static void generate_node(Node *node, FILE *fp, bool header) {
     out("struct %s *_copy_%s(struct %s *node, imap_t *imap)", node->id,
         node->id, node->id);
 
@@ -22,13 +22,13 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
         out("    imap_insert(imap, node, res);\n");
 
         for (int i = 0; i < array_size(node->children); i++) {
-            struct Child *c = array_get(node->children, i);
+            Child *c = array_get(node->children, i);
             out("    res->%s = _copy_%s(node->%s, imap);\n", c->id, c->type,
                 c->id);
         }
 
         for (int i = 0; i < array_size(node->attrs); i++) {
-            struct Attr *attr = array_get(node->attrs, i);
+            Attr *attr = array_get(node->attrs, i);
             if (attr->type == AT_string) {
                 out("    res->%s = strdup(node->%s);\n", attr->id, attr->id);
             } else if (attr->type == AT_link) {
@@ -61,7 +61,7 @@ static void generate_node(struct Node *node, FILE *fp, bool header) {
     }
 }
 
-static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
+static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
 
     out("struct %s *_copy_%s(struct %s *nodeset, imap_t *imap)", nodeset->id,
         nodeset->id, nodeset->id);
@@ -77,7 +77,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
         out("    res->type = nodeset->type;\n");
         out("    switch (nodeset->type) {\n");
         for (int i = 0; i < array_size(nodeset->nodes); i++) {
-            struct Node *node = array_get(nodeset->nodes, i);
+            Node *node = array_get(nodeset->nodes, i);
             out("        case " NS_FORMAT ":\n", nodeset->id, node->id);
             out("            res->value.val_%s = "
                 "_copy_%s(nodeset->value.val_%s, imap);\n",
@@ -106,7 +106,7 @@ static void generate_nodeset(struct Nodeset *nodeset, FILE *fp, bool header) {
     }
 }
 
-void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
+void generate_copy_node_header(Config *c, FILE *fp, Node *n) {
     out("#pragma once\n");
     out("#include <stdbool.h>\n");
     out("#include <string.h>\n");
@@ -120,7 +120,7 @@ void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
     smap_t *map = smap_init(32);
 
     for (int i = 0; i < array_size(n->children); ++i) {
-        struct Child *child = (struct Child *)array_get(n->children, i);
+        Child *child = (Child *)array_get(n->children, i);
         if (smap_retrieve(map, child->type) == NULL) {
             out("#include \"generated/copy-%s.h\"\n", child->type);
             smap_insert(map, child->type, child);
@@ -132,16 +132,14 @@ void generate_copy_node_header(struct Config *c, FILE *fp, struct Node *n) {
     generate_node(n, fp, true);
 }
 
-void generate_copy_node_definitions(struct Config *c, FILE *fp,
-                                    struct Node *n) {
+void generate_copy_node_definitions(Config *c, FILE *fp, Node *n) {
     out("#include \"generated/copy-%s.h\"\n", n->id);
     out("\n");
 
     generate_node(n, fp, false);
 }
 
-void generate_copy_nodeset_header(struct Config *c, FILE *fp,
-                                  struct Nodeset *n) {
+void generate_copy_nodeset_header(Config *c, FILE *fp, Nodeset *n) {
     out("#pragma once\n");
     out("#include <stdbool.h>\n");
     out("#include <string.h>\n");
@@ -152,7 +150,7 @@ void generate_copy_nodeset_header(struct Config *c, FILE *fp,
 
     smap_t *map = smap_init(32);
     for (int i = 0; i < array_size(n->nodes); ++i) {
-        struct Node *node = (struct Node *)array_get(n->nodes, i);
+        Node *node = (Node *)array_get(n->nodes, i);
 
         if (smap_retrieve(map, node->id) == NULL) {
             out("#include \"generated/copy-%s.h\"\n", node->id);
@@ -164,22 +162,21 @@ void generate_copy_nodeset_header(struct Config *c, FILE *fp,
     generate_nodeset(n, fp, true);
 }
 
-void generate_copy_nodeset_definitions(struct Config *c, FILE *fp,
-                                       struct Nodeset *n) {
+void generate_copy_nodeset_definitions(Config *c, FILE *fp, Nodeset *n) {
     out("#include \"generated/copy-%s.h\"\n", n->id);
     out("\n");
 
     generate_nodeset(n, fp, false);
 }
 
-void generate_copy_header(struct Config *config, FILE *fp) {
+void generate_copy_header(Config *config, FILE *fp) {
     out("#pragma once\n");
     for (int i = 0; i < array_size(config->nodes); ++i) {
-        struct Node *node = array_get(config->nodes, i);
+        Node *node = array_get(config->nodes, i);
         out("#include \"generated/copy-%s.h\"\n", node->id);
     }
     for (int i = 0; i < array_size(config->nodesets); ++i) {
-        struct Nodeset *nodeset = array_get(config->nodesets, i);
+        Nodeset *nodeset = array_get(config->nodesets, i);
         out("#include \"generated/copy-%s.h\"\n", nodeset->id);
     }
 }

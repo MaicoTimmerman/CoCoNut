@@ -26,7 +26,7 @@
 #include "astgen/gen-trav-functions.h"
 #include "astgen/gen-user-trav-header.h"
 
-extern struct Config *parse(FILE *fp);
+extern Config *parse(FILE *fp);
 
 char *yy_filename;
 
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
 
     FILE *f = open_input_file(yy_filename);
 
-    struct Config *parse_result = parse(f);
+    Config *parse_result = parse(f);
 
     fclose(f);
 

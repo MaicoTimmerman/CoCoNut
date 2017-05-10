@@ -12,7 +12,7 @@
 #define IND4 IND IND IND IND
 #define IND5 IND IND IND IND IND
 
-static void print_phase(struct Phase *phase) {
+static void print_phase(Phase *phase) {
     if (phase->root)
         printf("root ");
     if (phase->cycle)
@@ -44,7 +44,7 @@ static void print_phase(struct Phase *phase) {
     printf(IND "}\n};\n\n");
 }
 
-static void print_pass(struct Pass *pass) {
+static void print_pass(Pass *pass) {
     printf("pass %s", pass->id);
     if (pass->func == NULL) {
         if (pass->info == NULL) {
@@ -67,7 +67,7 @@ static void print_pass(struct Pass *pass) {
     }
 }
 
-static void print_traversal(struct Traversal *traversal) {
+static void print_traversal(Traversal *traversal) {
     printf("traversal %s", traversal->id);
     if (traversal->nodes == NULL)
         printf(";\n\n");
@@ -85,7 +85,7 @@ static void print_traversal(struct Traversal *traversal) {
     }
 }
 
-static void print_enum(struct Enum *attr_enum) {
+static void print_enum(Enum *attr_enum) {
     printf("enum %s {\n", attr_enum->id);
     printf(IND "prefix = %s,\n", attr_enum->prefix);
     printf(IND "values {\n");
@@ -101,11 +101,11 @@ static void print_enum(struct Enum *attr_enum) {
     printf(IND "}\n};\n\n");
 }
 
-static void print_nodeset(struct Nodeset *nodeset) {
+static void print_nodeset(Nodeset *nodeset) {
     printf("nodeset %s {\n", nodeset->id);
     int num_nodes = array_size(nodeset->nodes);
     for (int i = 0; i < num_nodes; i++) {
-        printf(IND "%s", ((struct Node *)array_get(nodeset->nodes, i))->id);
+        printf(IND "%s", ((Node *)array_get(nodeset->nodes, i))->id);
         if (i < num_nodes - 1)
             printf(",\n");
         else
@@ -114,7 +114,7 @@ static void print_nodeset(struct Nodeset *nodeset) {
     printf("};\n\n");
 }
 
-static void print_child(struct Child *c) {
+static void print_child(Child *c) {
     printf(IND2 "child %s %s", c->type, c->id);
     if (c->construct || c->mandatory) {
         printf(" {\n");
@@ -130,8 +130,7 @@ static void print_child(struct Child *c) {
                 int num_mandatory_phases = array_size(c->mandatory_phases);
                 for (int j = 0; j < num_mandatory_phases; j++) {
 
-                    struct MandatoryPhase *p =
-                        array_get(c->mandatory_phases, j);
+                    MandatoryPhase *p = array_get(c->mandatory_phases, j);
 
                     if (p->type == MP_single) {
 
@@ -140,7 +139,7 @@ static void print_child(struct Child *c) {
                         else
                             printf(IND4 "%s", p->value.single);
                     } else {
-                        struct PhaseRange *range = p->value.range;
+                        PhaseRange *range = p->value.range;
 
                         if (p->negation)
                             printf(IND4 "!(%s to %s)", range->start,
@@ -160,7 +159,7 @@ static void print_child(struct Child *c) {
     }
 }
 
-static void print_attr(struct Attr *a) {
+static void print_attr(Attr *a) {
     printf("        ");
     if (a->construct)
         printf("construct ");
@@ -251,7 +250,7 @@ static void print_attr(struct Attr *a) {
     }
 }
 
-static void print_node(struct Node *node) {
+static void print_node(Node *node) {
     int previous_block = 0;
 
     if (node->root)
@@ -268,7 +267,7 @@ static void print_node(struct Node *node) {
         printf(IND "children {\n");
         int num_children = array_size(node->children);
         for (int i = 0; i < num_children; i++) {
-            struct Child *c = array_get(node->children, i);
+            Child *c = array_get(node->children, i);
             print_child(c);
             if (i < num_children - 1)
                 printf(",\n");
@@ -288,7 +287,7 @@ static void print_node(struct Node *node) {
 
         int num_attrs = array_size(node->attrs);
         for (int i = 0; i < num_attrs; i++) {
-            struct Attr *attr = array_get(node->attrs, i);
+            Attr *attr = array_get(node->attrs, i);
             print_attr(attr);
             if (i < num_attrs - 1)
                 printf(",\n");
@@ -302,7 +301,7 @@ static void print_node(struct Node *node) {
     printf("};\n\n");
 }
 
-void print_config(struct Config *config) {
+void print_config(Config *config) {
     for (int i = 0; i < array_size(config->phases); i++) {
         print_phase(array_get(config->phases, i));
     }
