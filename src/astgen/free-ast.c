@@ -5,6 +5,12 @@
 #include "lib/array.h"
 #include "lib/memory.h"
 
+static void free_commoninfo(NodeCommonInfo *info) {
+    if (info->hash)
+        mem_free(info->hash);
+    mem_free(info);
+}
+
 static void free_phase(void *p) {
     struct Phase *phase = p;
 
@@ -18,6 +24,7 @@ static void free_phase(void *p) {
     }
 
     mem_free(phase->id);
+    free_commoninfo(phase->common_info);
     mem_free(phase);
 }
 
@@ -25,6 +32,7 @@ static void free_pass(void *p) {
     struct Pass *pass = p;
 
     mem_free(pass->id);
+    free_commoninfo(pass->common_info);
     mem_free(pass);
 }
 
@@ -34,6 +42,7 @@ static void free_traversal(void *p) {
         array_cleanup(traversal->nodes, mem_free);
 
     mem_free(traversal->id);
+    free_commoninfo(traversal->common_info);
     mem_free(traversal);
 }
 
@@ -44,6 +53,7 @@ static void free_enum(void *p) {
 
     mem_free(attr_enum->id);
     mem_free(attr_enum->prefix);
+    free_commoninfo(attr_enum->common_info);
     mem_free(attr_enum);
 }
 
@@ -53,6 +63,7 @@ static void free_nodeset(void *p) {
         array_cleanup(nodeset->nodes, NULL);
 
     mem_free(nodeset->id);
+    free_commoninfo(nodeset->common_info);
     mem_free(nodeset);
 }
 
@@ -67,6 +78,7 @@ static void free_mandatory(void *p) {
         mem_free(ph->value.range);
     }
 
+    free_commoninfo(ph->common_info);
     mem_free(ph);
 }
 
@@ -79,6 +91,7 @@ static void free_child(void *p) {
     if (c->type != NULL)
         mem_free(c->type);
 
+    free_commoninfo(c->common_info);
     mem_free(c);
 }
 
@@ -90,12 +103,14 @@ static void free_attr(void *p) {
 
     if (a->default_value != NULL) {
         if (a->default_value->type == AV_string ||
-            a->default_value->type == AV_id)
+            a->default_value->type == AV_id) {
+            free_commoninfo(a->default_value->common_info);
             mem_free(a->default_value->value.string_value);
-
+        }
         mem_free(a->default_value);
     }
 
+    free_commoninfo(a->common_info);
     mem_free(a);
 }
 
@@ -109,6 +124,7 @@ static void free_node(void *p) {
         array_cleanup(node->attrs, free_attr);
 
     mem_free(node->id);
+    free_commoninfo(node->common_info);
     mem_free(node);
 }
 
@@ -139,5 +155,6 @@ void free_config(struct Config *config) {
 
     free_phase_tree(config->phase_tree);
 
+    free_commoninfo(config->common_info);
     mem_free(config);
 }

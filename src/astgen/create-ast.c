@@ -11,8 +11,10 @@
 
 extern struct ParserLocation yy_parser_location;
 
-static struct NodeCommonInfo *create_commoninfo() {
-    return NULL;
+static NodeCommonInfo *create_commoninfo() {
+    NodeCommonInfo *info = (NodeCommonInfo *)mem_alloc(sizeof(NodeCommonInfo));
+    info->hash = NULL;
+    return info;
 }
 
 struct Config *create_config(array *phases, array *passes, array *traversals,
@@ -109,7 +111,6 @@ struct Node *create_node(char *id, struct Node *nodebody) {
 
     nodebody->id = id;
     nodebody->root = false;
-    nodebody->common_info = create_commoninfo();
     return nodebody;
 }
 
@@ -171,7 +172,6 @@ struct Attr *create_attr(struct Attr *attrhead,
                          struct AttrValue *default_value) {
     attrhead->default_value = default_value;
 
-    attrhead->common_info = create_commoninfo();
     return attrhead;
 }
 

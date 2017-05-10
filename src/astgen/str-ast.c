@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *str_attr_type(struct Attr *attr) {
+char *str_attr_type(Attr *attr) {
     char *link_type;
 
     switch (attr->type) {

@@ -35,7 +35,7 @@ all: $(TARGET_BIN) ;
 $(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
-	$(DEBUG)$(CC) -o $@ $(SRC:.c=.o) $(LIB_SRC:.c=.o) $(wildcard $(AST_GENERATED_SOURCES)*.o)
+	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(SRC:.c=.o) $(LIB_SRC:.c=.o) $(wildcard $(AST_GENERATED_SOURCES)*.o)
 
 %.o: %.c compile_generated
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
@@ -59,7 +59,7 @@ $(AST_GENERATED_INC_GENFILE): $(AST_TARGET_BIN) $(AST_FILE)
 $(AST_TARGET_BIN): $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
-	$(DEBUG)$(CC) -o $@ $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
+	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
 
 $(LIB_SOURCES)%.o: $(LIB_SOURCES)%.c
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"

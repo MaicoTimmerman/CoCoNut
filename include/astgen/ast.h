@@ -5,9 +5,11 @@
 
 #include "lib/array.h"
 
-struct NodeCommonInfo {
-    char dummy;
-};
+typedef struct NodeCommonInfo {
+    // Needed for Pass, Traversal, Enum, Node, Nodeset,
+    // contains the unique identifier for all data needed in codegen.
+    char *hash;
+} NodeCommonInfo;
 
 enum NodeType { NT_node, NT_nodeset };
 
@@ -51,14 +53,14 @@ enum PhaseLeafType { PL_pass, PL_traversal };
 
 // We define the type for YYLTYPE here,
 // to avoid a circular dependency between this header and the parser
-struct ParserLocation {
+typedef struct ParserLocation {
     int first_line;
     int first_column;
     int last_line;
     int last_column;
-};
+} ParserLocation;
 
-struct Config {
+typedef struct Config {
     array *phases;
     array *passes;
     array *traversals;
@@ -71,9 +73,9 @@ struct Config {
     struct Phase *phase_tree;
 
     struct NodeCommonInfo *common_info;
-};
+} Config;
 
-struct Phase {
+typedef struct Phase {
     char *id;
     char *info;
 
@@ -85,25 +87,25 @@ struct Phase {
     array *subphases;
 
     struct NodeCommonInfo *common_info;
-};
+} Phase;
 
-struct PhaseLeaf {
+typedef struct PhaseLeaf {
     enum PhaseLeafType type;
     union {
         struct Pass *pass;
         struct Traversal *traversal;
     } value;
-};
+} PhaseLeaf;
 
-struct Pass {
+typedef struct Pass {
     char *id;
     char *info;
     char *func;
 
     struct NodeCommonInfo *common_info;
-};
+} Pass;
 
-struct Traversal {
+typedef struct Traversal {
     char *id;
     char *info;
     char *func;
@@ -111,9 +113,9 @@ struct Traversal {
     array *nodes;
 
     struct NodeCommonInfo *common_info;
-};
+} Traversal;
 
-struct Enum {
+typedef struct Enum {
     char *id;
     char *prefix;
     char *info;
@@ -121,9 +123,9 @@ struct Enum {
     array *values;
 
     struct NodeCommonInfo *common_info;
-};
+} Enum;
 
-struct Nodeset {
+typedef struct Nodeset {
     char *id;
     char *info;
 
@@ -133,9 +135,9 @@ struct Nodeset {
     bool root;
 
     struct NodeCommonInfo *common_info;
-};
+} Nodeset;
 
-struct Node {
+typedef struct Node {
     char *id;
     char *info;
 
@@ -148,9 +150,9 @@ struct Node {
     bool root;
 
     struct NodeCommonInfo *common_info;
-};
+} Node;
 
-struct Child {
+typedef struct Child {
     int construct;
     int mandatory;
     array *mandatory_phases;
@@ -163,16 +165,16 @@ struct Child {
     struct Nodeset *nodeset;
 
     struct NodeCommonInfo *common_info;
-};
+} Child;
 
-struct PhaseRange {
+typedef struct PhaseRange {
     char *start;
     char *end;
 
     struct NodeCommonInfo *common_info;
-};
+} PhaseRange;
 
-struct MandatoryPhase {
+typedef struct MandatoryPhase {
     enum MandatoryPhaseType type;
     int negation;
 
@@ -182,9 +184,9 @@ struct MandatoryPhase {
     } value;
 
     struct NodeCommonInfo *common_info;
-};
+} MandatoryPhase;
 
-struct Attr {
+typedef struct Attr {
     int construct;
     enum AttrType type;
     char *type_id;
@@ -192,9 +194,9 @@ struct Attr {
     struct AttrValue *default_value;
 
     struct NodeCommonInfo *common_info;
-};
+} Attr;
 
-struct AttrValue {
+typedef struct AttrValue {
     enum AttrValueType type;
     union {
         uint64_t uint_value;
@@ -206,4 +208,4 @@ struct AttrValue {
     } value;
 
     struct NodeCommonInfo *common_info;
-};
+} AttrValue;

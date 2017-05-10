@@ -10,6 +10,7 @@
 #include "astgen/create-ast.h"
 #include "astgen/filegen-driver.h"
 #include "astgen/free-ast.h"
+#include "astgen/hash-ast.h"
 #include "astgen/print-ast.h"
 #include "astgen/sort-ast.h"
 
@@ -150,6 +151,7 @@ int main(int argc, char *argv[]) {
     // Sort to prevent changes in order of attributes trigger regeneration of
     // code.
     sort_config(parse_result);
+    hash_config(parse_result);
 
     if (verbose_flag) {
         print_config(parse_result);

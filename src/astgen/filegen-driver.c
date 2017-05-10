@@ -7,12 +7,14 @@
 #include <sys/stat.h>
 
 #include "astgen/ast.h"
+#include "astgen/filegen-util.h"
 
 #include "lib/array.h"
 #include "lib/memory.h"
 
 #define COLOR_GREEN "\033[1m\033[32m"
 #define COLOR_RESET "\033[0m"
+#define HASH_HEADER "// Hash: %s\n"
 
 enum FileGenType {
     FGT_basic,
@@ -61,13 +63,18 @@ static void filegen_cleanup(void) {
     mem_free(output_directory);
 }
 
-static FILE *get_fp(char *full_path) {
+static FILE *get_write_fp(char *full_path) {
     FILE *fp = fopen(full_path, "w");
     if (!fp) {
         perror("Opening file failed");
         filegen_cleanup();
         exit(-1);
     }
+    return fp;
+}
+
+static FILE *get_read_fp(char *full_path) {
+    FILE *fp = fopen(full_path, "r");
     return fp;
 }
 
@@ -85,8 +92,34 @@ static char *get_full_path(char *filename, char *formatter,
         mem_free(old_full_path);
     }
 
-    printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
     return full_path;
+}
+
+static bool hash_match(NodeCommonInfo *info, char *full_path) {
+
+    char *current_hash = mem_alloc(43 * sizeof(char));
+    bool rv = false;
+
+    FILE *fp = get_read_fp(full_path);
+    if (fp == NULL)
+        return rv;
+
+    // Hash: %32s\n -> read 3+4+2+32+1 = 42 characters.
+    if (fgets(current_hash, 42, fp) != NULL) {
+        if (strncmp(current_hash + 9, info->hash, 32) == 0) {
+            rv = true;
+            printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n", full_path);
+            goto cleanup;
+        } else {
+            printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
+            goto cleanup;
+        }
+    }
+
+cleanup:
+    mem_free(current_hash);
+    fclose(fp);
+    return rv;
 }
 
 void filegen_add(char *filename, void (*main_func)(struct Config *, FILE *)) {
@@ -171,11 +204,8 @@ int filegen_generate(struct Config *config) {
         switch (g->gen_type) {
         case FGT_basic:
             full_path = get_full_path(g->filename, NULL, out_dir_len);
-            fp = get_fp(full_path);
-
+            fp = get_write_fp(full_path);
             g->function.func(config, fp);
-
-            fclose(fp);
             mem_free(full_path);
             break;
 
@@ -183,12 +213,15 @@ int filegen_generate(struct Config *config) {
             for (int i = 0; i < array_size(config->nodes); ++i) {
                 struct Node *node = array_get(config->nodes, i);
                 full_path = get_full_path(g->filename, node->id, out_dir_len);
-                fp = get_fp(full_path);
 
+                if (hash_match(node->common_info, full_path)) {
+                    mem_free(full_path);
+                    continue;
+                }
+
+                fp = get_write_fp(full_path);
+                out(HASH_HEADER, node->common_info->hash);
                 g->function.func_node(config, fp, node);
-
-                fclose(fp);
-                mem_free(full_path);
             }
             break;
 
@@ -197,12 +230,15 @@ int filegen_generate(struct Config *config) {
                 struct Nodeset *nodeset = array_get(config->nodesets, i);
                 full_path =
                     get_full_path(g->filename, nodeset->id, out_dir_len);
-                fp = get_fp(full_path);
 
+                if (hash_match(nodeset->common_info, full_path)) {
+                    mem_free(full_path);
+                    continue;
+                }
+
+                fp = get_write_fp(full_path);
+                out(HASH_HEADER, nodeset->common_info->hash);
                 g->function.func_nodeset(config, fp, nodeset);
-
-                fclose(fp);
-                mem_free(full_path);
             }
             break;
 
@@ -211,12 +247,15 @@ int filegen_generate(struct Config *config) {
                 struct Traversal *traversal = array_get(config->traversals, i);
                 full_path =
                     get_full_path(g->filename, traversal->id, out_dir_len);
-                fp = get_fp(full_path);
 
+                if (hash_match(traversal->common_info, full_path)) {
+                    mem_free(full_path);
+                    continue;
+                }
+
+                fp = get_write_fp(full_path);
+                out(HASH_HEADER, traversal->common_info->hash);
                 g->function.func_traversal(config, fp, traversal);
-
-                fclose(fp);
-                mem_free(full_path);
             }
             break;
 
@@ -224,14 +263,19 @@ int filegen_generate(struct Config *config) {
             for (int i = 0; i < array_size(config->passes); ++i) {
                 struct Pass *pass = array_get(config->passes, i);
                 full_path = get_full_path(g->filename, pass->id, out_dir_len);
-                fp = get_fp(full_path);
 
+                if (hash_match(pass->common_info, full_path)) {
+                    mem_free(full_path);
+                    continue;
+                }
+
+                fp = get_write_fp(full_path);
+                out(HASH_HEADER, pass->common_info->hash);
                 g->function.func_pass(config, fp, pass);
-
-                fclose(fp);
-                mem_free(full_path);
             }
             break;
+            fclose(fp);
+            mem_free(full_path);
         }
     }
 
