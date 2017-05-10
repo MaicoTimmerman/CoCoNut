@@ -16,70 +16,20 @@
 #define COLOR_RESET "\033[0m"
 #define HASH_HEADER "// Hash: %s\n"
 
-enum FileGenType {
-    FGT_basic,
-    FGT_nodes,
-    FGT_nodesets,
-    FGT_traversal,
-    FGT_pass,
-};
-
-struct FileGen {
-    char *filename;
-    union {
-        void (*func)(Config *, FILE *);
-        void (*func_node)(Config *, FILE *, Node *);
-        void (*func_nodeset)(Config *, FILE *, Nodeset *);
-        void (*func_traversal)(Config *, FILE *, Traversal *);
-        void (*func_pass)(Config *, FILE *, Pass *);
-    } function;
-    void *main_func;
-    enum FileGenType gen_type;
-};
-
-static array *file_generations = NULL;
+static Config *ast_definition = NULL;
 static char *output_directory = NULL;
 
-void filegen_init(char *out_dir) {
-    file_generations = array_init(4);
-
-    size_t out_dir_len = strlen(out_dir);
-    if (out_dir[out_dir_len - 1] != '/') {
-        output_directory = mem_alloc(out_dir_len + 2);
-        sprintf(output_directory, "%s/", out_dir);
-    } else {
-        output_directory = strdup(out_dir);
-    }
-}
-
-static void free_filegen(void *p) {
-    struct FileGen *g = (struct FileGen *)p;
-    mem_free(g->filename);
-    mem_free(g);
-}
-
-static void filegen_cleanup(void) {
-    array_cleanup(file_generations, free_filegen);
-    mem_free(output_directory);
-}
-
-static FILE *get_write_fp(char *full_path) {
+static FILE *get_fp(char *full_path) {
     FILE *fp = fopen(full_path, "w");
     if (!fp) {
         perror("Opening file failed");
-        filegen_cleanup();
         exit(-1);
     }
     return fp;
 }
 
-static FILE *get_read_fp(char *full_path) {
-    FILE *fp = fopen(full_path, "r");
-    return fp;
-}
-
-static char *get_full_path(char *filename, char *formatter,
-                           size_t out_dir_len) {
+static char *get_full_path(char *filename, char *formatter) {
+    size_t out_dir_len = strlen(output_directory);
     char *full_path = mem_alloc(out_dir_len + strlen(filename) + 1);
     strcpy(full_path, output_directory);
     strcat(full_path, filename);
@@ -100,7 +50,7 @@ static bool hash_match(NodeCommonInfo *info, char *full_path) {
     char *current_hash = mem_alloc(43 * sizeof(char));
     bool rv = false;
 
-    FILE *fp = get_read_fp(full_path);
+    FILE *fp = fopen(full_path, "r");
     if (fp == NULL)
         return rv;
 
@@ -122,52 +72,19 @@ cleanup:
     return rv;
 }
 
-void filegen_add(char *filename, void (*main_func)(Config *, FILE *)) {
-
-    struct FileGen *g = malloc(sizeof(struct FileGen));
-    g->filename = strdup(filename);
-    g->function.func = main_func;
-    g->gen_type = FGT_basic;
-    array_append(file_generations, g);
+void filegen_init(Config *config) {
+    ast_definition = config;
 }
 
-void filegen_all_nodes(char *fileformatter,
-                       void (*main_func)(Config *, FILE *, Node *)) {
-    struct FileGen *g = malloc(sizeof(struct FileGen));
-    g->filename = strdup(fileformatter);
-    g->function.func_node = main_func;
-    g->gen_type = FGT_nodes;
-    array_append(file_generations, g);
-}
+void filegen_dir(char *out_dir) {
+    size_t out_dir_len = strlen(out_dir);
 
-void filegen_all_nodesets(char *fileformatter,
-                          void (*main_func)(Config *, FILE *, Nodeset *)) {
-    struct FileGen *g = malloc(sizeof(struct FileGen));
-    g->filename = strdup(fileformatter);
-    g->function.func_nodeset = main_func;
-    g->gen_type = FGT_nodesets;
-    array_append(file_generations, g);
-}
-
-void filegen_all_traversals(char *fileformatter,
-                            void (*main_func)(Config *, FILE *, Traversal *)) {
-    struct FileGen *g = malloc(sizeof(struct FileGen));
-    g->filename = strdup(fileformatter);
-    g->function.func_traversal = main_func;
-    g->gen_type = FGT_traversal;
-    array_append(file_generations, g);
-}
-
-void filegen_all_passes(char *fileformatter,
-                        void (*main_func)(Config *, FILE *, Pass *)) {
-    struct FileGen *g = malloc(sizeof(struct FileGen));
-    g->filename = strdup(fileformatter);
-    g->function.func_pass = main_func;
-    g->gen_type = FGT_pass;
-    array_append(file_generations, g);
-}
-
-int filegen_generate(Config *config) {
+    if (out_dir[out_dir_len - 1] != '/') {
+        output_directory = mem_alloc(out_dir_len + 2);
+        sprintf(output_directory, "%s/", out_dir);
+    } else {
+        output_directory = strdup(out_dir);
+    }
 
     if (mkdir(output_directory, 0755) == 0) {
         printf("Created output directory %s\n", output_directory);
@@ -178,103 +95,113 @@ int filegen_generate(Config *config) {
             // out_dir exists but is a file
             if (!d) {
                 perror("Creation failed");
-                filegen_cleanup();
-                return -1;
+                exit(1);
             } else {
                 // Directory already exists
                 closedir(d);
             }
         } else {
             perror("Creation failed");
-            filegen_cleanup();
-            return -1;
+            exit(1);
         }
     }
+}
 
-    size_t out_dir_len = strlen(output_directory);
+void filegen_generate(char *filename, void (*func)(Config *, FILE *)) {
+
+    char *full_path = get_full_path(filename, NULL);
+    FILE *fp = get_fp(full_path);
+
+    func(ast_definition, fp);
+
+    mem_free(full_path);
+    fclose(fp);
+}
+
+void filegen_all_nodes(char *fileformatter,
+                       void (*func)(Config *, FILE *, Node *)) {
     char *full_path;
     FILE *fp;
 
-    for (int i = 0; i < array_size(file_generations); i++) {
-        struct FileGen *g = array_get(file_generations, i);
-        switch (g->gen_type) {
-        case FGT_basic:
-            full_path = get_full_path(g->filename, NULL, out_dir_len);
-            fp = get_write_fp(full_path);
-            g->function.func(config, fp);
+    for (int i = 0; i < array_size(ast_definition->nodes); ++i) {
+        Node *node = array_get(ast_definition->nodes, i);
+        full_path = get_full_path(fileformatter, node->id);
+
+        if (hash_match(node->common_info, full_path)) {
             mem_free(full_path);
-            break;
-
-        case FGT_nodes:
-            for (int i = 0; i < array_size(config->nodes); ++i) {
-                Node *node = array_get(config->nodes, i);
-                full_path = get_full_path(g->filename, node->id, out_dir_len);
-
-                if (hash_match(node->common_info, full_path)) {
-                    mem_free(full_path);
-                    continue;
-                }
-
-                fp = get_write_fp(full_path);
-                out(HASH_HEADER, node->common_info->hash);
-                g->function.func_node(config, fp, node);
-            }
-            break;
-
-        case FGT_nodesets:
-            for (int i = 0; i < array_size(config->nodesets); ++i) {
-                Nodeset *nodeset = array_get(config->nodesets, i);
-                full_path =
-                    get_full_path(g->filename, nodeset->id, out_dir_len);
-
-                if (hash_match(nodeset->common_info, full_path)) {
-                    mem_free(full_path);
-                    continue;
-                }
-
-                fp = get_write_fp(full_path);
-                out(HASH_HEADER, nodeset->common_info->hash);
-                g->function.func_nodeset(config, fp, nodeset);
-            }
-            break;
-
-        case FGT_traversal:
-            for (int i = 0; i < array_size(config->traversals); ++i) {
-                Traversal *traversal = array_get(config->traversals, i);
-                full_path =
-                    get_full_path(g->filename, traversal->id, out_dir_len);
-
-                if (hash_match(traversal->common_info, full_path)) {
-                    mem_free(full_path);
-                    continue;
-                }
-
-                fp = get_write_fp(full_path);
-                out(HASH_HEADER, traversal->common_info->hash);
-                g->function.func_traversal(config, fp, traversal);
-            }
-            break;
-
-        case FGT_pass:
-            for (int i = 0; i < array_size(config->passes); ++i) {
-                Pass *pass = array_get(config->passes, i);
-                full_path = get_full_path(g->filename, pass->id, out_dir_len);
-
-                if (hash_match(pass->common_info, full_path)) {
-                    mem_free(full_path);
-                    continue;
-                }
-
-                fp = get_write_fp(full_path);
-                out(HASH_HEADER, pass->common_info->hash);
-                g->function.func_pass(config, fp, pass);
-            }
-            break;
-            fclose(fp);
-            mem_free(full_path);
+            continue;
         }
-    }
 
-    filegen_cleanup();
-    return 0;
+        fp = get_fp(full_path);
+        out(HASH_HEADER, node->common_info->hash);
+        func(ast_definition, fp, node);
+        mem_free(full_path);
+        fclose(fp);
+    }
+}
+
+void filegen_all_nodesets(char *fileformatter,
+                          void (*func)(Config *, FILE *, Nodeset *)) {
+    char *full_path;
+    FILE *fp;
+
+    for (int i = 0; i < array_size(ast_definition->nodesets); ++i) {
+        Nodeset *nodeset = array_get(ast_definition->nodesets, i);
+        full_path = get_full_path(fileformatter, nodeset->id);
+
+        if (hash_match(nodeset->common_info, full_path)) {
+            mem_free(full_path);
+            continue;
+        }
+
+        fp = get_fp(full_path);
+        out(HASH_HEADER, nodeset->common_info->hash);
+        func(ast_definition, fp, nodeset);
+        mem_free(full_path);
+        fclose(fp);
+    }
+}
+
+void filegen_all_traversals(char *fileformatter,
+                            void (*func)(Config *, FILE *, Traversal *)) {
+    char *full_path;
+    FILE *fp;
+
+    for (int i = 0; i < array_size(ast_definition->traversals); ++i) {
+        Traversal *traversal = array_get(ast_definition->traversals, i);
+        full_path = get_full_path(fileformatter, traversal->id);
+
+        if (hash_match(traversal->common_info, full_path)) {
+            mem_free(full_path);
+            continue;
+        }
+
+        fp = get_fp(full_path);
+        out(HASH_HEADER, traversal->common_info->hash);
+        func(ast_definition, fp, traversal);
+        mem_free(full_path);
+        fclose(fp);
+    }
+}
+
+void filegen_all_passes(char *fileformatter,
+                        void (*func)(Config *, FILE *, Pass *)) {
+    char *full_path;
+    FILE *fp;
+
+    for (int i = 0; i < array_size(ast_definition->passes); ++i) {
+        Pass *pass = array_get(ast_definition->passes, i);
+        full_path = get_full_path(fileformatter, pass->id);
+
+        if (hash_match(pass->common_info, full_path)) {
+            mem_free(full_path);
+            continue;
+        }
+
+        fp = get_fp(full_path);
+        out(HASH_HEADER, pass->common_info->hash);
+        func(ast_definition, fp, pass);
+        mem_free(full_path);
+        fclose(fp);
+    }
 }

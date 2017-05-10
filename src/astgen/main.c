@@ -157,42 +157,42 @@ int main(int argc, char *argv[]) {
         print_config(parse_result);
     }
 
+    // Set the parse tree for file generation.
+    filegen_init(parse_result);
+
     if (dot_dir) {
-        filegen_init(dot_dir);
-        filegen_add("ast.dot", generate_dot_definition);
-        ret += filegen_generate(parse_result);
-        exit(ret);
+        filegen_dir(dot_dir);
+        filegen_generate("ast.dot", generate_dot_definition);
     }
 
     // Generated all the header files.
-    filegen_init(header_dir);
-    filegen_add("enum.h", generate_enum_definitions);
-    filegen_add("ast.h", generate_ast_definitions);
+    filegen_init(parse_result);
+    filegen_dir(header_dir);
+    filegen_generate("enum.h", generate_enum_definitions);
+    filegen_generate("ast.h", generate_ast_definitions);
 
     // Free nodes.
-    filegen_add("free-ast.h", generate_free_header);
+    filegen_generate("free-ast.h", generate_free_header);
     filegen_all_nodes("free-%s.h", generate_free_node_header);
     filegen_all_nodesets("free-%s.h", generate_free_nodeset_header);
 
-    filegen_add("create-ast.h", generate_create_header);
+    filegen_generate("create-ast.h", generate_create_header);
     filegen_all_nodes("create-%s.h", generate_create_node_header);
     filegen_all_nodesets("create-%s.h", generate_create_nodeset_header);
 
-    filegen_add("copy-ast.h", generate_copy_header);
+    filegen_generate("copy-ast.h", generate_copy_header);
     filegen_all_nodes("copy-%s.h", generate_copy_node_header);
     filegen_all_nodesets("copy-%s.h", generate_copy_nodeset_header);
 
-    filegen_add("trav-ast.h", generate_trav_header);
-    // filegen_add("consistency-ast.h", generate_consistency_header);
-    filegen_add("phase-driver.h", generate_phase_driver_header);
+    filegen_generate("trav-ast.h", generate_trav_header);
+    // filegen_generate("consistency-ast.h", generate_consistency_header);
+    filegen_generate("phase-driver.h", generate_phase_driver_header);
 
     filegen_all_traversals("traversal-%s.h", generate_user_trav_header);
     filegen_all_passes("pass-%s.h", generate_pass_header);
 
-    ret += filegen_generate(parse_result);
-
     // Genereate all the source files.
-    filegen_init(source_dir);
+    filegen_dir(source_dir);
 
     filegen_all_nodes("free-%s.c", generate_free_node_definitions);
     filegen_all_nodesets("free-%s.c", generate_free_nodeset_definitions);
@@ -203,13 +203,11 @@ int main(int argc, char *argv[]) {
     filegen_all_nodes("copy-%s.c", generate_copy_node_definitions);
     filegen_all_nodesets("copy-%s.c", generate_copy_nodeset_definitions);
 
-    filegen_add("trav-ast.c", generate_trav_definitions);
-    // filegen_add("consistency-ast.c", generate_consistency_definitions);
-    filegen_add("phase-driver.c", generate_phase_driver_definitions);
-    filegen_add("binary-serialization-write.c",
-                generate_binary_serialization_definitions);
-
-    ret += filegen_generate(parse_result);
+    filegen_generate("trav-ast.c", generate_trav_definitions);
+    // filegen_generate("consistency-ast.c", generate_consistency_definitions);
+    filegen_generate("phase-driver.c", generate_phase_driver_definitions);
+    filegen_generate("binary-serialization-write.c",
+                     generate_binary_serialization_definitions);
 
     free_config(parse_result);
 
