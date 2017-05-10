@@ -118,6 +118,7 @@ void generate_enum_definitions(struct Config *config, FILE *fp) {
 void generate_ast_definitions(struct Config *config, FILE *fp) {
     out("#pragma once\n");
     out("#include \"generated/enum.h\"\n");
+    out("#include <stdint.h>\n");
     out("#include <stdbool.h>\n");
     template_ast_h(config, fp);
 }
