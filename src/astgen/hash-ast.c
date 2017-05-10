@@ -15,8 +15,7 @@
 
 static MHASH td;
 static MHASH config_td;
-static unsigned char hash[17];        /* enough size for MD5 */
-static unsigned char config_hash[17]; /* enough size for MD5 */
+static unsigned char hash[17]; /* enough size for MD5 */
 
 static void set_hash(NodeCommonInfo *info, bool config) {
     info->hash = (char *)mem_alloc(
@@ -25,11 +24,7 @@ static void set_hash(NodeCommonInfo *info, bool config) {
 
     // Save the hash.
     for (int i = 0; i < mhash_get_block_size(MHASH_MD5); i++) {
-        if (config) {
-            sprintf(info->hash + (i * 2), "%.2x", config_hash[i]);
-        } else {
-            sprintf(info->hash + (i * 2), "%.2x", hash[i]);
-        }
+        sprintf(info->hash + (i * 2), "%.2x", hash[i]);
     }
 }
 
