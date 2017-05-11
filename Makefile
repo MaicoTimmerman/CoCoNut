@@ -16,6 +16,7 @@ AST_PARSER    = src/astgen/ast.parser.c
 AST_LEXER     = src/astgen/ast.lexer.c
 AST_TARGET    = astgen
 
+SOURCES       += src/framework
 SRC           = $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 
 COLOR_GREEN	  = "\\e[1m\\e[32m"
