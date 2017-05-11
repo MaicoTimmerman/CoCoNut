@@ -33,7 +33,7 @@ import sphinx_rtd_theme
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = []
+extensions = ['breathe']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -51,6 +51,10 @@ master_doc = 'index'
 project = 'CoCoNut'
 author = 'Maico Timmerman, Lorian Coltof & Robin Wolferink'
 copyright = '2017, ' + author
+
+breathe_projects = {project: "./doxygen-out/xml/"}
+
+breathe_default_project = project
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
