@@ -8,6 +8,7 @@
 #include "astgen/ast.h"
 #include "astgen/check-ast.h"
 #include "astgen/create-ast.h"
+#include "astgen/errors.h"
 #include "astgen/filegen-driver.h"
 #include "astgen/free-ast.h"
 #include "astgen/hash-ast.h"
@@ -56,21 +57,21 @@ static FILE *open_input_file(char *path) {
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
         fprintf(stderr, "%s: cannot open file: %s\n", path, strerror(errno));
-        exit(1);
+        exit(CANNOT_OPEN_FILE);
     }
 
     // Test if file a regular file.
     if (S_ISREG(path_stat.st_mode) != 1) {
         fprintf(stderr, "%s: cannot open file: %s\n", path,
                 "file is not a regular file.");
-        exit(1);
+        exit(CANNOT_OPEN_FILE);
     }
 
     FILE *f = fopen(path, "r");
     if (f == NULL) {
         fprintf(stderr, "%s: cannot open file: %s\n", yy_filename,
                 strerror(errno));
-        exit(1);
+        exit(CANNOT_OPEN_FILE);
     }
 
     return f;
@@ -145,7 +146,7 @@ int main(int argc, char *argv[]) {
 
     if (check_config(parse_result)) {
         fprintf(stderr, "\n\nFound errors\n");
-        exit(1);
+        exit(INVALID_CONFIG);
     }
 
     // Sort to prevent changes in order of attributes trigger regeneration of

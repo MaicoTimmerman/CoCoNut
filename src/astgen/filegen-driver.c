@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 
 #include "astgen/ast.h"
+#include "astgen/errors.h"
 #include "astgen/filegen-util.h"
 
 #include "lib/array.h"
@@ -23,7 +24,7 @@ static FILE *get_fp(char *full_path) {
     FILE *fp = fopen(full_path, "w");
     if (!fp) {
         perror("Opening file failed");
-        exit(-1);
+        exit(CANNOT_OPEN_FILE);
     }
     return fp;
 }
@@ -95,14 +96,14 @@ void filegen_dir(char *out_dir) {
             // out_dir exists but is a file
             if (!d) {
                 perror("Creation failed");
-                exit(1);
+                exit(CANNOT_CREATE_DIR);
             } else {
                 // Directory already exists
                 closedir(d);
             }
         } else {
             perror("Creation failed");
-            exit(1);
+            exit(CANNOT_CREATE_DIR);
         }
     }
 }

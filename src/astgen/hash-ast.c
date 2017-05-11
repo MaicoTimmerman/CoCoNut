@@ -1,4 +1,5 @@
 #include "astgen/hash-ast.h"
+#include "astgen/errors.h"
 #include "astgen/print.h"
 #include "astgen/str-ast.h"
 #include "lib/memory.h"
@@ -33,7 +34,7 @@ static void hash_node(Node *n) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(n->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(n->id, char);
@@ -90,7 +91,7 @@ static void hash_nodeset(Nodeset *nodeset) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(nodeset->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(nodeset->id, char);
@@ -109,7 +110,7 @@ static void hash_traversal(Traversal *trav) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(trav->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(trav->id, char);
@@ -129,7 +130,7 @@ static void hash_phase(Phase *phase) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(phase->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(phase->id, char);
@@ -153,7 +154,7 @@ static void hash_pass(Pass *pass) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(pass->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(pass->id, char);
@@ -168,7 +169,7 @@ static void hash_enum(Enum *e) {
     td = mhash_init(MHASH_MD5);
     if (td == MHASH_FAILED) {
         print_error(e->id, "Error generating hashes.");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     hash(e->id, char);
@@ -194,7 +195,7 @@ void hash_config(Config *c) {
     config_td = mhash_init(MHASH_MD5);
     if (config_td == MHASH_FAILED) {
         fprintf(stderr, "Cannot make config hash.\n");
-        exit(1);
+        exit(HASH_ERROR);
     }
 
     for (int i = 0; i < array_size(c->nodes); ++i) {

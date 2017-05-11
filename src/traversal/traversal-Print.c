@@ -1,3 +1,4 @@
+#include "astgen/errors.h"
 #include "generated/trav-ast.h"
 #include "lib/memory.h"
 #include <stdio.h>
@@ -345,7 +346,7 @@ void Print_Cast(Cast *node, struct Info *info) {
         break;
     default:
         printf("unknown basictype detected!");
-        exit(1);
+        exit(UNKNOWN_BASICTYPE);
     }
     printf("(");
     trav_Cast_expr(node, info);

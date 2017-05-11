@@ -1,0 +1,12 @@
+#pragma once
+
+enum {
+    CANNOT_CREATE_DIR,
+    CANNOT_OPEN_FILE,
+    HASH_ERROR,
+    INVALID_CONFIG,
+    MALLOC_NULL,
+    REGEX_COMPILE_ERROR,
+    SUCCESS,
+    UNKNOWN_BASICTYPE,
+} ErrorCode;

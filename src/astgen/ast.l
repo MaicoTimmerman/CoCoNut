@@ -163,7 +163,10 @@ static inline void check_c_keyword(const char *);
     // Switch to the SAVELINE state to read the whole line first
     yy_push_state(SAVELINE);
 }
-. { printf("Unexpected token found: %s, quit parsing\n", yytext); exit(1); }
+. {
+    printf("Unexpected token found: %s, quit parsing\n", yytext);
+    exit(INVALID_CONFIG);
+}
 %%
 
 static inline void lexer_init(void) {
@@ -179,7 +182,7 @@ static inline void lexer_init(void) {
     int reti = regcomp(&regex, regex_str, 0);
     if (reti) {
         fprintf(stderr, "Could not compile C-keyword regex.\n");
-        exit(1);
+        exit(REGEX_COMPILE_ERROR);
     }
 
     yy_lines = array_init(32);
@@ -196,7 +199,7 @@ static inline void check_c_keyword(const char *str) {
         print_error_at(yylineno, yycolumn, yy_linebuf,
                 "Found C-keyword as identifier, would generate"
                 "incompatible C-code.\n");
-        exit(1);
+        exit(INVALID_CONFIG);
     }
 }
 
@@ -215,5 +218,5 @@ int yywrap() {
 
 void yyerror(const char* s) {
     print_error_at(yylineno, yycolumn, yy_linebuf, "Parse error: %s", s);
-    exit(1);
+    exit(INVALID_CONFIG);
 }

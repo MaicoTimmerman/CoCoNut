@@ -99,3 +99,5 @@ src/astgen/ast.parser.h
 src/astgen/ast.parser.output
 doc/ast.png
 doc/ast.dot
+
+doc/doxygen-out
