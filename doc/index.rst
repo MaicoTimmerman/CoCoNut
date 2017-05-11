@@ -11,6 +11,7 @@ Welcome to CoCoNut's documentation!
    :caption: Contents:
 
    prefix
+   serialization_binary
 
 
 
