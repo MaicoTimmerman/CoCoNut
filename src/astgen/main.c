@@ -164,6 +164,7 @@ int main(int argc, char *argv[]) {
     if (dot_dir) {
         filegen_dir(dot_dir);
         filegen_generate("ast.dot", generate_dot_definition);
+        return 0;
     }
 
     // Generated all the header files.
