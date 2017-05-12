@@ -60,6 +60,8 @@ static void generate_node(Node *node, FILE *fp, bool header) {
             Child *c = array_get(node->children, i);
             if (c->construct) {
                 out("   res->%s = %s;\n", c->id, c->id);
+            } else {
+                out("   res->%s = NULL;\n", c->id);
             }
         }
 
@@ -67,6 +69,64 @@ static void generate_node(Node *node, FILE *fp, bool header) {
             Attr *attr = array_get(node->attrs, i);
             if (attr->construct) {
                 out("   res->%s = %s;\n", attr->id, attr->id);
+            } else {
+                out("   res->%s = ", attr->id);
+                if (attr->default_value) {
+                    switch (attr->default_value->type) {
+                    case AV_string:
+                        out("%s;\n", attr->default_value->value.string_value);
+                        break;
+                    case AV_int:
+                        out("%ld;\n", attr->default_value->value.int_value);
+                        break;
+                    case AV_uint:
+                        out("%lu;\n", attr->default_value->value.uint_value);
+                        break;
+                    case AV_float:
+                        out("%f;\n", attr->default_value->value.float_value);
+                        break;
+                    case AV_double:
+                        out("%f;\n", attr->default_value->value.double_value);
+                        break;
+                    case AV_bool:
+                        out("%s;\n",
+                            attr->default_value->value.bool_value ? "true"
+                                                                  : "false");
+                        break;
+                    case AV_id:
+                        out("NULL; // TODO: fix default value id\n");
+                        break;
+                    }
+                } else {
+                    switch (attr->type) {
+                    case AT_int:
+                    case AT_uint:
+                    case AT_int8:
+                    case AT_int16:
+                    case AT_int32:
+                    case AT_int64:
+                    case AT_uint8:
+                    case AT_uint16:
+                    case AT_uint32:
+                    case AT_uint64:
+                    case AT_enum:
+                        out("0;\n");
+                        break;
+                    case AT_float:
+                    case AT_double:
+                        out("0.0;\n");
+                        break;
+                    case AT_bool:
+                        out("false;\n");
+                        break;
+                    case AT_string:
+                    case AT_link:
+                        out("NULL;\n");
+                        break;
+                    default:
+                        break;
+                    }
+                }
             }
         }
         out("   return res;\n");
