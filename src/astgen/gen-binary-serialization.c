@@ -49,6 +49,26 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
         }
 
         out("\n");
+
+        uint16_t attr_count = 0;
+        for (int j = 0; j < array_size(n->attrs); j++) {
+            Attr *attr = array_get(n->attrs, j);
+            if (!(attr->type == AT_string || attr->type == AT_link)) {
+                attr_count++;
+            }
+        }
+
+        out("    uint16_t attr_count = %d;\n", attr_count);
+
+        for (int j = 0; j < array_size(n->attrs); j++) {
+            Attr *attr = array_get(n->attrs, j);
+            if (attr->type == AT_string || attr->type == AT_link) {
+                out("    if (node->%s != NULL)\n", attr->id);
+                out("        attr_count++;\n");
+            }
+        }
+
+        out("\n");
         out("    WRITE(2, child_count);\n");
         if (array_size(n->children) > 0 || array_size(n->attrs) > 0) {
             out("\n");
@@ -64,8 +84,8 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                 out("        node_index = *((int "
                     "*)imap_retrieve(node_indices, node->%s));\n",
                     c->id);
-                out("        type_index = %d;\n",
-                    *((int *)smap_retrieve(string_pool_indices, c->type)));
+                out("        name_index = %d;\n",
+                    *((int *)smap_retrieve(string_pool_indices, c->id)));
                 out("        WRITE(2, name_index);\n");
                 out("        WRITE(4, node_index);\n");
                 out("    }\n");
@@ -74,6 +94,9 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
             out("\n");
         }
 
+        out("\n");
+
+        out("    WRITE(2, attr_count);\n");
         if (array_size(n->attrs) > 0) {
             out("    uint8_t tag;\n\n");
 
@@ -147,8 +170,8 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                     break;
                 }
 
-                out("%sWRITE(1, tag);\n", indent);
                 out("%sWRITE(2, name_index);\n", indent);
+                out("%sWRITE(1, tag);\n", indent);
 
                 switch (attr->type) {
                 case AT_int:
@@ -487,6 +510,7 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
 
     out("#define WRITE(N, data) do { \\\n"
         "               fwrite(&data, N, 1, fp); \\\n"
+        "               fflush(fp); \\\n"
         "              } while(0)\n\n");
 
     out("static array *string_attrs;\n");
@@ -516,7 +540,7 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
     out("    uint32_t magic = 0xAC1DC0DE;\n");
     out("    WRITE(4, magic);\n\n");
 
-    // T*ODO: generate real AST magic
+    // TODO: generate real AST magic
     out("    // Write AST magic\n");
     out("    uint32_t ast_magic = 0xDEADBEEF;\n");
     out("    WRITE(4, ast_magic);\n\n");
@@ -594,7 +618,6 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
         out("\n");
     }
 
-    out("    printf(\"# nodes: %%d\\n\", node_index_counter);\n");
     out("    WRITE(4, node_index_counter);\n");
 
     out("    gen_node_trav_%s(syntaxtree, fp);\n", root_node_name);

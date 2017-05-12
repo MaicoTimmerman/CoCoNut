@@ -38,6 +38,7 @@ typedef struct {
 } EnumPoolEntry;
 
 typedef struct {
+    uint16_t type_index;
     array *children;
     array *attributes;
 
@@ -87,6 +88,8 @@ typedef struct {
 typedef struct { uint32_t node_index; } Attribute_link_data;
 
 typedef struct {
+    uint16_t name_index;
+
     AttributeType type;
 
     union {

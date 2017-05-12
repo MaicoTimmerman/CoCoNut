@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -43,8 +44,9 @@ static uint8_t read_u1(FILE *fp) {
 
 static char *read_string(FILE *fp) {
     uint16_t length = read_u2(fp);
-    char *result = mem_alloc(length);
+    char *result = mem_alloc(length + 1);
     fread(result, length, 1, fp);
+    result[length] = '\0';
     return result;
 }
 
@@ -69,13 +71,19 @@ static EnumPoolEntry *read_enum_entry(FILE *fp) {
 static Child *read_child(FILE *fp) {
     Child *c = mem_alloc(sizeof(Child));
     c->name_index = read_u2(fp);
-    c->node_index = read_u2(fp);
+    c->node_index = read_u4(fp);
+
+    /* printf("child name = %d node = %d\n", c->name_index, c->node_index); */
     return c;
 }
 
 static Attribute *read_attr(FILE *fp) {
     Attribute *attr = mem_alloc(sizeof(Attribute));
+
+    attr->name_index = read_u2(fp);
+
     uint8_t type = read_u1(fp);
+
     switch (type) {
     case AT_int:
         attr->value.val_int.value = read_int(fp);
@@ -126,7 +134,7 @@ static Attribute *read_attr(FILE *fp) {
         READ(2, fp, attr->value.val_enum.type_index);
         break;
     default:
-        printf("Invalid attribute type: %d\n", type);
+        fprintf(stderr, "Invalid attribute type: %d\n", type);
         mem_free(attr);
         return NULL;
     }
@@ -136,19 +144,30 @@ static Attribute *read_attr(FILE *fp) {
 static Node *read_node(FILE *fp) {
     Node *node = mem_alloc(sizeof(Node));
 
-    uint16_t children_count = read_u2(fp);
-    node->children = array_init(children_count);
+    node->type_index = read_u2(fp);
 
-    for (int i = 0; i < children_count; i++) {
-        Child *c = read_child(fp);
-        array_append(node->children, c);
+    uint16_t children_count = read_u2(fp);
+
+    if (children_count > 0) {
+
+        node->children = array_init(children_count);
+
+        for (int i = 0; i < children_count; i++) {
+            Child *c = read_child(fp);
+            array_append(node->children, c);
+        }
     }
 
     uint16_t attribute_count = read_u2(fp);
-    node->attributes = array_init(attribute_count);
-    for (int i = 0; i < children_count; i++) {
-        Attribute *attr = read_attr(fp);
-        array_append(node->attributes, attr);
+
+    if (attribute_count > 0) {
+
+        node->attributes = array_init(attribute_count);
+
+        for (int i = 0; i < attribute_count; i++) {
+            Attribute *attr = read_attr(fp);
+            array_append(node->attributes, attr);
+        }
     }
 
     return node;
@@ -161,27 +180,62 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
     ast->ast_magic = read_u4(fp);
 
     uint16_t string_pool_count = read_u2(fp);
-    ast->string_pool = array_init(string_pool_count);
 
-    for (int i = 0; i < string_pool_count; i++) {
-        char *str = read_string(fp);
-        array_append(ast->string_pool, str);
-    }
+    if (string_pool_count > 0) {
 
+        ast->string_pool = array_init(string_pool_count);
+
+        printf("String pool:\n");
+        for (int i = 0; i < string_pool_count; i++) {
+            char *str = read_string(fp);
+
+            printf("  %d: %s\n", i, str);
+            array_append(ast->string_pool, str);
+        }
+    } else
+        ast->string_pool = NULL;
+
+    printf("\nEnum pool:\n");
     uint16_t enum_pool_count = read_u2(fp);
-    ast->enum_pool = array_init(enum_pool_count);
 
-    for (int i = 0; i < enum_pool_count; i++) {
-        EnumPoolEntry *e = read_enum_entry(fp);
-        array_append(ast->enum_pool, e);
-    }
+    if (enum_pool_count > 0) {
+
+        ast->enum_pool = array_init(enum_pool_count);
+
+        for (int i = 0; i < enum_pool_count; i++) {
+            EnumPoolEntry *e = read_enum_entry(fp);
+            printf("  enum %s\n",
+                   (char *)array_get(ast->string_pool, e->name_index));
+            array_append(ast->enum_pool, e);
+            printf("    prefix = %s\n",
+                   (char *)array_get(ast->string_pool, e->prefix_index));
+            printf("    values:\n");
+            for (int j = 0; j < array_size(e->values); j++) {
+                printf("      %s\n",
+                       (char *)array_get(ast->string_pool,
+                                         *((int *)array_get(e->values, j))));
+            }
+        }
+
+    } else
+        ast->enum_pool = NULL;
 
     uint32_t node_count = read_u4(fp);
-    ast->nodes = array_init(node_count);
 
-    for (int i = 0; i < node_count; i++) {
-        Node *n = read_node(fp);
-        array_append(ast->nodes, n);
-    }
+    printf("\nNodes:\n");
+    if (node_count > 0) {
+
+        ast->nodes = array_init(node_count);
+
+        for (int i = 0; i < node_count; i++) {
+            Node *n = read_node(fp);
+
+            printf("  %s\n",
+                   (char *)array_get(ast->string_pool, n->type_index));
+
+            array_append(ast->nodes, n);
+        }
+    } else
+        ast->nodes = NULL;
     return ast;
 }

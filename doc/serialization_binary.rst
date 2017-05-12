@@ -72,10 +72,10 @@ Binary serialization format
 .. code-block:: c
 
     attr {
-        u1 type;
-
-        // Name of the child. Index in string pool
+        // Name of the attribute. Index in string pool
         u2 name_index;
+
+        u1 type;
 
         // One of te AT_*_data structs
         u1 data[]
