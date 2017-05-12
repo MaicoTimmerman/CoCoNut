@@ -5,6 +5,7 @@
 
 #include "astgen/ast.h"
 #include "astgen/print.h"
+#include "astgen/errors.h"
 #include "lib/array.h"
 
 #include "ast.parser.h"
