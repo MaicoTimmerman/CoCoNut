@@ -12,7 +12,7 @@ Binary serialization format
         // Magic of the AST specification from which the file was generated
         u4          ast_magic;
 
-        u2          string_pool_count;
+        u4          string_pool_count;
         sp_entry    string_pool[string_pool_count];
         u2          enum_pool_count;
         ep_entry    enum_pool[enum_pool_count];
@@ -36,22 +36,22 @@ Binary serialization format
 
     ep_entry {
         // Index in string pool representing the name
-        u2 name_index;
+        u4 name_index;
 
         // Index in string pool representing the prefix
-        u2 prefix_index;
+        u4 prefix_index;
 
         u2 values_count;
 
         // Indices in string pool representing the values without the prefix
-        u2 values[values_count];
+        u4 values[values_count];
     }
 
 .. code-block:: c
 
     node {
         // Type of node. Index in string pool
-        u2 type_index;
+        u4 type_index;
 
         u2 child_count;
         child children[child_count];
@@ -63,7 +63,7 @@ Binary serialization format
 
     child {
         // Name of the child. Index in string pool
-        u2 name_index;
+        u4 name_index;
 
         // Index in nodes array of the node representing the child
         u4 node_index;
@@ -73,7 +73,7 @@ Binary serialization format
 
     attr {
         // Name of the attribute. Index in string pool
-        u2 name_index;
+        u4 name_index;
 
         u1 type;
 
@@ -212,7 +212,7 @@ where ``N = sizeof(unsigned int)``
 .. code-block:: c
 
     AT_string_data {
-        u2 value_index;
+        u4 value_index;
     }
 
 .. code-block:: c

@@ -37,9 +37,9 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
 
         out("    //  Write index in string pool representing the type of the "
             "node\n");
-        out("    uint16_t type_index = %d;\n",
+        out("    uint32_t type_index = %d;\n",
             *((int *)smap_retrieve(string_pool_indices, n->id)));
-        out("    WRITE(2, type_index);\n\n");
+        out("    WRITE(4, type_index);\n\n");
         out("    uint16_t child_count = 0;\n\n");
 
         for (int j = 0; j < array_size(n->children); j++) {
@@ -72,7 +72,7 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
         out("    WRITE(2, child_count);\n");
         if (array_size(n->children) > 0 || array_size(n->attrs) > 0) {
             out("\n");
-            out("    uint16_t name_index;\n");
+            out("    uint32_t name_index;\n");
         }
 
         if (array_size(n->children) > 0) {
@@ -86,7 +86,7 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                     c->id);
                 out("        name_index = %d;\n",
                     *((int *)smap_retrieve(string_pool_indices, c->id)));
-                out("        WRITE(2, name_index);\n");
+                out("        WRITE(4, name_index);\n");
                 out("        WRITE(4, node_index);\n");
                 out("    }\n");
             }
@@ -170,7 +170,7 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                     break;
                 }
 
-                out("%sWRITE(2, name_index);\n", indent);
+                out("%sWRITE(4, name_index);\n", indent);
                 out("%sWRITE(1, tag);\n", indent);
 
                 switch (attr->type) {
@@ -207,21 +207,21 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                     out("    WRITE(1, node->%s);\n", attr->id);
                     break;
                 case AT_string:
-                    out("        const int value_%s = *((int*) "
+                    out("        const uint32_t value_%s = *((int*) "
                         "smap_retrieve(attrs_index, node->%s));\n",
                         attr->id, attr->id);
-                    out("        WRITE(2, value_%s);\n", attr->id);
+                    out("        WRITE(4, value_%s);\n", attr->id);
                     out("    }\n");
                     break;
                 case AT_link:
-                    out("        const int value_%s = *((int *) "
+                    out("        const uint32_t value_%s = *((int *) "
                         "imap_retrieve(node_indices, node->%s));\n",
                         attr->id, attr->id);
                     out("        WRITE(4, value_%s);\n", attr->id);
                     out("    }\n");
                     break;
                 case AT_enum:
-                    out("    const int value_%s = "
+                    out("    const uint16_t value_%s = "
                         "get_%s_value_index(node->%s);\n",
                         attr->id, attr->type_id, attr->id);
                     out("    WRITE(2, value_%s);\n", attr->id);
@@ -546,7 +546,7 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
     out("    WRITE(4, ast_magic);\n\n");
 
     out("    // Write string pool\n\n");
-    out("    uint16_t string_pool_count = %d;\n\n",
+    out("    uint32_t string_pool_count = %d;\n\n",
         array_size(string_pool_constants));
 
     out("    // Collect string attributes in AST\n");
@@ -554,7 +554,7 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
     out("    string_pool_count += array_size(string_attrs);\n");
 
     out("    // Write string pool count\n");
-    out("    WRITE(2, string_pool_count);\n");
+    out("    WRITE(4, string_pool_count);\n");
 
     out("\n");
     out("    // Write static strings of nodes, nodesets and enums\n");
@@ -591,7 +591,8 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
         array_size(config->enums));
     out("    WRITE(2, enum_pool_count);\n");
 
-    out("    uint16_t name_index, prefix_index, values_count, value_index;\n");
+    out("    uint32_t name_index, prefix_index, value_index;\n");
+    out("    uint16_t values_count;\n");
     out("\n");
 
     for (int i = 0; i < array_size(config->enums); i++) {
@@ -603,8 +604,8 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
             *((int *)smap_retrieve(string_pool_indices, e->prefix)));
         out("    values_count = %d;\n", array_size(e->values));
 
-        out("    WRITE(2, name_index);\n");
-        out("    WRITE(2, prefix_index);\n");
+        out("    WRITE(4, name_index);\n");
+        out("    WRITE(4, prefix_index);\n");
         out("    WRITE(2, values_count);\n");
         out("\n");
 
@@ -613,7 +614,7 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
             out("    // %s\n", value);
             out("    value_index = %d;\n",
                 *((int *)smap_retrieve(string_pool_indices, value)));
-            out("    WRITE(2, value_index);\n");
+            out("    WRITE(4, value_index);\n");
         }
         out("\n");
     }

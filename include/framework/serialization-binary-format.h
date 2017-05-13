@@ -32,21 +32,21 @@ typedef struct {
 } AstBinFile;
 
 typedef struct {
-    uint16_t name_index;
-    uint16_t prefix_index;
+    uint32_t name_index;
+    uint32_t prefix_index;
     array *values;
 } EnumPoolEntry;
 
 typedef struct {
-    uint16_t type_index;
+    uint32_t type_index;
     array *children;
     array *attributes;
 
 } Node;
 
 typedef struct {
-    uint16_t name_index;
-    uint16_t node_index;
+    uint32_t name_index;
+    uint32_t node_index;
 } Child;
 
 typedef struct { int value; } Attribute_int_data;
@@ -79,7 +79,7 @@ typedef struct { uint32_t value_index; } Attribute_string_data;
 
 typedef struct {
     // Index in enum pool
-    uint16_t type_index;
+    uint32_t type_index;
 
     // Index in values array of enum
     uint16_t value_index;
@@ -88,7 +88,7 @@ typedef struct {
 typedef struct { uint32_t node_index; } Attribute_link_data;
 
 typedef struct {
-    uint16_t name_index;
+    uint32_t name_index;
 
     AttributeType type;
 
