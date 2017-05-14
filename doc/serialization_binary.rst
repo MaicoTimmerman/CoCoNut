@@ -6,14 +6,19 @@ Binary serialization format
 .. code-block:: c
 
     AstBinFile {
-        // Magic of the filetype
+        // Magic of the filetype.
         u4          magic;
 
-        // Magic of the AST specification from which the file was generated
-        u4          ast_magic;
+        // Bit array of boolean flags.
+        u2          flags;
+
+        // MD5 Hash of the specification of the root node of the (sub)tree
+        // from which the file was generated
+        u16         hash;
 
         u4          string_pool_count;
         sp_entry    string_pool[string_pool_count];
+
         u2          enum_pool_count;
         ep_entry    enum_pool[enum_pool_count];
 
@@ -23,12 +28,58 @@ Binary serialization format
         // TODO: add checksum?
     }
 
+
+The first entry in the ``nodes`` array is the root node of the (sub)tree.
+
+The ``flags`` array is ordered from left to right.
+The flags have the following meaning:
+
++--------+-------------------------------------------+
+| Index  | Value                                     |
++========+===========================================+
+| 0      | | **Little-endianness**                   |
+|        | | When set, all integers are encoded      |
+|        |   in little-endian format.                |
+|        | | Otherwise, big-endian format is used.   |
++--------+-------------------------------------------+
+| 1      | | Reserved                                |
++--------+-------------------------------------------+
+| 2      | | Reserved                                |
++--------+-------------------------------------------+
+| 3      | | Reserved                                |
++--------+-------------------------------------------+
+| 4      | | Reserved                                |
++--------+-------------------------------------------+
+| 5      | | Reserved                                |
++--------+-------------------------------------------+
+| 6      | | Reserved                                |
++--------+-------------------------------------------+
+| 7      | | Reserved                                |
++--------+-------------------------------------------+
+| 8      | | Reserved                                |
++--------+-------------------------------------------+
+| 9      | | Reserved                                |
++--------+-------------------------------------------+
+| 10     | | Reserved                                |
++--------+-------------------------------------------+
+| 11     | | Reserved                                |
++--------+-------------------------------------------+
+| 12     | | Reserved                                |
++--------+-------------------------------------------+
+| 13     | | Reserved                                |
++--------+-------------------------------------------+
+| 14     | | Reserved                                |
++--------+-------------------------------------------+
+| 15     | | Reserved                                |
++--------+-------------------------------------------+
+
+
 .. code-block:: c
 
     sp_entry {
         u2 length;
 
-        // DISCUSS: ascii or utf-8
+        // utf-8 encoded string
         u1 bytes[length];
     }
 
@@ -87,37 +138,37 @@ Where ``type`` is one of:
 +-----------------+--------+
 | Type            | Value  |
 +=================+========+
-| ``AT_int``      |   1    |
+| ``AT_int``      |   0    |
 +-----------------+--------+
-| ``AT_uint``     |   2    |
+| ``AT_uint``     |   1    |
 +-----------------+--------+
-| ``AT_int8``     |   3    |
+| ``AT_int8``     |   2    |
 +-----------------+--------+
-| ``AT_int16``    |   4    |
+| ``AT_int16``    |   3    |
 +-----------------+--------+
-| ``AT_int32``    |   5    |
+| ``AT_int32``    |   4    |
 +-----------------+--------+
-| ``AT_int64``    |   6    |
+| ``AT_int64``    |   5    |
 +-----------------+--------+
-| ``AT_uint8``    |   7    |
+| ``AT_uint8``    |   6    |
 +-----------------+--------+
-| ``AT_uint16``   |   8    |
+| ``AT_uint16``   |   7    |
 +-----------------+--------+
-| ``AT_uint32``   |   9    |
+| ``AT_uint32``   |   8    |
 +-----------------+--------+
-| ``AT_uint64``   |   10   |
+| ``AT_uint64``   |   9    |
 +-----------------+--------+
-| ``AT_float``    |   11   |
+| ``AT_float``    |   10   |
 +-----------------+--------+
-| ``AT_double``   |   12   |
+| ``AT_double``   |   11   |
 +-----------------+--------+
-| ``AT_bool``     |   13   |
+| ``AT_bool``     |   12   |
 +-----------------+--------+
-| ``AT_string``   |   14   |
+| ``AT_string``   |   13   |
 +-----------------+--------+
-| ``AT_link``     |   15   |
+| ``AT_link``     |   14   |
 +-----------------+--------+
-| ``AT_enum``     |   16   |
+| ``AT_enum``     |   15   |
 +-----------------+--------+
 
 The format of data[] is dependent on the value of type
@@ -125,21 +176,15 @@ The format of data[] is dependent on the value of type
 
 .. code-block:: c
 
-    // DISCUSS: serialization of int and uint depend on host architecture
-
     AT_int_data {
-       sN value;
+       s8 value;
     }
-
-where ``N = sizeof(int)``
 
 .. code-block:: c
 
     AT_uint_data {
-       sN value;
+       s8 value;
     }
-
-where ``N = sizeof(unsigned int)``
 
 .. code-block:: c
 

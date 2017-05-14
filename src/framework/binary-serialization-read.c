@@ -2,12 +2,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "framework/serialization-binary-format.h"
 #include "lib/array.h"
 #include "lib/memory.h"
-
-// TODO: make reading endianess independent
 
 static void read(int N, FILE *fp, void *res) {
     size_t num = fread(res, 1, N, fp);
@@ -185,10 +184,35 @@ static Node *read_node(FILE *fp) {
 }
 
 AstBinFile *serialization_read_binfile(FILE *fp) {
+    uint32_t magic = read_u4(fp);
+
+    const uint32_t magic_correct = FILE_MAGIC;
+    if (memcmp(&magic, &magic_correct, 4) != 0) {
+        fprintf(stderr, "File signature is incorrect.\n");
+        return NULL;
+    }
+
     AstBinFile *ast = mem_alloc(sizeof(AstBinFile));
 
-    ast->magic = read_u4(fp);
-    ast->ast_magic = read_u4(fp);
+    uint8_t flags_l = read_u1(fp);
+    uint8_t flags_r = read_u1(fp);
+    ast->flags = flags_l << 8 | flags_r;
+
+    bool file_endianness = (bool)(ast->flags & AST_LITTLE_ENDIAN);
+
+    if (file_endianness != HOST_LITTLE_ENDIAN) {
+        fprintf(
+            stderr,
+            "Endianness mismatch: host is %s-endian but file is %s-endian\n",
+            HOST_LITTLE_ENDIAN ? "little" : "big",
+            file_endianness ? "little" : "big");
+        mem_free(ast);
+        return NULL;
+    }
+
+    ast->hash = mem_alloc(16 * sizeof(uint8_t));
+
+    read(16, fp, ast->hash);
 
     uint32_t string_pool_count = read_u4(fp);
 
@@ -203,7 +227,6 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
     } else
         ast->string_pool = NULL;
 
-    /* printf("\nEnum pool:\n"); */
     uint16_t enum_pool_count = read_u2(fp);
 
     if (enum_pool_count > 0) {

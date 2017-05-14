@@ -537,13 +537,25 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
     out("    populate_node_indices_trav_%s(syntaxtree);\n\n", root_node_name);
 
     out("    // Write magic\n");
-    out("    uint32_t magic = 0xAC1DC0DE;\n");
+    out("    uint32_t magic = FILE_MAGIC;\n");
     out("    WRITE(4, magic);\n\n");
 
-    // TODO: generate real AST magic
-    out("    // Write AST magic\n");
-    out("    uint32_t ast_magic = 0xDEADBEEF;\n");
-    out("    WRITE(4, ast_magic);\n\n");
+    out("    // Write flags\n");
+    out("    uint16_t flags = 0;\n");
+    out("#ifdef HOST_LITTLE_ENDIAN\n");
+    out("    flags |= AST_LITTLE_ENDIAN;\n");
+    out("#endif\n\n");
+    out("    const uint8_t flags_l = flags >> 8;\n");
+    out("    const uint8_t flags_r = flags & ((1 << 8) - 1);\n");
+
+    out("    WRITE(1, flags_l);\n");
+    out("    WRITE(1, flags_r);\n\n");
+
+    // TODO: generate real AST hash
+    out("    // Write AST hash\n");
+    out("    uint8_t ast_hash[16] = "
+        "{1,2,3,4,5,6,7,8,9,10,0xA,0xB,0xC,0xD,0xE,0xF};\n");
+    out("    WRITE(16, ast_hash);\n\n");
 
     out("    // Write string pool\n\n");
     out("    uint32_t string_pool_count = %d;\n\n",
