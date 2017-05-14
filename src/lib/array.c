@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,6 +16,8 @@ array *create_array(void) {
 }
 
 struct array *array_init(long initial_capacity) {
+    assert(initial_capacity > 0);
+
     struct array *a = mem_alloc(sizeof(struct array));
     a->data = (void **)mem_alloc(initial_capacity * sizeof(void *));
     a->size = 0;

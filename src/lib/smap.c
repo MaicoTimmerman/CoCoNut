@@ -87,6 +87,7 @@ void *smap_retrieve(smap_t *t, char *key) {
 
 void smap_map(smap_t *t, void *(f)(char *, void *)) {
     for (int i = 0; i < t->size; i++)
-        for (smap_entry_t *last = t->slots[i]; last; last = last->next)
-            f(last->key, last->value);
+        for (smap_entry_t *last = t->slots[i]; last; last = last->next) {
+            last->value = f(last->key, last->value);
+        }
 }
