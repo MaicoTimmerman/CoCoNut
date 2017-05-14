@@ -174,13 +174,6 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                 out("%sWRITE(1, tag);\n", indent);
 
                 switch (attr->type) {
-                case AT_int:
-                    out("    WRITE(sizeof(int), node->%s);\n", attr->id);
-                    break;
-                case AT_uint:
-                    out("    WRITE(sizeof(unsigned int), node->%s);\n",
-                        attr->id);
-                    break;
                 case AT_int8:
                 case AT_uint8:
                     out("    WRITE(1, node->%s);\n", attr->id);
@@ -193,6 +186,8 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
                 case AT_uint32:
                     out("    WRITE(4, node->%s);\n", attr->id);
                     break;
+                case AT_int:
+                case AT_uint:
                 case AT_int64:
                 case AT_uint64:
                     out("    WRITE(8, node->%s);\n", attr->id);
@@ -261,6 +256,8 @@ static void generate_node_gen_traversal(Config *config, FILE *fp) {
 }
 
 static void generate_string_traversals(Config *config, FILE *fp) {
+    // Generates a traversal to find all string attribute values
+
     // Generate declarations
     for (int i = 0; i < array_size(config->nodes); i++) {
         Node *n = array_get(config->nodes, i);
@@ -315,6 +312,8 @@ static void generate_string_traversals(Config *config, FILE *fp) {
 }
 
 static void populate_static_string_pool(Config *config) {
+    // Fills a list of strings that will always be present in the string pool
+
     string_pool_indices = smap_init(32);
     string_pool_constants = array_init(32);
 
@@ -400,6 +399,7 @@ static void populate_static_string_pool(Config *config) {
 }
 
 static void generate_enum_to_index_table(Config *config, FILE *fp) {
+    // Generates functions to map enum values to their index
 
     for (int i = 0; i < array_size(config->enums); i++) {
         Enum *e = array_get(config->enums, i);
@@ -419,7 +419,9 @@ static void generate_enum_to_index_table(Config *config, FILE *fp) {
 }
 
 static void generate_populate_node_index_map(Config *config, FILE *fp) {
+    // Generates a traversal to add all nodes with their indices to a hashtable
 
+    // Generate forward declarations
     for (int i = 0; i < array_size(config->nodes); i++) {
         Node *n = array_get(config->nodes, i);
         out("static void populate_node_indices_trav_%s(%s *node);\n", n->id,
@@ -434,6 +436,7 @@ static void generate_populate_node_index_map(Config *config, FILE *fp) {
 
     out("\n");
 
+    // Generate definitions
     for (int i = 0; i < array_size(config->nodes); i++) {
         Node *n = array_get(config->nodes, i);
         out("static void populate_node_indices_trav_%s(%s *node) {\n", n->id,
@@ -491,51 +494,8 @@ static void *free_int_index_int(void *key, void *value) {
     return NULL;
 }
 
-void generate_binary_serialization_definitions(Config *config, FILE *fp) {
-    char *root_node_name =
-        config->root_node ? config->root_node->id : config->root_nodeset->id;
-
-    populate_static_string_pool(config);
-
-    out("#include <stdio.h>\n");
-    out("#include <stdint.h>\n");
-    out("#include <string.h>\n");
-    out("#include \"generated/ast.h\"\n");
-    out("#include \"framework/serialization-binary-format.h\"\n");
-    out("#include \"lib/array.h\"\n");
-    out("#include \"lib/smap.h\"\n");
-    out("#include \"lib/imap.h\"\n");
-    out("#include \"lib/memory.h\"\n");
-    out("\n");
-
-    out("#define WRITE(N, data) do { \\\n"
-        "               fwrite(&data, N, 1, fp); \\\n"
-        "               fflush(fp); \\\n"
-        "              } while(0)\n\n");
-
-    out("static array *string_attrs;\n");
-    out("static smap_t *attrs_index;\n\n");
-    out("static imap_t *node_indices;\n");
-    out("static int node_index_counter = 0;\n");
-    out("\n");
-
-    generate_enum_to_index_table(config, fp);
-
-    generate_string_traversals(config, fp);
-
-    generate_node_gen_traversal(config, fp);
-
-    generate_populate_node_index_map(config, fp);
-
-    out("void serialization_write_binfile(%s *syntaxtree, FILE *fp) {\n",
-        root_node_name);
-
-    out("    string_attrs = array_init(32);\n");
-    out("    attrs_index = smap_init(32);\n");
-    out("    node_indices = imap_init(32);\n\n");
-
-    out("    populate_node_indices_trav_%s(syntaxtree);\n\n", root_node_name);
-
+static void generate_util_functions(Config *config, FILE *fp) {
+    out("static void write_file_header(FILE *fp) {\n");
     out("    // Write magic\n");
     out("    uint32_t magic = FILE_MAGIC;\n");
     out("    WRITE(4, magic);\n\n");
@@ -550,25 +510,9 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
 
     out("    WRITE(1, flags_l);\n");
     out("    WRITE(1, flags_r);\n\n");
+    out("}\n\n");
 
-    // TODO: generate real AST hash
-    out("    // Write AST hash\n");
-    out("    uint8_t ast_hash[16] = "
-        "{1,2,3,4,5,6,7,8,9,10,0xA,0xB,0xC,0xD,0xE,0xF};\n");
-    out("    WRITE(16, ast_hash);\n\n");
-
-    out("    // Write string pool\n\n");
-    out("    uint32_t string_pool_count = %d;\n\n",
-        array_size(string_pool_constants));
-
-    out("    // Collect string attributes in AST\n");
-    out("    attr_string_trav_%s(syntaxtree);\n", root_node_name);
-    out("    string_pool_count += array_size(string_attrs);\n");
-
-    out("    // Write string pool count\n");
-    out("    WRITE(4, string_pool_count);\n");
-
-    out("\n");
+    out("static void write_static_string_pool(FILE *fp) {\n");
     out("    // Write static strings of nodes, nodesets and enums\n");
     out("    char *string;\n");
     out("    uint16_t string_length;\n");
@@ -580,25 +524,9 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
         out("    WRITE(2, string_length);\n");
         out("    fwrite(string, string_length, 1, fp);\n");
     }
-    out("\n");
-    out("    // Write string attributes\n");
-    out("    for (int i = 0; i < array_size(string_attrs); i++) {\n");
-    out("        string = array_get(string_attrs, i);\n");
-    out("        int *index = mem_alloc(sizeof(int));\n");
-    out("        *index = %d + i;\n", array_size(string_pool_constants));
-    out("\n");
-    out("        smap_insert(attrs_index, string, index);\n");
-    out("        string_length = strnlen(string, UINT16_MAX);\n");
-    out("        WRITE(2, string_length);\n");
-    out("        fwrite(string, string_length, 1, fp);\n");
-    out("        index++;\n");
+    out("}\n\n");
 
-    out("    }\n");
-
-    out("    array_cleanup(string_attrs, NULL);\n");
-    out("\n");
-
-    out("    // Write enum pool\n");
+    out("static void write_enum_pool(FILE *fp) {\n");
     out("    const uint16_t enum_pool_count = %d;\n",
         array_size(config->enums));
     out("    WRITE(2, enum_pool_count);\n");
@@ -630,11 +558,119 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
         }
         out("\n");
     }
+    out("}\n\n");
 
+    out("static void *free_int_index_string(char *key, void *value) {\n");
+    out("    printf(\"Free %%p\\n\", value);\n");
+    out("    mem_free(value);\n");
+    out("    return NULL;\n");
+    out("}\n\n");
+}
+
+static void generate_serialization_function_node(Node *n) {}
+
+void generate_binary_serialization_definitions(Config *config, FILE *fp) {
+    char *root_node_name =
+        config->root_node ? config->root_node->id : config->root_nodeset->id;
+
+    populate_static_string_pool(config);
+
+    out("#include <stdio.h>\n");
+    out("#include <stdint.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"generated/ast.h\"\n");
+    out("#include \"framework/serialization-binary-format.h\"\n");
+    out("#include \"lib/array.h\"\n");
+    out("#include \"lib/smap.h\"\n");
+    out("#include \"lib/imap.h\"\n");
+    out("#include \"lib/memory.h\"\n");
+    out("\n");
+
+    out("#define WRITE(N, data) do { \\\n"
+        "               fwrite(&data, N, 1, fp); \\\n"
+        "               fflush(fp); \\\n"
+        "              } while(0)\n\n");
+
+    out("#define STRING_POOL_STATIC_SIZE %d\n\n",
+        array_size(string_pool_constants));
+
+    out("static array *string_attrs;\n");
+    out("static smap_t *attrs_index;\n\n");
+    out("static imap_t *node_indices;\n");
+    out("static int node_index_counter = 0;\n");
+    out("\n");
+
+    generate_enum_to_index_table(config, fp);
+
+    generate_string_traversals(config, fp);
+
+    generate_node_gen_traversal(config, fp);
+
+    generate_populate_node_index_map(config, fp);
+
+    generate_util_functions(config, fp);
+
+    out("void serialization_write_binfile(%s *syntaxtree, FILE *fp) {\n",
+        root_node_name);
+
+    out("    string_attrs = array_init(32);\n");
+    out("    attrs_index = smap_init(32);\n");
+    out("    node_indices = imap_init(32);\n\n");
+
+    out("    populate_node_indices_trav_%s(syntaxtree);\n\n", root_node_name);
+
+    out("    write_file_header(fp);\n\n");
+
+    // TODO: generate real AST hash
+    out("    // Write AST hash\n");
+    out("    uint8_t ast_hash[16] = "
+        "{1,2,3,4,5,6,7,8,9,10,0xA,0xB,0xC,0xD,0xE,0xF};\n");
+    out("    WRITE(16, ast_hash);\n\n");
+
+    out("    // Write string pool\n");
+    out("    uint32_t string_pool_count = STRING_POOL_STATIC_SIZE;\n\n");
+
+    out("    // Collect string attributes in AST\n");
+    out("    attr_string_trav_%s(syntaxtree);\n", root_node_name);
+    out("    string_pool_count += array_size(string_attrs);\n");
+
+    out("    // Write string pool count\n");
+    out("    WRITE(4, string_pool_count);\n");
+    out("    write_static_string_pool(fp);\n\n");
+
+    // TODO: fix multiple strings with same value; Gives memory leak
+    out("    // Write string attributes\n");
+    out("    char *string;\n");
+    out("    uint16_t string_length;\n");
+    out("    for (int i = 0; i < array_size(string_attrs); i++) {\n");
+    out("        string = array_get(string_attrs, i);\n");
+    out("        printf(\"%%s\\n\", string);\n");
+    /* out("        if (smap_retrieve(attrs_index, string) != NULL)\n"); */
+    /* out("            continue;\n\n"); */
+    out("        int *index = mem_alloc(sizeof(int));\n");
+    out("        printf(\"Alloced %%p\\n\", index);\n");
+    out("        *index = STRING_POOL_STATIC_SIZE + i;\n");
+    out("\n");
+    out("        smap_insert(attrs_index, string, index);\n");
+    out("        string_length = strnlen(string, UINT16_MAX);\n");
+    out("        WRITE(2, string_length);\n");
+    out("        fwrite(string, string_length, 1, fp);\n");
+    out("        index++;\n");
+
+    out("    }\n");
+
+    out("    array_cleanup(string_attrs, NULL);\n");
+    out("\n");
+
+    out("    // Write enum pool\n");
+    out("    write_enum_pool(fp);\n\n");
+
+    out("    // Write nodes\n");
     out("    WRITE(4, node_index_counter);\n");
+    out("    gen_node_trav_%s(syntaxtree, fp);\n\n", root_node_name);
 
-    out("    gen_node_trav_%s(syntaxtree, fp);\n", root_node_name);
-
+    out("    // Cleanup\n");
+    out("    smap_map(attrs_index, free_int_index_string);\n");
     out("    smap_free(attrs_index);\n");
 
     out("}\n");

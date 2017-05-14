@@ -78,9 +78,9 @@ typedef struct {
     uint32_t node_index;
 } Child;
 
-typedef struct { int value; } Attribute_int_data;
+typedef struct { int64_t value; } Attribute_int_data;
 
-typedef struct { unsigned int value; } Attribute_uint_data;
+typedef struct { uint64_t value; } Attribute_uint_data;
 
 typedef struct { int8_t value; } Attribute_int8_data;
 

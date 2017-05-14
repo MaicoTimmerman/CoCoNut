@@ -26,18 +26,6 @@ static void read(int N, FILE *fp, void *res) {
     }
 }
 
-static int read_int(FILE *fp) {
-    int res = 0;
-    fread(&res, sizeof(int), 1, fp);
-    return res;
-}
-
-static unsigned int read_uint(FILE *fp) {
-    unsigned int res = 0;
-    fread(&res, sizeof(unsigned int), 1, fp);
-    return res;
-}
-
 static uint32_t read_u4(FILE *fp) {
     uint32_t res = 0;
     fread(&res, 4, 1, fp);
@@ -96,10 +84,10 @@ static Attribute *read_attr(FILE *fp) {
 
     switch (type) {
     case AT_int:
-        attr->value.val_int.value = read_int(fp);
+        read(8, fp, &(attr->value.val_int.value));
         break;
     case AT_uint:
-        attr->value.val_uint.value = read_uint(fp);
+        read(8, fp, &(attr->value.val_uint.value));
         break;
     case AT_int8:
         read(1, fp, &(attr->value.val_int8.value));
