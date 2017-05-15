@@ -28,6 +28,9 @@
 // Prefix of functions of the phasedriver
 #define PHASEDRIVER_PREFIX          "phasedriver_"
 
+// Prefix of serialization functions
+#define SERIALIZATION_PREFIX        "serialization_"
+
 // ******************** Names of enum types ********************
 
 // Name of the enum type containing all nodes and nodesets
@@ -95,3 +98,10 @@
 // Formats of entry function of a pass
 // arg1 = pass identifier
 #define PASS_ENTRY_FORMAT           PASS_PREFIX "%s_entry"
+
+// Formats for serialization functions
+// arg1 = node/nodeset identifier
+#define SERIALIZE_WRITE_BIN_FORMAT  SERIALIZATION_PREFIX "write_binfile_%s"
+#define SERIALIZE_READ_BIN_FORMAT   SERIALIZATION_PREFIX "read_binfile_%s"
+#define SERIALIZE_WRITE_TXT_FORMAT  SERIALIZATION_PREFIX "write_txtfile_%s"
+#define SERIALIZE_READ_TXT_FORMAT   SERIALIZATION_PREFIX "read_txtfile_%s"

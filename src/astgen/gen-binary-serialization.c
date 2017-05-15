@@ -14,301 +14,273 @@
 static smap_t *string_pool_indices;
 static array *string_pool_constants;
 
-static void generate_node_gen_traversal(Config *config, FILE *fp) {
-    // Generate declarations
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void gen_node_trav_%s(%s *node, FILE *fp);\n", n->id,
-            n->id);
+static void generate_node_gen_traversal(Node *node, FILE *fp) {
+
+    out("void _serialization_gen_node_%s(%s *node, FILE *fp) {\n", node->id,
+        node->id);
+    out("    if (node == NULL) return;\n\n");
+
+    out("    //  Write index in string pool representing the type of the "
+        "node\n");
+    out("    uint32_t type_index = %d;\n",
+        *((int *)smap_retrieve(string_pool_indices, node->id)));
+    out("    WRITE(4, type_index);\n\n");
+    out("    uint16_t child_count = 0;\n\n");
+
+    for (int j = 0; j < array_size(node->children); j++) {
+        Child *c = array_get(node->children, j);
+        out("    if (node->%s != NULL)\n", c->id);
+        out("        child_count++;\n");
     }
 
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void gen_node_trav_%s(%s *nodeset, FILE *fp);\n", n->id,
-            n->id);
-    }
     out("\n");
 
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void gen_node_trav_%s(%s *node, FILE *fp) {\n", n->id,
-            n->id);
-        out("    if (node == NULL) return;\n\n");
+    uint16_t attr_count = 0;
+    for (int j = 0; j < array_size(node->attrs); j++) {
+        Attr *attr = array_get(node->attrs, j);
+        if (!(attr->type == AT_string || attr->type == AT_link)) {
+            attr_count++;
+        }
+    }
 
-        out("    //  Write index in string pool representing the type of the "
-            "node\n");
-        out("    uint32_t type_index = %d;\n",
-            *((int *)smap_retrieve(string_pool_indices, n->id)));
-        out("    WRITE(4, type_index);\n\n");
-        out("    uint16_t child_count = 0;\n\n");
+    out("    uint16_t attr_count = %d;\n", attr_count);
 
-        for (int j = 0; j < array_size(n->children); j++) {
-            Child *c = array_get(n->children, j);
-            out("    if (node->%s != NULL)\n", c->id);
-            out("        child_count++;\n");
+    for (int j = 0; j < array_size(node->attrs); j++) {
+        Attr *attr = array_get(node->attrs, j);
+        if (attr->type == AT_string || attr->type == AT_link) {
+            out("    if (node->%s != NULL)\n", attr->id);
+            out("        attr_count++;\n");
+        }
+    }
+
+    out("\n");
+    out("    WRITE(2, child_count);\n");
+    if (array_size(node->children) > 0 || array_size(node->attrs) > 0) {
+        out("\n");
+        out("    uint32_t name_index;\n");
+    }
+
+    if (array_size(node->children) > 0) {
+        out("    uint32_t node_index;\n\n");
+
+        for (int j = 0; j < array_size(node->children); j++) {
+            Child *c = array_get(node->children, j);
+            out("    if (node->%s != NULL) {\n", c->id);
+            out("        node_index = *((int "
+                "*)imap_retrieve(node_indices, node->%s));\n",
+                c->id);
+            out("        name_index = %d;\n",
+                *((int *)smap_retrieve(string_pool_indices, c->id)));
+            out("        WRITE(4, name_index);\n");
+            out("        WRITE(4, node_index);\n");
+            out("    }\n");
         }
 
         out("\n");
+    }
 
-        uint16_t attr_count = 0;
-        for (int j = 0; j < array_size(n->attrs); j++) {
-            Attr *attr = array_get(n->attrs, j);
-            if (!(attr->type == AT_string || attr->type == AT_link)) {
-                attr_count++;
-            }
-        }
+    out("\n");
 
-        out("    uint16_t attr_count = %d;\n", attr_count);
+    out("    WRITE(2, attr_count);\n");
+    if (array_size(node->attrs) > 0) {
+        out("    uint8_t tag;\n\n");
 
-        for (int j = 0; j < array_size(n->attrs); j++) {
-            Attr *attr = array_get(n->attrs, j);
+        for (int j = 0; j < array_size(node->attrs); j++) {
+            Attr *attr = array_get(node->attrs, j);
+
+            out("    // Attribute %s\n", attr->id);
+
+            const char *indent = "    ";
+
             if (attr->type == AT_string || attr->type == AT_link) {
-                out("    if (node->%s != NULL)\n", attr->id);
-                out("        attr_count++;\n");
+                indent = "        ";
+                out("    if (node->%s != NULL) {\n", attr->id);
             }
-        }
 
-        out("\n");
-        out("    WRITE(2, child_count);\n");
-        if (array_size(n->children) > 0 || array_size(n->attrs) > 0) {
-            out("\n");
-            out("    uint32_t name_index;\n");
-        }
+            out("%sname_index = %d;\n", indent,
+                *((int *)smap_retrieve(string_pool_indices, attr->id)));
 
-        if (array_size(n->children) > 0) {
-            out("    uint32_t node_index;\n\n");
+            switch (attr->type) {
+            case AT_int:
+                out("    tag = AT_int;\n");
+                break;
+            case AT_uint:
+                out("    tag = AT_uint;\n");
+                break;
+            case AT_int8:
+                out("    tag = AT_int8;\n");
+                break;
+            case AT_int16:
+                out("    tag = AT_int16;\n");
+                break;
+            case AT_int32:
+                out("    tag = AT_int32;\n");
+                break;
+            case AT_int64:
+                out("    tag = AT_int64;\n");
+                break;
+            case AT_uint8:
+                out("    tag = AT_uint8;\n");
+                break;
+            case AT_uint16:
+                out("    tag = AT_uint16;\n");
+                break;
+            case AT_uint32:
+                out("    tag = AT_uint32;\n");
+                break;
+            case AT_uint64:
+                out("    tag = AT_uint64;\n");
+                break;
+            case AT_float:
+                out("    tag = AT_float;\n");
+                break;
+            case AT_double:
+                out("    tag = AT_double;\n");
+                break;
+            case AT_bool:
+                out("    tag = AT_bool;\n");
+                break;
+            case AT_string:
+                out("        tag = AT_string;\n");
+                break;
+            case AT_link:
+                out("        tag = AT_link;\n");
+                break;
+            case AT_enum:
+                out("    tag = AT_enum;\n");
+                break;
+            default:
+                fprintf(stderr, "%s:%s:%d: Invalid attribute type: %d",
+                        __FILE__, __func__, __LINE__, attr->type);
+                break;
+            }
 
-            for (int j = 0; j < array_size(n->children); j++) {
-                Child *c = array_get(n->children, j);
-                out("    if (node->%s != NULL) {\n", c->id);
-                out("        node_index = *((int "
-                    "*)imap_retrieve(node_indices, node->%s));\n",
-                    c->id);
-                out("        name_index = %d;\n",
-                    *((int *)smap_retrieve(string_pool_indices, c->id)));
-                out("        WRITE(4, name_index);\n");
-                out("        WRITE(4, node_index);\n");
+            out("%sWRITE(4, name_index);\n", indent);
+            out("%sWRITE(1, tag);\n", indent);
+
+            switch (attr->type) {
+            case AT_int8:
+            case AT_uint8:
+                out("    WRITE(1, node->%s);\n", attr->id);
+                break;
+            case AT_int16:
+            case AT_uint16:
+                out("    WRITE(2, node->%s);\n", attr->id);
+                break;
+            case AT_int32:
+            case AT_uint32:
+                out("    WRITE(4, node->%s);\n", attr->id);
+                break;
+            case AT_int:
+            case AT_uint:
+            case AT_int64:
+            case AT_uint64:
+                out("    WRITE(8, node->%s);\n", attr->id);
+                break;
+            case AT_float:
+                out("    WRITE(sizeof(float), node->%s);\n", attr->id);
+                break;
+            case AT_double:
+                out("    WRITE(sizeof(double), node->%s);\n", attr->id);
+                break;
+            case AT_bool:
+                out("    WRITE(1, node->%s);\n", attr->id);
+                break;
+            case AT_string:
+                out("        const uint32_t value_%s = *((int*) "
+                    "smap_retrieve(attrs_index, node->%s));\n",
+                    attr->id, attr->id);
+                out("        WRITE(4, value_%s);\n", attr->id);
                 out("    }\n");
-            }
-
-            out("\n");
-        }
-
-        out("\n");
-
-        out("    WRITE(2, attr_count);\n");
-        if (array_size(n->attrs) > 0) {
-            out("    uint8_t tag;\n\n");
-
-            for (int j = 0; j < array_size(n->attrs); j++) {
-                Attr *attr = array_get(n->attrs, j);
-
-                out("    // Attribute %s\n", attr->id);
-
-                const char *indent = "    ";
-
-                if (attr->type == AT_string || attr->type == AT_link) {
-                    indent = "        ";
-                    out("    if (node->%s != NULL) {\n", attr->id);
-                }
-
-                out("%sname_index = %d;\n", indent,
-                    *((int *)smap_retrieve(string_pool_indices, attr->id)));
-
-                switch (attr->type) {
-                case AT_int:
-                    out("    tag = AT_int;\n");
-                    break;
-                case AT_uint:
-                    out("    tag = AT_uint;\n");
-                    break;
-                case AT_int8:
-                    out("    tag = AT_int8;\n");
-                    break;
-                case AT_int16:
-                    out("    tag = AT_int16;\n");
-                    break;
-                case AT_int32:
-                    out("    tag = AT_int32;\n");
-                    break;
-                case AT_int64:
-                    out("    tag = AT_int64;\n");
-                    break;
-                case AT_uint8:
-                    out("    tag = AT_uint8;\n");
-                    break;
-                case AT_uint16:
-                    out("    tag = AT_uint16;\n");
-                    break;
-                case AT_uint32:
-                    out("    tag = AT_uint32;\n");
-                    break;
-                case AT_uint64:
-                    out("    tag = AT_uint64;\n");
-                    break;
-                case AT_float:
-                    out("    tag = AT_float;\n");
-                    break;
-                case AT_double:
-                    out("    tag = AT_double;\n");
-                    break;
-                case AT_bool:
-                    out("    tag = AT_bool;\n");
-                    break;
-                case AT_string:
-                    out("        tag = AT_string;\n");
-                    break;
-                case AT_link:
-                    out("        tag = AT_link;\n");
-                    break;
-                case AT_enum:
-                    out("    tag = AT_enum;\n");
-                    break;
-                default:
-                    fprintf(stderr, "%s:%s:%d: Invalid attribute type: %d",
-                            __FILE__, __func__, __LINE__, attr->type);
-                    break;
-                }
-
-                out("%sWRITE(4, name_index);\n", indent);
-                out("%sWRITE(1, tag);\n", indent);
-
-                switch (attr->type) {
-                case AT_int8:
-                case AT_uint8:
-                    out("    WRITE(1, node->%s);\n", attr->id);
-                    break;
-                case AT_int16:
-                case AT_uint16:
-                    out("    WRITE(2, node->%s);\n", attr->id);
-                    break;
-                case AT_int32:
-                case AT_uint32:
-                    out("    WRITE(4, node->%s);\n", attr->id);
-                    break;
-                case AT_int:
-                case AT_uint:
-                case AT_int64:
-                case AT_uint64:
-                    out("    WRITE(8, node->%s);\n", attr->id);
-                    break;
-                case AT_float:
-                    out("    WRITE(sizeof(float), node->%s);\n", attr->id);
-                    break;
-                case AT_double:
-                    out("    WRITE(sizeof(double), node->%s);\n", attr->id);
-                    break;
-                case AT_bool:
-                    out("    WRITE(1, node->%s);\n", attr->id);
-                    break;
-                case AT_string:
-                    out("        const uint32_t value_%s = *((int*) "
-                        "smap_retrieve(attrs_index, node->%s));\n",
-                        attr->id, attr->id);
-                    out("        WRITE(4, value_%s);\n", attr->id);
-                    out("    }\n");
-                    break;
-                case AT_link:
-                    out("        const uint32_t value_%s = *((int *) "
-                        "imap_retrieve(node_indices, node->%s));\n",
-                        attr->id, attr->id);
-                    out("        WRITE(4, value_%s);\n", attr->id);
-                    out("    }\n");
-                    break;
-                case AT_enum:
-                    out("    const uint16_t value_%s = "
-                        "get_%s_value_index(node->%s);\n",
-                        attr->id, attr->type_id, attr->id);
-                    out("    WRITE(2, value_%s);\n", attr->id);
-                    break;
-                default:
-                    break;
-                }
+                break;
+            case AT_link:
+                out("        const uint32_t value_%s = *((int *) "
+                    "imap_retrieve(node_indices, node->%s));\n",
+                    attr->id, attr->id);
+                out("        WRITE(4, value_%s);\n", attr->id);
+                out("    }\n");
+                break;
+            case AT_enum:
+                out("    const uint16_t value_%s = "
+                    "_serialization_enum_get_%s_value_index(node->%s);\n",
+                    attr->id, attr->type_id, attr->id);
+                out("    WRITE(2, value_%s);\n", attr->id);
+                break;
+            default:
+                break;
             }
         }
-
-        for (int j = 0; j < array_size(n->children); j++) {
-            Child *c = array_get(n->children, j);
-            out("    gen_node_trav_%s(node->%s, fp);\n", c->type, c->id);
-        }
-
-        out("}\n\n");
     }
 
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void gen_node_trav_%s(%s *nodeset, FILE *fp) {\n", n->id,
-            n->id);
-        out("    if (nodeset == NULL) return;\n\n");
-        out("    switch (nodeset->type) {\n");
-
-        for (int j = 0; j < array_size(n->nodes); j++) {
-            Node *child_node = array_get(n->nodes, j);
-            out("    case " NS_FORMAT ":\n", n->id, child_node->id);
-            out("        gen_node_trav_%s(nodeset->value.val_%s, fp);\n",
-                child_node->id, child_node->id);
-            out("        break;\n");
-        }
-
-        out("    }\n");
-        out("}\n\n");
+    for (int j = 0; j < array_size(node->children); j++) {
+        Child *c = array_get(node->children, j);
+        out("    _serialization_gen_node_%s(node->%s, fp);\n", c->type, c->id);
     }
+
+    out("}\n\n");
 }
 
-static void generate_string_traversals(Config *config, FILE *fp) {
-    // Generates a traversal to find all string attribute values
+static void generate_nodeset_gen_traversal(Nodeset *nodeset, FILE *fp) {
 
-    // Generate declarations
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void attr_string_trav_%s(%s *node);\n", n->id, n->id);
+    out("void _serialization_gen_node_%s(%s *nodeset, FILE *fp) {\n",
+        nodeset->id, nodeset->id);
+    out("    if (nodeset == NULL) return;\n\n");
+    out("    switch (nodeset->type) {\n");
+
+    for (int j = 0; j < array_size(nodeset->nodes); j++) {
+        Node *child_node = array_get(nodeset->nodes, j);
+        out("    case " NS_FORMAT ":\n", nodeset->id, child_node->id);
+        out("        _serialization_gen_node_%s(nodeset->value.val_%s, fp);\n",
+            child_node->id, child_node->id);
+        out("        break;\n");
     }
 
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void attr_string_trav_%s(%s *nodeset);\n", n->id, n->id);
-    }
-    out("\n");
+    out("    }\n");
+    out("}\n\n");
+}
 
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void attr_string_trav_%s(%s *node) {\n", n->id, n->id);
-        out("    if (node == NULL) return;\n");
-        for (int j = 0; j < array_size(n->attrs); j++) {
-            Attr *attr = array_get(n->attrs, j);
+static void generate_string_traversal_handler(Config *config, FILE *fp,
+                                              Node *node) {
 
-            if (attr->type == AT_string) {
-                out("    if (node->%s != NULL)\n", attr->id);
-                out("        array_append(string_attrs, node->%s);\n",
-                    attr->id);
-            }
+    out("void _serialization_attr_string_trav_%s(%s *node) {\n", node->id,
+        node->id);
+    out("    if (node == NULL) return;\n");
+    for (int j = 0; j < array_size(node->attrs); j++) {
+        Attr *attr = array_get(node->attrs, j);
+
+        if (attr->type == AT_string) {
+            out("    if (node->%s != NULL)\n", attr->id);
+            out("        array_append(string_attrs, node->%s);\n", attr->id);
         }
+    }
+    for (int j = 0; j < array_size(node->children); j++) {
 
-        for (int j = 0; j < array_size(n->children); j++) {
-            Child *c = array_get(n->children, j);
-            out("    attr_string_trav_%s(node->%s);\n", c->type, c->id);
-        }
+        Child *c = array_get(node->children, j);
+        out("    _serialization_attr_string_trav_%s(node->%s);\n", c->type,
+            c->id);
+    }
+    out("}\n\n");
+}
 
-        out("}\n\n");
+static void generate_string_traversal_handler_nodeset(Config *config, FILE *fp,
+                                                      Nodeset *nodeset) {
+
+    out("void _serialization_attr_string_trav_%s(%s *nodeset) {\n",
+        nodeset->id, nodeset->id);
+    out("    if (nodeset == NULL) return;\n");
+    out("    switch (nodeset->type) {\n");
+
+    for (int j = 0; j < array_size(nodeset->nodes); j++) {
+        Node *child_node = array_get(nodeset->nodes, j);
+        out("    case " NS_FORMAT ":\n", nodeset->id, child_node->id);
+        out("        "
+            "_serialization_attr_string_trav_%s(nodeset->value.val_%s);\n",
+            child_node->id, child_node->id);
+        out("        break;\n");
     }
 
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void attr_string_trav_%s(%s *nodeset) {\n", n->id, n->id);
-        out("    if (nodeset == NULL) return;\n\n");
-        out("    switch (nodeset->type) {\n");
-
-        for (int j = 0; j < array_size(n->nodes); j++) {
-            Node *child_node = array_get(n->nodes, j);
-            out("    case " NS_FORMAT ":\n", n->id, child_node->id);
-            out("        attr_string_trav_%s(nodeset->value.val_%s);\n",
-                child_node->id, child_node->id);
-            out("        break;\n");
-        }
-
-        out("   }\n");
-        out("}\n\n");
-    }
+    out("    }\n");
+    out("}\n\n");
 }
 
 static void populate_static_string_pool(Config *config) {
@@ -403,7 +375,8 @@ static void generate_enum_to_index_table(Config *config, FILE *fp) {
 
     for (int i = 0; i < array_size(config->enums); i++) {
         Enum *e = array_get(config->enums, i);
-        out("static int get_%s_value_index(%s e) {\n", e->id, e->id);
+        out("int _serialization_enum_get_%s_value_index(%s e) {\n", e->id,
+            e->id);
         out("    switch (e) {\n");
         for (int j = 0; j < array_size(e->values); j++) {
             char *value = array_get(e->values, j);
@@ -418,70 +391,51 @@ static void generate_enum_to_index_table(Config *config, FILE *fp) {
     }
 }
 
-static void generate_populate_node_index_map(Config *config, FILE *fp) {
-    // Generates a traversal to add all nodes with their indices to a hashtable
+static void generate_populate_node_index_map_node(Node *node, FILE *fp) {
 
-    // Generate forward declarations
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void populate_node_indices_trav_%s(%s *node);\n", n->id,
-            n->id);
+    out("void _serialization_populate_node_indices_%s(%s *node) {\n", node->id,
+        node->id);
+
+    out("    if (node == NULL) return;\n\n");
+    out("    int *index = mem_alloc(sizeof(int));\n");
+    out("    *index = node_index_counter++;\n");
+    out("    imap_insert(node_indices, node, index);\n\n");
+
+    for (int j = 0; j < array_size(node->children); j++) {
+        Child *c = array_get(node->children, j);
+        out("    _serialization_populate_node_indices_%s(node->%s);\n",
+            c->type, c->id);
     }
 
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void populate_node_indices_trav_%s(%s *nodeset);\n", n->id,
-            n->id);
+    out("}\n\n");
+}
+
+static void generate_populate_node_index_map_nodeset(Nodeset *nodeset,
+                                                     FILE *fp) {
+    out("void _serialization_populate_node_indices_%s(%s *nodeset) {\n",
+        nodeset->id, nodeset->id);
+    out("    if (nodeset == NULL) return;\n\n");
+
+    out("    // Add the pointer to the nodeset itself with the same index "
+        "as the node\n");
+    out("    int *index = mem_alloc(sizeof(int));\n");
+    out("    *index = node_index_counter;\n");
+    out("    imap_insert(node_indices, nodeset, index);\n\n");
+    out("    switch (nodeset->type) {\n");
+
+    for (int j = 0; j < array_size(nodeset->nodes); j++) {
+        Node *child_node = array_get(nodeset->nodes, j);
+        out("    case " NS_FORMAT ":\n", nodeset->id, child_node->id);
+        out("        "
+            "_serialization_populate_node_indices_%s(nodeset->value.val_%s);"
+            "\n",
+            child_node->id, child_node->id);
+        out("        break;\n");
     }
 
-    out("\n");
+    out("   }\n");
 
-    // Generate definitions
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        out("static void populate_node_indices_trav_%s(%s *node) {\n", n->id,
-            n->id);
-
-        out("    if (node == NULL) return;\n\n");
-        out("    int *index = mem_alloc(sizeof(int));\n");
-        out("    *index = node_index_counter++;\n");
-        out("    imap_insert(node_indices, node, index);\n\n");
-
-        for (int j = 0; j < array_size(n->children); j++) {
-            Child *c = array_get(n->children, j);
-            out("    populate_node_indices_trav_%s(node->%s);\n", c->type,
-                c->id);
-        }
-
-        out("}\n\n");
-    }
-
-    for (int i = 0; i < array_size(config->nodesets); i++) {
-        Nodeset *n = array_get(config->nodesets, i);
-        out("static void populate_node_indices_trav_%s(%s *nodeset) {\n",
-            n->id, n->id);
-        out("    if (nodeset == NULL) return;\n\n");
-
-        out("    // Add the pointer to the nodeset itself with the same index "
-            "as the node\n");
-        out("    int *index = mem_alloc(sizeof(int));\n");
-        out("    *index = node_index_counter;\n");
-        out("    imap_insert(node_indices, nodeset, index);\n\n");
-        out("    switch (nodeset->type) {\n");
-
-        for (int j = 0; j < array_size(n->nodes); j++) {
-            Node *child_node = array_get(n->nodes, j);
-            out("    case " NS_FORMAT ":\n", n->id, child_node->id);
-            out("        "
-                "populate_node_indices_trav_%s(nodeset->value.val_%s);\n",
-                child_node->id, child_node->id);
-            out("        break;\n");
-        }
-
-        out("   }\n");
-
-        out("}\n\n");
-    }
+    out("}\n\n");
 }
 
 static void *free_int_index_string(char *key, void *value) {
@@ -494,8 +448,8 @@ static void *free_int_index_int(void *key, void *value) {
     return NULL;
 }
 
-static void generate_util_functions(Config *config, FILE *fp) {
-    out("static void write_file_header(FILE *fp) {\n");
+static void generate_file_header_write_function(Config *config, FILE *fp) {
+    out("void _serialization_write_file_header(FILE *fp) {\n");
     out("    // Write magic\n");
     out("    uint32_t magic = FILE_MAGIC;\n");
     out("    WRITE(4, magic);\n\n");
@@ -511,8 +465,11 @@ static void generate_util_functions(Config *config, FILE *fp) {
     out("    WRITE(1, flags_l);\n");
     out("    WRITE(1, flags_r);\n\n");
     out("}\n\n");
+}
 
-    out("static void write_static_string_pool(FILE *fp) {\n");
+static void generate_static_string_pool_write_function(Config *config,
+                                                       FILE *fp) {
+    out("void _serialization_write_static_string_pool(FILE *fp) {\n");
     out("    // Write static strings of nodes, nodesets and enums\n");
     out("    char *string;\n");
     out("    uint16_t string_length;\n");
@@ -525,8 +482,11 @@ static void generate_util_functions(Config *config, FILE *fp) {
         out("    fwrite(string, string_length, 1, fp);\n");
     }
     out("}\n\n");
+}
 
-    out("static void write_enum_pool(FILE *fp) {\n");
+static void generate_enum_pool_write_function(Config *config, FILE *fp) {
+
+    out("void _serialization_write_enum_pool(FILE *fp) {\n");
     out("    const uint16_t enum_pool_count = %d;\n",
         array_size(config->enums));
     out("    WRITE(2, enum_pool_count);\n");
@@ -559,25 +519,26 @@ static void generate_util_functions(Config *config, FILE *fp) {
         out("\n");
     }
     out("}\n\n");
-
-    out("static void *free_int_index_string(char *key, void *value) {\n");
-    out("    mem_free(value);\n");
-    out("    return NULL;\n");
-    out("}\n\n");
 }
 
 static void generate_serialization_function_node(Node *n, FILE *fp) {
 
-    out("void serialization_write_binfile_%s(%s *syntaxtree, FILE *fp) {\n",
+    // TODO: put in util
+    out("static void *free_int_index_string(char *key, void *value) {\n");
+    out("    mem_free(value);\n");
+    out("    return NULL;\n");
+    out("}\n\n");
+
+    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, FILE *fp) {\n",
         n->id, n->id);
 
     out("    string_attrs = array_init(32);\n");
     out("    attrs_index = smap_init(32);\n");
     out("    node_indices = imap_init(32);\n\n");
 
-    out("    populate_node_indices_trav_%s(syntaxtree);\n\n", n->id);
+    out("    _serialization_populate_node_indices_%s(syntaxtree);\n\n", n->id);
 
-    out("    write_file_header(fp);\n\n");
+    out("    _serialization_write_file_header(fp);\n\n");
 
     // TODO: generate real AST hash
     out("    // Write AST hash\n");
@@ -589,12 +550,12 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
     out("    uint32_t string_pool_count = STRING_POOL_STATIC_SIZE;\n\n");
 
     out("    // Collect string attributes in AST\n");
-    out("    attr_string_trav_%s(syntaxtree);\n", n->id);
+    out("    _serialization_attr_string_trav_%s(syntaxtree);\n", n->id);
     out("    string_pool_count += array_size(string_attrs);\n");
 
     out("    // Write string pool count\n");
     out("    WRITE(4, string_pool_count);\n");
-    out("    write_static_string_pool(fp);\n\n");
+    out("    _serialization_write_static_string_pool(fp);\n\n");
 
     // TODO: fix multiple strings with same value; Gives memory leak
     out("    // Write string attributes\n");
@@ -619,11 +580,11 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
     out("\n");
 
     out("    // Write enum pool\n");
-    out("    write_enum_pool(fp);\n\n");
+    out("    _serialization_write_enum_pool(fp);\n\n");
 
     out("    // Write nodes\n");
     out("    WRITE(4, node_index_counter);\n");
-    out("    gen_node_trav_%s(syntaxtree, fp);\n\n", n->id);
+    out("    _serialization_gen_node_%s(syntaxtree, fp);\n\n", n->id);
 
     out("    // Cleanup\n");
     out("    smap_map(attrs_index, free_int_index_string);\n");
@@ -632,11 +593,35 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
     out("}\n\n");
 }
 
-void generate_binary_serialization_definitions(Config *config, FILE *fp) {
-    /* char *root_node_name = */
-    /*     config->root_node ? config->root_node->id :
-     * config->root_nodeset->id; */
+static void generate_serialization_function_nodeset(Nodeset *n, FILE *fp) {
 
+    for (int i = 0; i < array_size(n->nodes); i++) {
+        Node *node = array_get(n->nodes, i);
+        out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *, FILE *);\n", node->id,
+            node->id);
+    }
+    out("\n");
+
+    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, FILE *fp) {\n",
+        n->id, n->id);
+
+    out("    switch (syntaxtree->type) {\n");
+
+    for (int i = 0; i < array_size(n->nodes); i++) {
+        Node *node = array_get(n->nodes, i);
+
+        out("    case " NS_FORMAT ":\n", n->id, node->id);
+        out("        " SERIALIZE_WRITE_BIN_FORMAT
+            "(syntaxtree->value.val_%s, fp);\n",
+            node->id, node->id);
+        out("        break;\n");
+    }
+
+    out("    }\n");
+    out("}\n");
+}
+
+void generate_binary_serialization_util(Config *config, FILE *fp) {
     populate_static_string_pool(config);
 
     out("#include <stdio.h>\n");
@@ -658,26 +643,19 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
     out("#define STRING_POOL_STATIC_SIZE %d\n\n",
         array_size(string_pool_constants));
 
-    out("static array *string_attrs;\n");
-    out("static smap_t *attrs_index;\n\n");
-    out("static imap_t *node_indices;\n");
-    out("static int node_index_counter = 0;\n");
+    out("array *string_attrs = NULL;\n");
+    out("smap_t *attrs_index = NULL;\n\n");
+    out("imap_t *node_indices = NULL;\n");
+    out("int node_index_counter = 0;\n");
     out("\n");
+
+    generate_file_header_write_function(config, fp);
 
     generate_enum_to_index_table(config, fp);
 
-    generate_string_traversals(config, fp);
+    generate_static_string_pool_write_function(config, fp);
 
-    generate_node_gen_traversal(config, fp);
-
-    generate_populate_node_index_map(config, fp);
-
-    generate_util_functions(config, fp);
-
-    for (int i = 0; i < array_size(config->nodes); i++) {
-        Node *n = array_get(config->nodes, i);
-        generate_serialization_function_node(n, fp);
-    }
+    generate_enum_pool_write_function(config, fp);
 
     array_cleanup(string_pool_constants, NULL);
     smap_map(string_pool_indices, free_int_index_string);
@@ -685,4 +663,138 @@ void generate_binary_serialization_definitions(Config *config, FILE *fp) {
 
     /* imap_map(node_indices, free_int_index_int); */
     /* imap_free(node_indices); */
+}
+
+void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
+    populate_static_string_pool(config);
+
+    out("#include <stdio.h>\n");
+    out("#include <stdint.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"generated/ast.h\"\n");
+    out("#include \"generated/binary-serialization-util.h\"\n");
+    out("#include \"framework/serialization-binary-format.h\"\n");
+    out("#include \"lib/array.h\"\n");
+    out("#include \"lib/smap.h\"\n");
+    out("#include \"lib/imap.h\"\n");
+    out("#include \"lib/memory.h\"\n");
+    out("\n");
+
+    out("#define WRITE(N, data) do { \\\n"
+        "               fwrite(&data, N, 1, fp); \\\n"
+        "               fflush(fp); \\\n"
+        "              } while(0)\n\n");
+
+    out("#define STRING_POOL_STATIC_SIZE %d\n\n",
+        array_size(string_pool_constants));
+
+    smap_t *node_types = smap_init(32);
+
+    // Generate declarations
+    for (int i = 0; i < array_size(node->children); i++) {
+        Child *c = array_get(node->children, i);
+
+        if (!smap_retrieve(node_types, c->type)) {
+
+            out("void _serialization_attr_string_trav_%s(%s *node);\n",
+                c->type, c->type);
+            out("void _serialization_gen_node_%s(%s *node, FILE *fp);\n",
+                c->type, c->type);
+            out("void _serialization_populate_node_indices_%s(%s *node);\n",
+                c->type, c->type);
+            smap_insert(node_types, c->type, NULL);
+        }
+    }
+
+    out("\n");
+
+    generate_node_gen_traversal(node, fp);
+
+    generate_populate_node_index_map_node(node, fp);
+
+    generate_string_traversal_handler(config, fp, node);
+
+    generate_serialization_function_node(node, fp);
+
+    array_cleanup(string_pool_constants, NULL);
+    smap_map(string_pool_indices, free_int_index_string);
+    smap_free(string_pool_indices);
+
+    /* imap_map(node_indices, free_int_index_int); */
+    /* imap_free(node_indices); */
+}
+
+void generate_binary_serialization_nodeset(Config *config, FILE *fp,
+                                           Nodeset *nodeset) {
+    populate_static_string_pool(config);
+
+    out("#include <stdio.h>\n");
+    out("#include <stdint.h>\n");
+    out("#include <string.h>\n");
+    out("#include \"generated/ast.h\"\n");
+    out("#include \"generated/binary-serialization-util.h\"\n");
+    out("#include \"framework/serialization-binary-format.h\"\n");
+    out("#include \"lib/array.h\"\n");
+    out("#include \"lib/smap.h\"\n");
+    out("#include \"lib/imap.h\"\n");
+    out("#include \"lib/memory.h\"\n");
+    out("\n");
+
+    out("#define WRITE(N, data) do { \\\n"
+        "               fwrite(&data, N, 1, fp); \\\n"
+        "               fflush(fp); \\\n"
+        "              } while(0)\n\n");
+
+    out("#define STRING_POOL_STATIC_SIZE %d\n\n",
+        array_size(string_pool_constants));
+
+    // Generate declarations
+    for (int i = 0; i < array_size(nodeset->nodes); i++) {
+        Node *n = array_get(nodeset->nodes, i);
+        out("void _serialization_attr_string_trav_%s(%s *node);\n", n->id,
+            n->id);
+        out("void _serialization_gen_node_%s(%s *node, FILE *fp);\n", n->id,
+            n->id);
+        out("void _serialization_populate_node_indices_%s(%s *node);\n", n->id,
+            n->id);
+    }
+    out("\n");
+
+    generate_nodeset_gen_traversal(nodeset, fp);
+
+    generate_populate_node_index_map_nodeset(nodeset, fp);
+
+    generate_string_traversal_handler_nodeset(config, fp, nodeset);
+
+    generate_serialization_function_nodeset(nodeset, fp);
+
+    array_cleanup(string_pool_constants, NULL);
+    smap_map(string_pool_indices, free_int_index_string);
+    smap_free(string_pool_indices);
+
+    /* imap_map(node_indices, free_int_index_int); */
+    /* imap_free(node_indices); */
+}
+
+void generate_binary_serialization_util_header(Config *config, FILE *fp) {
+    out("#pragma once\n\n");
+    out("#include \"lib/array.h\"\n");
+    out("#include \"lib/imap.h\"\n");
+    out("#include \"lib/smap.h\"\n");
+    out("\n");
+
+    out("extern array *string_attrs;\n");
+    out("extern smap_t *attrs_index;\n");
+    out("extern imap_t *node_indices;\n");
+    out("extern int node_index_counter;\n");
+    out("\n");
+
+    out("void _serialization_write_file_header(FILE *fp);\n");
+    out("void _serialization_write_enum_pool(FILE *fp);\n");
+    out("void _serialization_write_static_string_pool(FILE *fp);\n");
+
+    for (int i = 0; i < array_size(config->enums); i++) {
+        Enum *e = array_get(config->enums, i);
+        out("int _serialization_enum_get_%s_value_index(%s);\n", e->id, e->id);
+    }
 }

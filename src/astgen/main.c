@@ -195,6 +195,9 @@ int main(int argc, char *argv[]) {
     filegen_all_traversals("traversal-%s.h", generate_user_trav_header);
     filegen_all_passes("pass-%s.h", generate_pass_header);
 
+    filegen_generate("binary-serialization-util.h",
+                     generate_binary_serialization_util_header);
+
     // Genereate all the source files.
     filegen_dir(source_dir);
 
@@ -210,8 +213,14 @@ int main(int argc, char *argv[]) {
     filegen_generate("trav-ast.c", generate_trav_definitions);
     // filegen_generate("consistency-ast.c", generate_consistency_definitions);
     filegen_generate("phase-driver.c", generate_phase_driver_definitions);
-    filegen_generate("binary-serialization-write.c",
-                     generate_binary_serialization_definitions);
+
+    filegen_generate("binary-serialization-util.c",
+                     generate_binary_serialization_util);
+    filegen_all_nodes("binary-serialization-%s.c",
+                      generate_binary_serialization_node);
+
+    filegen_all_nodesets("binary-serialization-%s.c",
+                         generate_binary_serialization_nodeset);
 
     free_config(parse_result);
 
