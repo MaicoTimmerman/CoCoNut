@@ -172,6 +172,8 @@ int main(int argc, char *argv[]) {
     filegen_dir(header_dir);
     filegen_generate("enum.h", generate_enum_definitions);
     filegen_generate("ast.h", generate_ast_definitions);
+    filegen_all_nodes("ast-%s.h", generate_ast_node_header);
+    filegen_all_nodesets("ast-%s.h", generate_ast_nodeset_header);
 
     // Free nodes.
     filegen_generate("free-ast.h", generate_free_header);
