@@ -157,29 +157,18 @@ static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
     }
 }
 
-void generate_create_node_header(Config *c, FILE *fp, Node *n) {
+void generate_create_node_header(Config *config, FILE *fp, Node *node) {
     out("#pragma once\n");
-    out("#include <stdbool.h>\n");
-    out("#include <string.h>\n");
-    out("#include \"lib/memory.h\"\n");
-    out("#include \"generated/ast.h\"\n\n");
-    generate_node(n, fp, true);
+    out("#include \"generated/ast-%s.h\"\n", node->id);
+    out("\n");
+
+    generate_node(node, fp, true);
 }
 
 void generate_create_node_definitions(Config *c, FILE *fp, Node *n) {
-    out("#include \"generated/create-%s.h\"\n", n->id);
-
-    smap_t *map = smap_init(32);
-
-    for (int i = 0; i < array_size(n->children); ++i) {
-        Child *child = (Child *)array_get(n->children, i);
-        if (smap_retrieve(map, child->type) == NULL) {
-            out("#include \"generated/create-%s.h\"\n", child->type);
-            smap_insert(map, child->type, child);
-        }
-    }
-
-    smap_free(map);
+    out("#include \"lib/memory.h\"\n");
+    out("#include \"generated/ast-%s.h\"\n", n->id);
+    out("// ast-%s.h includes the neccesary attribute and children.\n", n->id);
 
     generate_node(n, fp, false);
 }

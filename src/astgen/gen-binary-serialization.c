@@ -561,7 +561,6 @@ static void generate_util_functions(Config *config, FILE *fp) {
     out("}\n\n");
 
     out("static void *free_int_index_string(char *key, void *value) {\n");
-    out("    printf(\"Free %%p\\n\", value);\n");
     out("    mem_free(value);\n");
     out("    return NULL;\n");
     out("}\n\n");
@@ -603,11 +602,9 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
     out("    uint16_t string_length;\n");
     out("    for (int i = 0; i < array_size(string_attrs); i++) {\n");
     out("        string = array_get(string_attrs, i);\n");
-    out("        printf(\"%%s\\n\", string);\n");
     /* out("        if (smap_retrieve(attrs_index, string) != NULL)\n"); */
     /* out("            continue;\n\n"); */
     out("        int *index = mem_alloc(sizeof(int));\n");
-    out("        printf(\"Alloced %%p\\n\", index);\n");
     out("        *index = STRING_POOL_STATIC_SIZE + i;\n");
     out("\n");
     out("        smap_insert(attrs_index, string, index);\n");
