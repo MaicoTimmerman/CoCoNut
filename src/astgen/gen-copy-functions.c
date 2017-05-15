@@ -12,7 +12,7 @@ static void generate_node(Node *node, FILE *fp, bool header) {
         node->id, node->id);
 
     if (header) {
-        out(";\n\n");
+        out(";\n");
     } else {
         out(" {\n");
 
@@ -47,7 +47,7 @@ static void generate_node(Node *node, FILE *fp, bool header) {
         node->id);
 
     if (header) {
-        out(";\n\n");
+        out(";");
     } else {
         out(" {\n");
         out("    if (node == NULL) return NULL; // Cannot copy nothing.\n");
@@ -67,7 +67,7 @@ static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
         nodeset->id, nodeset->id);
 
     if (header) {
-        out(";\n\n");
+        out(";\n");
     } else {
         out(" {\n");
         out("    struct %s *res = mem_alloc(sizeof(struct %s));\n",
@@ -92,7 +92,7 @@ static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
     out("struct %s *" COPY_NODE_FORMAT "(struct %s *nodeset)", nodeset->id,
         nodeset->id, nodeset->id);
     if (header) {
-        out(";\n\n");
+        out(";");
         return;
     } else {
         out("{\n");
@@ -108,63 +108,91 @@ static void generate_nodeset(Nodeset *nodeset, FILE *fp, bool header) {
 
 void generate_copy_node_header(Config *c, FILE *fp, Node *n) {
     out("#pragma once\n");
-    out("#include <stdbool.h>\n");
-    out("#include <string.h>\n");
-    out("#include \"lib/memory.h\"\n");
     out("#include \"lib/imap.h\"\n");
-    out("#include \"generated/ast.h\"\n");
     out("\n");
 
-    // Create a map of child node types, so that there aren't duplicate
-    // includes.
-    smap_t *map = smap_init(32);
-
-    for (int i = 0; i < array_size(n->children); ++i) {
-        Child *child = (Child *)array_get(n->children, i);
-        if (smap_retrieve(map, child->type) == NULL) {
-            out("#include \"generated/copy-%s.h\"\n", child->type);
-            smap_insert(map, child->type, child);
-        }
-    }
-
-    smap_free(map);
+    out("struct %s;\n", n->id);
 
     generate_node(n, fp, true);
 }
 
-void generate_copy_node_definitions(Config *c, FILE *fp, Node *n) {
-    out("#include \"generated/copy-%s.h\"\n", n->id);
+void generate_copy_node_definitions(Config *config, FILE *fp, Node *node) {
+    bool using_string = false;
+
+    out("// Do not include \"lib/imap.h\", header does it for us.\n");
+    out("#include \"lib/memory.h\"\n");
+    out("#include \"generated/copy-%s.h\"\n", node->id);
+    out("#include \"generated/ast-%s.h\"\n", node->id);
     out("\n");
 
-    generate_node(n, fp, false);
+    smap_t *map = smap_init(32);
+
+    for (int i = 0; i < array_size(node->children); ++i) {
+        Child *child = (Child *)array_get(node->children, i);
+        if (smap_retrieve(map, child->type) == NULL) {
+            out("struct %s;\n", child->type);
+            out("struct %s *_copy_%s(struct %s *, imap_t *);\n", child->type,
+                child->type, child->type);
+            smap_insert(map, child->type, child);
+        }
+    }
+
+    for (int i = 0; i < array_size(node->attrs); ++i) {
+        Attr *attr = (Attr *)array_get(node->attrs, i);
+        if (attr->type == AT_string) {
+            using_string = true;
+        }
+
+        if (smap_retrieve(map, attr->id) == NULL) {
+            switch (attr->type) {
+            case AT_link:
+                out("struct %s;\n", attr->type_id);
+                break;
+            default:
+                break;
+            }
+            smap_insert(map, attr->id, attr);
+        }
+    }
+
+    smap_free(map);
+
+    if (using_string) {
+        out("#include <string.h>\n");
+    }
+
+    generate_node(node, fp, false);
 }
 
 void generate_copy_nodeset_header(Config *c, FILE *fp, Nodeset *n) {
     out("#pragma once\n");
-    out("#include <stdbool.h>\n");
-    out("#include <string.h>\n");
-    out("#include \"lib/memory.h\"\n");
     out("#include \"lib/imap.h\"\n");
-    out("#include \"generated/ast.h\"\n");
     out("\n");
 
-    smap_t *map = smap_init(32);
-    for (int i = 0; i < array_size(n->nodes); ++i) {
-        Node *node = (Node *)array_get(n->nodes, i);
-
-        if (smap_retrieve(map, node->id) == NULL) {
-            out("#include \"generated/copy-%s.h\"\n", node->id);
-            smap_insert(map, node->id, node);
-        }
-    }
-    smap_free(map);
-
+    out("struct %s;\n", n->id);
     generate_nodeset(n, fp, true);
 }
 
 void generate_copy_nodeset_definitions(Config *c, FILE *fp, Nodeset *n) {
+    out("// Do not include \"lib/imap.h\", header does it for us.\n");
+    out("#include \"lib/memory.h\"\n");
     out("#include \"generated/copy-%s.h\"\n", n->id);
+    out("#include \"generated/ast-%s.h\"\n", n->id);
     out("\n");
+
+    smap_t *map = smap_init(32);
+
+    for (int i = 0; i < array_size(n->nodes); ++i) {
+        Node *node = (Node *)array_get(n->nodes, i);
+        if (smap_retrieve(map, node->id) == NULL) {
+            out("struct %s *_copy_%s(struct %s *, imap_t *);\n", node->id,
+                node->id, node->id);
+            smap_insert(map, node->id, node);
+        }
+    }
+    out("\n");
+
+    smap_free(map);
 
     generate_nodeset(n, fp, false);
 }

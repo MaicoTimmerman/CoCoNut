@@ -4,6 +4,7 @@
 #include <regex.h>
 
 #include "astgen/ast.h"
+#include "astgen/errors.h"
 #include "astgen/print.h"
 #include "astgen/errors.h"
 #include "lib/array.h"

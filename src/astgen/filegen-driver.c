@@ -55,19 +55,17 @@ static bool hash_match(NodeCommonInfo *info, char *full_path) {
     if (fp == NULL)
         return rv;
 
+    // TODO: More robustness of the detection of the hash, maybe use regex.
     // Hash: %32s\n -> read 3+4+2+32+1 = 42 characters.
     if (fgets(current_hash, 42, fp) != NULL) {
         if (strncmp(current_hash + 9, info->hash, 32) == 0) {
             rv = true;
             printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n", full_path);
-            goto cleanup;
         } else {
             printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
-            goto cleanup;
         }
     }
 
-cleanup:
     mem_free(current_hash);
     fclose(fp);
     return rv;
