@@ -5,3 +5,8 @@ void generate_binary_serialization_util_header(Config *config, FILE *fp);
 void generate_binary_serialization_node(Config *config, FILE *fp, Node *n);
 void generate_binary_serialization_nodeset(Config *config, FILE *fp,
                                            Nodeset *n);
+
+void generate_binary_serialization_read_node(Config *config, FILE *fp,
+                                             Node *n);
+void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
+                                                Nodeset *n);

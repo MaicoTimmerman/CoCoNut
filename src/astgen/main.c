@@ -221,11 +221,17 @@ int main(int argc, char *argv[]) {
 
     filegen_generate("binary-serialization-util.c",
                      generate_binary_serialization_util);
-    filegen_all_nodes("binary-serialization-%s.c",
+    filegen_all_nodes("binary-serialization-%s-write.c",
                       generate_binary_serialization_node);
 
-    filegen_all_nodesets("binary-serialization-%s.c",
+    filegen_all_nodesets("binary-serialization-%s-write.c",
                          generate_binary_serialization_nodeset);
+
+    filegen_all_nodes("binary-serialization-%s-read.c",
+                      generate_binary_serialization_read_node);
+
+    filegen_all_nodesets("binary-serialization-%s-read.c",
+                         generate_binary_serialization_read_nodeset);
 
     free_config(parse_result);
 
