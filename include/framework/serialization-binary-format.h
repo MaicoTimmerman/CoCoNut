@@ -108,7 +108,7 @@ typedef struct { uint32_t value_index; } Attribute_string_data;
 
 typedef struct {
     // Index in enum pool
-    uint32_t type_index;
+    uint16_t type_index;
 
     // Index in values array of enum
     uint16_t value_index;

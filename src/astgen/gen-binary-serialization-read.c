@@ -5,6 +5,17 @@
 #include "astgen/filegen-driver.h"
 #include "astgen/filegen-util.h"
 
+static void generate_check_attr_type(char *attr_type, FILE *fp, Attr *attr,
+                                     Node *node) {
+
+    out("            if (attr->type != AT_%s) {\n", attr_type);
+    out("                fprintf(stderr, \"Invalid type %%d for attribute %s "
+        "of node %s\\n\", attr->type);\n",
+        attr->id, node->id);
+    out("                continue;\n");
+    out("            }\n");
+}
+
 void generate_binary_serialization_read_node(Config *config, FILE *fp,
                                              Node *node) {
 
@@ -80,6 +91,113 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
 
         out("    }\n");
     }
+
+    if (array_size(node->attrs) > 0) {
+        out("    for (int i = 0; i < array_size(node->attributes); i++) {\n");
+        out("        Attribute *attr = array_get(node->attributes, i);\n");
+        out("        const char *attr_name = array_get(file->string_pool, "
+            "attr->name_index);\n");
+
+        for (int i = 0; i < array_size(node->attrs); i++) {
+            Attr *attr = array_get(node->attrs, i);
+            out("        ");
+            if (i > 0)
+                out("else ");
+            out("if (strcmp(attr_name, \"%s\") == 0) {\n", attr->id);
+
+            switch (attr->type) {
+            case AT_int:
+                generate_check_attr_type("int", fp, attr, node);
+                out("            res->%s = (int) attr->value.val_int.value;\n",
+                    attr->id);
+                break;
+            case AT_uint:
+                generate_check_attr_type("uint", fp, attr, node);
+                out("            res->%s = (unsigned int) "
+                    "attr->value.val_uint.value;\n",
+                    attr->id);
+                break;
+            case AT_int8:
+                generate_check_attr_type("int8", fp, attr, node);
+                out("            res->%s = attr->value.val_int8.value;\n",
+                    attr->id);
+                break;
+            case AT_int16:
+                generate_check_attr_type("int16", fp, attr, node);
+                out("            res->%s = attr->value.val_int16.value;\n",
+                    attr->id);
+                break;
+            case AT_int32:
+                generate_check_attr_type("int32", fp, attr, node);
+                out("            res->%s = attr->value.val_int32.value;\n",
+                    attr->id);
+                break;
+            case AT_int64:
+                generate_check_attr_type("int64", fp, attr, node);
+                out("            res->%s = attr->value.val_int64.value;\n",
+                    attr->id);
+                break;
+            case AT_uint8:
+                generate_check_attr_type("uint8", fp, attr, node);
+                out("            res->%s = attr->value.val_uint8.value;\n",
+                    attr->id);
+                break;
+            case AT_uint16:
+                generate_check_attr_type("uint16", fp, attr, node);
+                out("            res->%s = attr->value.val_uint16.value;\n",
+                    attr->id);
+                break;
+            case AT_uint32:
+                generate_check_attr_type("uint32", fp, attr, node);
+                out("            res->%s = attr->value.val_uint32.value;\n",
+                    attr->id);
+                break;
+            case AT_uint64:
+                generate_check_attr_type("uint64", fp, attr, node);
+                out("            res->%s = attr->value.val_uint64.value;\n",
+                    attr->id);
+                break;
+            case AT_float:
+                generate_check_attr_type("float", fp, attr, node);
+                out("            res->%s = attr->value.val_float.value;\n",
+                    attr->id);
+                break;
+            case AT_double:
+                generate_check_attr_type("double", fp, attr, node);
+                out("            res->%s = attr->value.val_double.value;\n",
+                    attr->id);
+                break;
+            case AT_bool:
+                generate_check_attr_type("bool", fp, attr, node);
+                out("            res->%s = attr->value.val_bool.value;\n",
+                    attr->id);
+                break;
+            case AT_string:
+                generate_check_attr_type("string", fp, attr, node);
+                out("            // TODO: check out of bounds\n");
+                out("            res->%s = array_get(file->string_pool, "
+                    "attr->value.val_string.value_index);\n",
+                    attr->id);
+                break;
+            case AT_link:
+                generate_check_attr_type("link", fp, attr, node);
+                out("            // TODO: check out of bounds\n");
+                out("            // TODO: set link\n");
+                break;
+            case AT_enum:
+                generate_check_attr_type("enum", fp, attr, node);
+                out("            // TODO: set enum\n");
+                break;
+            default:
+                break;
+            }
+
+            out("        }\n");
+        }
+
+        out("    }\n");
+    }
+
     out("    return res;\n");
 
     out("}\n\n");

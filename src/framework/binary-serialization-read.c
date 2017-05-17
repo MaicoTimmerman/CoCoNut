@@ -130,12 +130,16 @@ static Attribute *read_attr(FILE *fp) {
         break;
     case AT_enum:
         read(2, fp, &(attr->value.val_enum.type_index));
+        read(2, fp, &(attr->value.val_enum.value_index));
         break;
     default:
         fprintf(stderr, "Invalid attribute type: %d\n", type);
         mem_free(attr);
         return NULL;
     }
+
+    attr->type = (AttributeType)type;
+
     return attr;
 }
 
