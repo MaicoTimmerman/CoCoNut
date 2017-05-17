@@ -24,6 +24,7 @@
 #include "astgen/gen-free-functions.h"
 #include "astgen/gen-pass-header.h"
 #include "astgen/gen-phase-driver.h"
+#include "astgen/gen-trav-core-functions.h"
 #include "astgen/gen-trav-functions.h"
 #include "astgen/gen-user-trav-header.h"
 
@@ -189,6 +190,8 @@ int main(int argc, char *argv[]) {
     filegen_all_nodesets("copy-%s.h", generate_copy_nodeset_header);
 
     filegen_generate("trav-ast.h", generate_trav_header);
+    filegen_generate("trav-core.h", generate_trav_core_header);
+    filegen_all_nodes("trav-%s.h", generate_trav_node_header);
     // filegen_generate("consistency-ast.h", generate_consistency_header);
     filegen_generate("phase-driver.h", generate_phase_driver_header);
 
@@ -210,7 +213,9 @@ int main(int argc, char *argv[]) {
     filegen_all_nodes("copy-%s.c", generate_copy_node_definitions);
     filegen_all_nodesets("copy-%s.c", generate_copy_nodeset_definitions);
 
-    filegen_generate("trav-ast.c", generate_trav_definitions);
+    /* filegen_generate("trav-ast.c", generate_trav_definitions); */
+    filegen_generate("trav-core.c", generate_trav_core_definitions);
+    filegen_all_nodes("trav-%s.c", generate_trav_node_definitions);
     // filegen_generate("consistency-ast.c", generate_consistency_definitions);
     filegen_generate("phase-driver.c", generate_phase_driver_definitions);
 

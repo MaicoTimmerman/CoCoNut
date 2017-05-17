@@ -59,7 +59,8 @@ static void generate(Config *config, FILE *fp, bool header) {
     } else {
         out("#include <stdio.h>\n");
         out("#include \"generated/ast.h\"\n");
-        out("#include \"generated/trav-ast.h\"\n");
+        out("#include \"generated/trav-core.h\"\n");
+        out("#include \"generated/trav-%s.h\"\n", config->root_node->id);
 
         for (int i = 0; i < array_size(config->passes); i++) {
             Pass *p = array_get(config->passes, i);
