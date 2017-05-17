@@ -14,6 +14,8 @@
 static smap_t *string_pool_indices;
 static array *string_pool_constants;
 
+static smap_t *enum_type_indices;
+
 static void generate_node_gen_traversal(Node *node, FILE *fp) {
 
     out("void _serialization_gen_node_%s(%s *node, FILE *fp) {\n", node->id,
@@ -201,9 +203,13 @@ static void generate_node_gen_traversal(Node *node, FILE *fp) {
                 out("    }\n");
                 break;
             case AT_enum:
+                out("    const uint16_t enum_type_%s = %d;\n", attr->id,
+                    *((int *)smap_retrieve(enum_type_indices, attr->type_id)));
                 out("    const uint16_t value_%s = "
                     "_serialization_enum_get_%s_value_index(node->%s);\n",
                     attr->id, attr->type_id, attr->id);
+
+                out("    WRITE(2, enum_type_%s);\n", attr->id);
                 out("    WRITE(2, value_%s);\n", attr->id);
                 break;
             default:
@@ -289,6 +295,8 @@ static void populate_static_string_pool(Config *config) {
     string_pool_indices = smap_init(32);
     string_pool_constants = array_init(32);
 
+    enum_type_indices = smap_init(32);
+
     // Add node names to string pool hashtable
     for (int i = 0; i < array_size(config->nodes); i++) {
         Node *n = array_get(config->nodes, i);
@@ -351,6 +359,10 @@ static void populate_static_string_pool(Config *config) {
 
         smap_insert(string_pool_indices, e->id, id_ptr);
         smap_insert(string_pool_indices, e->prefix, prefix_ptr);
+
+        int *index = mem_alloc(sizeof(int));
+        *index = i;
+        smap_insert(enum_type_indices, e->id, index);
 
         array_append(string_pool_constants, e->id);
         array_append(string_pool_constants, e->prefix);
@@ -497,6 +509,7 @@ static void generate_enum_pool_write_function(Config *config, FILE *fp) {
 
     for (int i = 0; i < array_size(config->enums); i++) {
         Enum *e = array_get(config->enums, i);
+
         out("    // Enum %s\n", e->id);
         out("    name_index = %d;\n",
             *((int *)smap_retrieve(string_pool_indices, e->id)));
@@ -661,8 +674,8 @@ void generate_binary_serialization_util(Config *config, FILE *fp) {
     smap_map(string_pool_indices, free_int_index_string);
     smap_free(string_pool_indices);
 
-    /* imap_map(node_indices, free_int_index_int); */
-    /* imap_free(node_indices); */
+    smap_map(enum_type_indices, free_int_index_string);
+    smap_free(enum_type_indices);
 }
 
 void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
@@ -706,6 +719,8 @@ void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
         }
     }
 
+    smap_free(node_types);
+
     out("\n");
 
     generate_node_gen_traversal(node, fp);
@@ -720,8 +735,8 @@ void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
     smap_map(string_pool_indices, free_int_index_string);
     smap_free(string_pool_indices);
 
-    /* imap_map(node_indices, free_int_index_int); */
-    /* imap_free(node_indices); */
+    smap_map(enum_type_indices, free_int_index_string);
+    smap_free(enum_type_indices);
 }
 
 void generate_binary_serialization_nodeset(Config *config, FILE *fp,
@@ -772,8 +787,8 @@ void generate_binary_serialization_nodeset(Config *config, FILE *fp,
     smap_map(string_pool_indices, free_int_index_string);
     smap_free(string_pool_indices);
 
-    /* imap_map(node_indices, free_int_index_int); */
-    /* imap_free(node_indices); */
+    smap_map(enum_type_indices, free_int_index_string);
+    smap_free(enum_type_indices);
 }
 
 void generate_binary_serialization_util_header(Config *config, FILE *fp) {
