@@ -1,6 +1,6 @@
 node SomeNode {
     children {
-        child SomeNode name {
+        SomeNode name {
             mandatory {
                 A to B
             }

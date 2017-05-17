@@ -1,6 +1,6 @@
 node SomeNode {
     children {
-        child SomeNodeSet somename
+        SomeNodeSet somename
     }
 };
 

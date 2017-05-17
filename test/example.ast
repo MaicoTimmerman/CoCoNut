@@ -49,8 +49,8 @@ enum OtherEnum {
 
 node IdExpr {
     children {
-        child MyNodeSet somename,
-        child MyNodeSet somename {
+        MyNodeSet somename,
+        MyNodeSet somename {
             // Random order
             construct,
             mandatory {
@@ -61,7 +61,7 @@ node IdExpr {
                 !(C to D)
             }
         },
-        child MyNodeSet somename {
+        MyNodeSet somename {
             // Random order
             construct,
             mandatory {

@@ -6,7 +6,7 @@ traversal Print {
 
 node IdExpr {
     children {
-        child IdExpr somename
+        IdExpr somename
     }
 };
 

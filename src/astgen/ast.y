@@ -112,7 +112,6 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 
 %token T_ATTRIBUTES "attributes"
 %token T_CHILDREN "children"
-%token T_CHILD "child"
 %token T_CONSTRUCT "construct"
 %token T_CYCLE "cycle"
 %token T_ENUM "enum"
@@ -464,40 +463,40 @@ childlist: childlist ',' child
          }
          ;
 /* [construct] [mandatory] ID ID */
-child: T_CHILD T_ID T_ID
+child: T_ID T_ID
      {
-         $$ = create_child(0, 0, NULL, $3, $2);
+         $$ = create_child(0, 0, NULL, $2, $1);
          new_location($$, &@$);
+         new_location($1, &@1);
          new_location($2, &@2);
-         new_location($3, &@3);
      }
-     | T_CHILD T_ID T_ID '{' T_CONSTRUCT ',' mandatory '}'
+     | T_ID T_ID '{' T_CONSTRUCT ',' mandatory '}'
      {
-         $$ = create_child(1, 1, $7, $3, $2);
+         $$ = create_child(1, 1, $6, $2, $1);
          new_location($$, &@$);
+         new_location($1, &@1);
          new_location($2, &@2);
-         new_location($3, &@3);
      }
-     | T_CHILD T_ID T_ID '{' mandatory ',' T_CONSTRUCT '}'
+     | T_ID T_ID '{' mandatory ',' T_CONSTRUCT '}'
      {
-         $$ = create_child(1, 1, $5, $3, $2);
+         $$ = create_child(1, 1, $4, $2, $1);
          new_location($$, &@$);
+         new_location($1, &@1);
          new_location($2, &@2);
-         new_location($3, &@3);
      }
-     | T_CHILD T_ID T_ID '{' T_CONSTRUCT '}'
+     | T_ID T_ID '{' T_CONSTRUCT '}'
      {
-         $$ = create_child(1, 0, NULL, $3, $2);
+         $$ = create_child(1, 0, NULL, $2, $1);
          new_location($$, &@$);
+         new_location($1, &@1);
          new_location($2, &@2);
-         new_location($3, &@3);
      }
-     | T_CHILD T_ID T_ID '{' mandatory '}'
+     | T_ID T_ID '{' mandatory '}'
      {
-         $$ = create_child(0, 1, $5, $3, $2);
+         $$ = create_child(0, 1, $4, $2, $1);
          new_location($$, &@$);
+         new_location($1, &@1);
          new_location($2, &@2);
-         new_location($3, &@3);
      }
      ;
 attrs: T_ATTRIBUTES '{' attrlist '}'

@@ -87,32 +87,32 @@ nodeset Stmt {
 
 root node Root {
     children {
-        child Decls decls { construct, mandatory },
-        child FunSymbol funsymbol { construct },
-        child Symbol symbol { construct }
+        Decls decls { construct, mandatory },
+        FunSymbol funsymbol { construct },
+        Symbol symbol { construct }
     }
 };
 
 node Decls {
     children {
-        child Decl decl { construct, mandatory },
-        child Decls next { construct }
+        Decl decl { construct, mandatory },
+        Decls next { construct }
     }
 };
 
 node LocalFunDef {
     children {
-        child FunDef decl { construct, mandatory },
-        child LocalFunDef next { construct }
+        FunDef decl { construct, mandatory },
+        LocalFunDef next { construct }
     }
 };
 
 node FunDef {
     children {
-        child FunHeader funheader { construct, mandatory },
-        child FunBody funbody { construct },
-        child FunSymbol funsymbol { construct },
-        child Symbol symbol { construct }
+        FunHeader funheader { construct, mandatory },
+        FunBody funbody { construct },
+        FunSymbol funsymbol { construct },
+        Symbol symbol { construct }
     },
     attributes {
         construct bool external,
@@ -122,7 +122,7 @@ node FunDef {
 
 node FunHeader {
     children {
-        child Param params { construct, mandatory }
+        Param params { construct, mandatory }
     },
     attributes {
         construct BasicType rettype,
@@ -132,7 +132,7 @@ node FunHeader {
 
 node Param {
     children {
-        child Param next { construct }
+        Param next { construct }
     },
     attributes {
         construct BasicType type,
@@ -149,7 +149,7 @@ node GlobalDec {
 
 node GlobalDef {
     children {
-        child Expr expr { construct }
+        Expr expr { construct }
     },
     attributes {
         construct BasicType type,
@@ -161,16 +161,16 @@ node GlobalDef {
 
 node FunBody {
     children {
-        child VarDec vardec { construct },
-        child LocalFunDef localfundef { construct },
-        child StmtList stmtlist { construct }
+        VarDec vardec { construct },
+        LocalFunDef localfundef { construct },
+        StmtList stmtlist { construct }
     }
 };
 
 node VarDec {
     children {
-        child Expr expr { construct, mandatory },
-        child VarDec next { construct }
+        Expr expr { construct, mandatory },
+        VarDec next { construct }
     },
     attributes {
         Symbol symbol,
@@ -181,14 +181,14 @@ node VarDec {
 
 node StmtList {
     children {
-        child Stmt stmt { construct, mandatory },
-        child StmtList next { construct }
+        Stmt stmt { construct, mandatory },
+        StmtList next { construct }
     }
 };
 
 node VarLet {
     children {
-        child Expr expr { construct, mandatory }
+        Expr expr { construct, mandatory }
     },
     attributes {
         Symbol symbol,
@@ -198,7 +198,7 @@ node VarLet {
 
 node FunCall {
     children {
-        child ExprList params { construct }
+        ExprList params { construct }
     },
     attributes {
         FunSymbol symbol,
@@ -208,39 +208,39 @@ node FunCall {
 
 node ExprList {
     children {
-        child Expr expr { construct, mandatory },
-        child ExprList next { construct }
+        Expr expr { construct, mandatory },
+        ExprList next { construct }
     }
 };
 
 node IfElse {
     children {
-        child Expr condition { construct, mandatory },
-        child StmtList ifblock { construct },
-        child StmtList elseblock { construct }
+        Expr condition { construct, mandatory },
+        StmtList ifblock { construct },
+        StmtList elseblock { construct }
     }
 };
 
 node While {
     children {
-        child Expr condition { construct, mandatory },
-        child StmtList block { construct }
+        Expr condition { construct, mandatory },
+        StmtList block { construct }
     }
 };
 
 node DoWhile {
     children {
-        child Expr condition { construct, mandatory },
-        child StmtList block { construct }
+        Expr condition { construct, mandatory },
+        StmtList block { construct }
     }
 };
 
 node For {
     children {
-        child Expr initexpr { construct, mandatory },
-        child Expr boundexpr { construct, mandatory },
-        child Expr stepexpr { construct },
-        child StmtList block { construct }
+        Expr initexpr { construct, mandatory },
+        Expr boundexpr { construct, mandatory },
+        Expr stepexpr { construct },
+        StmtList block { construct }
     },
     attributes {
         Symbol symbol,
@@ -250,14 +250,14 @@ node For {
 
 node Return {
     children {
-        child Expr expr { construct }
+        Expr expr { construct }
     }
 };
 
 node BinOp {
     children {
-        child Expr left { construct, mandatory },
-        child Expr right { construct, mandatory }
+        Expr left { construct, mandatory },
+        Expr right { construct, mandatory }
     },
     attributes {
         construct BinOpEnum op
@@ -266,7 +266,7 @@ node BinOp {
 
 node MonOp {
     children {
-        child Expr expr { construct, mandatory }
+        Expr expr { construct, mandatory }
     },
     attributes {
         construct MonOpEnum op
@@ -275,7 +275,7 @@ node MonOp {
 
 node Cast {
     children {
-        child Expr expr { construct, mandatory }
+        Expr expr { construct, mandatory }
     },
     attributes {
         construct BasicType type
@@ -309,15 +309,15 @@ node BoolConst {
 
 node Ternary {
     children {
-        child Expr testexpr { construct, mandatory },
-        child Expr trueexpr { construct, mandatory },
-        child Expr falseexpr { construct, mandatory }
+        Expr testexpr { construct, mandatory },
+        Expr trueexpr { construct, mandatory },
+        Expr falseexpr { construct, mandatory }
     }
 };
 
 node Symbol {
     children {
-        child Symbol next { construct }
+        Symbol next { construct }
     },
     attributes {
         construct bool external,
@@ -330,7 +330,7 @@ node Symbol {
 
 node FunSymbol {
     children {
-        child FunSymbol next { construct }
+        FunSymbol next { construct }
     },
     attributes {
         construct bool export,

@@ -1,7 +1,7 @@
 node IdExpr {
     children {
-        child IdExpr somename,
-        child IdExpr somename
+        IdExpr somename,
+        IdExpr somename
     }
 };
 

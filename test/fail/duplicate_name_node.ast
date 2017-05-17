@@ -1,11 +1,11 @@
 node SomeNode {
     children {
-        child SomeNode a
+        SomeNode a
     }
 };
 node SomeNode {
     children {
-        child SomeNode a
+        SomeNode a
     }
 };
 

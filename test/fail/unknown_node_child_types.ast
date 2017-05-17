@@ -1,6 +1,6 @@
 node IdExpr {
     children {
-        child UnknownNode somename
+        UnknownNode somename
     }
 };
 

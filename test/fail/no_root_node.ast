@@ -1,6 +1,6 @@
 node A {
     children {
-        child B b
+        B b
     }
 };
 

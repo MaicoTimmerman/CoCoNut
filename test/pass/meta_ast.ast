@@ -37,14 +37,14 @@ traversal ThirdTrav;
 
 node BinOp {
     children {
-        child BinOp left,
-        child BinOp right
+        BinOp left,
+        BinOp right
     }
 };
 
 node MonOp {
     children {
-        child Expr expr
+        Expr expr
     },
     attributes {
         construct MonOpEnum op
@@ -54,7 +54,7 @@ node MonOp {
 
 node VarLet {
     children {
-        child Expr expr {
+        Expr expr {
             construct
         }
     },
@@ -71,18 +71,18 @@ node Var {
 
 node IfElse {
     children {
-        child Expr condition { construct, mandatory },
-        child Stmt trueblock { construct, mandatory },
-        child Stmt falseblock { construct, mandatory }
+        Expr condition { construct, mandatory },
+        Stmt trueblock { construct, mandatory },
+        Stmt falseblock { construct, mandatory }
     }
 };
 
 node For {
     children {
-        child Expr initexpr { construct, mandatory },
-        child Expr stepexpr { construct, mandatory },
-        child Expr boundexpr { construct, mandatory },
-        child Stmt blockexpr { construct, mandatory }
+        Expr initexpr { construct, mandatory },
+        Expr stepexpr { construct, mandatory },
+        Expr boundexpr { construct, mandatory },
+        Stmt blockexpr { construct, mandatory }
     },
     attributes {
         construct string id
