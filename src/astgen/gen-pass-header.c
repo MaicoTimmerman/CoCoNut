@@ -8,9 +8,6 @@ void generate_pass_header(Config *config, FILE *fp, Pass *pass) {
     out("#pragma once\n\n");
     out("#include \"generated/ast.h\"\n");
 
-    char *root_node_name = config->root_node != NULL
-                               ? config->root_node->id
-                               : config->root_nodeset->id;
-    out("%s *" PASS_ENTRY_FORMAT "(%s *syntaxtree);\n", root_node_name,
-        pass->id, root_node_name);
+    out("%s *" PASS_ENTRY_FORMAT "(%s *syntaxtree);\n", config->root_node->id,
+        pass->id, config->root_node->id);
 }

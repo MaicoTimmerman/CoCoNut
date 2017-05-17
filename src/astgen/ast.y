@@ -368,27 +368,12 @@ nodeset: T_NODESET T_ID '{' T_NODES '{' idlist '}' '}' ';'
            new_location($$, &@$);
            new_location($2, &@2);
        }
-       | T_ROOT T_NODESET T_ID '{' T_NODES '{' idlist '}' '}' ';'
-       {
-           $$ = create_nodeset($3, $7);
-           $$->root = true;
-           new_location($$, &@$);
-           new_location($3, &@3);
-       }
        | T_NODESET T_ID '{' info ',' T_NODES '{' idlist '}' '}' ';'
        {
            $$ = create_nodeset($2, $8);
            $$->info = $4;
            new_location($$, &@$);
            new_location($2, &@2);
-       }
-       | T_ROOT T_NODESET T_ID '{' info ',' T_NODES '{' idlist '}' '}' ';'
-       {
-           $$ = create_nodeset($3, $9);
-           $$->root = true;
-           $$->info = $5;
-           new_location($$, &@$);
-           new_location($3, &@3);
        }
 node: T_NODE T_ID '{' nodebody '}' ';'
     {

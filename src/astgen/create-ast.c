@@ -99,7 +99,6 @@ Nodeset *create_nodeset(char *id, array *nodes) {
     Nodeset *n = mem_alloc(sizeof(Nodeset));
     n->id = id;
     n->nodes = nodes;
-    n->root = false;
     n->info = NULL;
 
     n->common_info = create_commoninfo();

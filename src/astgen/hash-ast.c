@@ -95,7 +95,6 @@ static void hash_nodeset(Nodeset *nodeset) {
     }
 
     hash(nodeset->id, char);
-    hash(nodeset->root ? "y" : "n", char);
 
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         Node *node = array_get(nodeset->nodes, i);

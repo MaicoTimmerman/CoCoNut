@@ -21,7 +21,6 @@ struct Info {
     smap_t *pass_name;
 
     Node *root_node;
-    Nodeset *root_nodeset;
     Phase *root_phase;
 };
 
@@ -38,7 +37,6 @@ static struct Info *create_info(void) {
     info->pass_name = smap_init(32);
 
     info->root_node = NULL;
-    info->root_nodeset = NULL;
     info->root_phase = NULL;
     return info;
 }
@@ -128,9 +126,8 @@ static int check_nodes(array *nodes, struct Info *info) {
         }
 
         if (cur_node->root) {
-            if (info->root_node != NULL || info->root_nodeset != NULL) {
-                orig_def = info->root_node != NULL ? info->root_node->id
-                                                   : info->root_nodeset->id;
+            if (info->root_node != NULL) {
+                orig_def = info->root_node->id;
                 print_error(cur_node->id,
                             "Duplicate declaration of root node");
                 print_note(orig_def, "Previously declared here");
@@ -158,19 +155,6 @@ static int check_nodesets(array *nodesets, struct Info *info) {
             error = 1;
         } else {
             smap_insert(info->nodeset_name, cur_nodeset->id, cur_nodeset);
-        }
-
-        if (cur_nodeset->root) {
-            if (info->root_node != NULL || info->root_nodeset != NULL) {
-                orig_def = info->root_node != NULL ? info->root_node->id
-                                                   : info->root_nodeset->id;
-                print_error(cur_nodeset->id,
-                            "Duplicate declaration of root node");
-                print_note(orig_def, "Previously declared here");
-                error = 1;
-            } else {
-                info->root_nodeset = cur_nodeset;
-            }
         }
     }
     return error;
@@ -671,12 +655,11 @@ int check_config(Config *config) {
     }
 
     // TODO: create print_error without location
-    if (info->root_node == NULL && info->root_nodeset == NULL) {
+    if (info->root_node == NULL) {
         fprintf(stderr, "error: No root node or root nodeset specified\n");
         success++;
     } else {
         config->root_node = info->root_node;
-        config->root_nodeset = info->root_nodeset;
     }
 
     if (info->root_phase == NULL) {

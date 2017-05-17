@@ -69,7 +69,6 @@ typedef struct Config {
     array *nodes;
 
     struct Node *root_node;
-    struct Nodeset *root_nodeset;
     struct Phase *phase_tree;
 
     struct NodeCommonInfo *common_info;
@@ -131,8 +130,6 @@ typedef struct Nodeset {
 
     // Array of strings transformed into array of Nodes.
     array *nodes;
-
-    bool root;
 
     struct NodeCommonInfo *common_info;
 } Nodeset;

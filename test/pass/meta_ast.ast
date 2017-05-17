@@ -77,7 +77,7 @@ node IfElse {
     }
 };
 
-node For {
+root node For {
     children {
         Expr initexpr { construct, mandatory },
         Expr stepexpr { construct, mandatory },
@@ -95,7 +95,7 @@ nodeset Expr {
     }
 };
 
-root nodeset Stmt {
+nodeset Stmt {
     nodes {
         IfElse, For
     }

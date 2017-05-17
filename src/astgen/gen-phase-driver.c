@@ -48,12 +48,6 @@ static void print_phase_tree(Phase *p, int level, FILE *fp,
 }
 
 static void generate(Config *config, FILE *fp, bool header) {
-    char *root_node_name;
-    if (config->root_node)
-        root_node_name = config->root_node->id;
-    else
-        root_node_name = config->root_nodeset->id;
-
     if (header) {
         out("#pragma once\n");
     } else {
@@ -71,13 +65,13 @@ static void generate(Config *config, FILE *fp, bool header) {
 
     out("\n");
 
-    out("void phasedriver_run(%s *syntaxtree)", root_node_name);
+    out("void phasedriver_run(%s *syntaxtree)", config->root_node->id);
 
     if (header) {
         out(";\n");
     } else {
         out(" {\n");
-        print_phase_tree(config->phase_tree, 1, fp, root_node_name);
+        print_phase_tree(config->phase_tree, 1, fp, config->root_node->id);
         out("}\n");
     }
 }

@@ -28,13 +28,9 @@ static void generate_children(Node *node, FILE *fp) {
 }
 
 static void generate_nodeset(Nodeset *nodeset, FILE *fp) {
-    out("    \"%s\"", nodeset->id);
-
-    if (nodeset->root) {
-        out(" [color=\"darkorchid3\"]");
-    }
-    out(";\n");
+    out("    \"%s\";\n", nodeset->id);
 }
+
 static void generate_nodeset_edges(Nodeset *nodeset, FILE *fp) {
     for (int i = 0; i < array_size(nodeset->nodes); ++i) {
         Node *node = (Node *)array_get(nodeset->nodes, i);
