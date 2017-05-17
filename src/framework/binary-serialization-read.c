@@ -8,7 +8,7 @@
 #include "lib/array.h"
 #include "lib/memory.h"
 
-static void read(int N, FILE *fp, void *res) {
+static bool read(int N, FILE *fp, void *res) {
     size_t num = fread(res, 1, N, fp);
     if (num < N) {
         if (ferror(fp)) {
@@ -23,23 +23,29 @@ static void read(int N, FILE *fp, void *res) {
                     N, num);
             fprintf(stderr, "Error reading file: unknown error\n");
         }
+
+        return false;
     }
+
+    return true;
 }
 
 static uint32_t read_u4(FILE *fp) {
     uint32_t res = 0;
-    fread(&res, 4, 1, fp);
+    read(4, fp, &res);
     return res;
 }
 
 static uint16_t read_u2(FILE *fp) {
     uint16_t res = 0;
-    fread(&res, 2, 1, fp);
+    read(2, fp, &res);
     return res;
 }
 
 static uint8_t read_u1(FILE *fp) {
-    return (uint8_t)fgetc(fp);
+    uint8_t res = 0;
+    read(1, fp, &res);
+    return res;
 }
 
 static char *read_string(FILE *fp) {
@@ -144,7 +150,9 @@ static Attribute *read_attr(FILE *fp) {
 }
 
 static Node *read_node(FILE *fp) {
+
     Node *node = mem_alloc(sizeof(Node));
+    memset(node, 0, sizeof(Node));
 
     node->type_index = read_u4(fp);
 
@@ -185,6 +193,7 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
     }
 
     AstBinFile *ast = mem_alloc(sizeof(AstBinFile));
+    memset(ast, 0, sizeof(AstBinFile));
 
     uint8_t flags_l = read_u1(fp);
     uint8_t flags_r = read_u1(fp);
