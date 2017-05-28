@@ -39,8 +39,12 @@ static void usage(char *program) {
 
     printf("Usage: %s [options] [file]\n", program);
     printf("Options:\n");
-    printf("  --output-dir/-o <directory>  Directory to write generated "
-           "files to.\n");
+    printf("  --header-dir <directory>     Directory to write generated "
+           "header files to.\n");
+    printf(
+        "                               Defaults to ./include/generated/\n");
+    printf("  --source-dir <directory>     Directory to write generated "
+           "source files to.\n");
     printf("                               Defaults to ./src/generated/\n");
     printf("  --verbose/-v                 Enable verbose mode.\n");
     printf("  --dot <directory>            Will produce ast.dot in "
