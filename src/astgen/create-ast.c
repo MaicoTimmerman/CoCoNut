@@ -200,7 +200,6 @@ AttrValue *create_attrval_string(char *value) {
     v->type = AV_string;
 
     v->value.string_value = value;
-    mem_free(value);
 
     v->common_info = create_commoninfo();
     return v;

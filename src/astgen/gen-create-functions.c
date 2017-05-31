@@ -74,7 +74,7 @@ static void generate_node(Node *node, FILE *fp, bool header) {
                 if (attr->default_value) {
                     switch (attr->default_value->type) {
                     case AV_string:
-                        out("%s;\n", attr->default_value->value.string_value);
+                        out("\"%s\";\n", attr->default_value->value.string_value);
                         break;
                     case AV_int:
                         out("%ld;\n", attr->default_value->value.int_value);
