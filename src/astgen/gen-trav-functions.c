@@ -200,6 +200,29 @@ static void generate_node_child_nodeset(Node *node, Child *child, FILE *fp) {
             cnode->id, child->id, cnode->id);
         out("        break;\n");
     }
+
+    out("    }\n\n");
+
+    out("    if (node_replacement != NULL) {\n");
+
+    out("        switch (node_replacement_type) {\n");
+    for (int i = 0; i < array_size(nodeset->nodes); ++i) {
+        Node *cnode = (Node *)array_get(nodeset->nodes, i);
+        out("        case " NT_FORMAT ":\n", cnode->id);
+        out("            node->%s->value.val_%s = node_replacement;\n",
+            child->id, cnode->id);
+        out("            node->%s->type = " NS_FORMAT ";\n", child->id,
+            child->type, cnode->id);
+        out("            break;\n");
+    }
+
+    out("        default:\n");
+    out("            fprintf(stderr, \"Replacement node for %s->%s is not a "
+        "node type of nodeset %s.\");\n",
+        node->id, child->id, child->type);
+    out("            break;\n");
+    out("        }\n");
+
     out("    }\n");
 }
 
