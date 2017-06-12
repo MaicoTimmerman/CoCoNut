@@ -134,8 +134,15 @@ static void generate_replace_node(Node *node, FILE *fp, bool header) {
         out(";\n");
     } else {
         out(" {\n");
-        out("    node_replacement_type = " NT_FORMAT ";\n", node->id);
-        out("    node_replacement = node;\n");
+        out("    if (node_replacement == NULL) {\n");
+        out("        node_replacement_type = " NT_FORMAT ";\n", node->id);
+        out("        node_replacement = node;\n");
+        out("    } else {\n");
+        out("        fprintf(stderr, \"" REPLACE_NODE_FORMAT ": "
+            "Not make a node replacement, since another replacement function "
+            "was already called previously\\n\");\n",
+            node->id);
+        out("    }\n");
         out("}\n");
     }
 }

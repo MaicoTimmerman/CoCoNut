@@ -1,6 +1,7 @@
 #pragma once
 
 #include "lib/array.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
