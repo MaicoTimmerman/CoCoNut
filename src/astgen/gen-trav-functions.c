@@ -287,7 +287,7 @@ static void generate_trav_node(Node *node, FILE *fp, Config *config,
         } else {
             out(" {\n");
             out("    if (!node) return;\n");
-
+            out("    void *orig_node_replacement = node_replacement;\n");
             out("    node_replacement = NULL;\n");
 
             if (child->node != NULL) {
@@ -300,6 +300,7 @@ static void generate_trav_node(Node *node, FILE *fp, Config *config,
                 // Should not have passed the context analysis.
                 assert(0);
             }
+            out("    node_replacement = orig_node_replacement;\n");
 
             out("}\n\n");
         }
