@@ -37,7 +37,7 @@ traversal RenameFor {
 
 traversal Context {
     nodes {
-        Root, GlobalDef, GlobalDec, Stmt, FunDef, Param, For, VarDec, VarLet, Var, FunCall
+        Root, GlobalDef, GlobalDec, FunDef, Param, For, VarDec, VarLet, Var, FunCall
     }
 };
 
