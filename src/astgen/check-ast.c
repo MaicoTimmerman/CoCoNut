@@ -425,6 +425,9 @@ static int check_traversal(Traversal *traversal, struct Info *info) {
         return 0;
 
     smap_t *node_name = smap_init(16);
+    smap_t *node_name_expanded = smap_init(16);
+
+    array *nodes_expanded = array_init(16);
 
     for (int i = 0; i < array_size(traversal->nodes); ++i) {
         char *node = (char *)array_get(traversal->nodes, i);
@@ -444,14 +447,34 @@ static int check_traversal(Traversal *traversal, struct Info *info) {
         Nodeset *traversal_nodeset =
             (Nodeset *)smap_retrieve(info->nodeset_name, node);
 
-        if (!traversal_node && !traversal_nodeset) {
-            print_error(node, "Unknown type of node '%s' in traversal '%s'",
-                        node, traversal->id);
+        if (traversal_node) {
+            array_append(nodes_expanded, strdup(node));
+            smap_insert(node_name_expanded, node, node);
+        } else if (traversal_nodeset) {
+
+            // Add every node in the nodeset to the expanded node list
+            for (int j = 0; j < array_size(traversal_nodeset->nodes); j++) {
+                Node *nodeset_node = array_get(traversal_nodeset->nodes, j);
+                if (smap_retrieve(node_name_expanded, nodeset_node->id) ==
+                    NULL) {
+                    array_append(nodes_expanded, strdup(nodeset_node->id));
+                    smap_insert(node_name_expanded, nodeset_node->id,
+                                nodeset_node);
+                }
+            }
+        } else {
+            print_error(
+                node, "Unknown type of node or nodeset '%s' in traversal '%s'",
+                node, traversal->id);
             error = 1;
         }
     }
 
+    array_cleanup(traversal->nodes, mem_free);
+    traversal->nodes = nodes_expanded;
+
     smap_free(node_name);
+    smap_free(node_name_expanded);
 
     return error;
 }
