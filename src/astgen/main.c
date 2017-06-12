@@ -24,6 +24,7 @@
 #include "astgen/gen-free-functions.h"
 #include "astgen/gen-pass-header.h"
 #include "astgen/gen-phase-driver.h"
+#include "astgen/gen-serialization-headers.h"
 #include "astgen/gen-trav-core-functions.h"
 #include "astgen/gen-trav-functions.h"
 #include "astgen/gen-user-trav-header.h"
@@ -204,6 +205,12 @@ int main(int argc, char *argv[]) {
 
     filegen_generate("binary-serialization-util.h",
                      generate_binary_serialization_util_header);
+
+    filegen_all_nodes("serialization-%s.h",
+                      generate_binary_serialization_node_header);
+
+    filegen_all_nodesets("serialization-%s.h",
+                         generate_binary_serialization_nodeset_header);
 
     // Genereate all the source files.
     filegen_dir(source_dir);
