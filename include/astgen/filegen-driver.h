@@ -14,3 +14,6 @@ void filegen_all_traversals(char *fileformatter,
                             void (*func)(Config *, FILE *, Traversal *));
 void filegen_all_passes(char *fileformatter,
                         void (*func)(Config *, FILE *, Pass *));
+
+void filegen_cleanup_old_files(void);
+void filegen_cleanup(void);

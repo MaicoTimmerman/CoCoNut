@@ -212,6 +212,8 @@ int main(int argc, char *argv[]) {
     filegen_all_nodesets("serialization-%s.h",
                          generate_binary_serialization_nodeset_header);
 
+    filegen_cleanup_old_files();
+
     // Genereate all the source files.
     filegen_dir(source_dir);
 
@@ -243,6 +245,10 @@ int main(int argc, char *argv[]) {
 
     filegen_all_nodesets("binary-serialization-%s-read.c",
                          generate_binary_serialization_read_nodeset);
+
+    filegen_cleanup_old_files();
+
+    filegen_cleanup();
 
     free_config(parse_result);
 

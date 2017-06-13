@@ -12,6 +12,7 @@
 
 #include "lib/array.h"
 #include "lib/memory.h"
+#include "lib/smap.h"
 
 #define COLOR_GREEN "\033[1m\033[32m"
 #define COLOR_RESET "\033[0m"
@@ -19,6 +20,7 @@
 
 static Config *ast_definition = NULL;
 static char *output_directory = NULL;
+static smap_t *generated_files = NULL;
 
 static FILE *get_fp(char *full_path) {
     FILE *fp = fopen(full_path, "w");
@@ -46,28 +48,53 @@ static char *get_full_path(char *filename, char *formatter) {
     return full_path;
 }
 
+static void add_filename_to_set(char *filename) {
+    char *filename_dup = strdup(filename);
+    char *fn = strrchr(filename_dup, '/');
+    if (fn) {
+        // Skip the slash
+        fn = fn + 1;
+    } else {
+        fn = filename;
+    }
+
+    size_t length = strlen(fn);
+    if (!(fn[length - 2] == '.' &&
+          (fn[length - 1] == 'c' || fn[length - 1] == 'h'))) {
+        fprintf(stderr, "Filename has incorrect format: %s\n", filename);
+        return;
+    }
+
+    fn[length - 2] = '\0';
+    smap_insert(generated_files, fn, fn);
+    free(filename_dup);
+}
+
 static bool hash_match(NodeCommonInfo *info, char *full_path) {
 
     char *current_hash = mem_alloc(43 * sizeof(char));
     bool rv = false;
 
     FILE *fp = fopen(full_path, "r");
-    if (fp == NULL)
-        return rv;
-
-    // TODO: More robustness of the detection of the hash, maybe use regex.
-    // Hash: %32s\n -> read 3+4+2+32+1 = 42 characters.
-    if (fgets(current_hash, 42, fp) != NULL) {
-        if (strncmp(current_hash + 9, info->hash, 32) == 0) {
-            rv = true;
-            printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n", full_path);
-        } else {
-            printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
+    if (fp != NULL) {
+        // TODO: More robustness of the detection of the hash, maybe use regex.
+        // Hash: %32s\n -> read 3+4+2+32+1 = 42 characters.
+        if (fgets(current_hash, 42, fp) != NULL) {
+            if (strncmp(current_hash + 9, info->hash, 32) == 0) {
+                rv = true;
+                printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n",
+                       full_path);
+            }
         }
+        fclose(fp);
     }
 
+    if (!rv) {
+        printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
+    }
+
+    add_filename_to_set(full_path);
     mem_free(current_hash);
-    fclose(fp);
     return rv;
 }
 
@@ -75,7 +102,21 @@ void filegen_init(Config *config) {
     ast_definition = config;
 }
 
+void filegen_cleanup(void) {
+    if (output_directory != NULL) {
+        mem_free(output_directory);
+    }
+
+    if (generated_files != NULL) {
+        smap_free(generated_files);
+    }
+}
+
 void filegen_dir(char *out_dir) {
+    filegen_cleanup();
+
+    generated_files = smap_init(32);
+
     size_t out_dir_len = strlen(out_dir);
 
     if (out_dir[out_dir_len - 1] != '/') {
@@ -109,6 +150,9 @@ void filegen_dir(char *out_dir) {
 void filegen_generate(char *filename, void (*func)(Config *, FILE *)) {
 
     char *full_path = get_full_path(filename, NULL);
+
+    add_filename_to_set(full_path);
+
     FILE *fp = get_fp(full_path);
 
     func(ast_definition, fp);
@@ -202,5 +246,45 @@ void filegen_all_passes(char *fileformatter,
         func(ast_definition, fp, pass);
         mem_free(full_path);
         fclose(fp);
+    }
+}
+
+void filegen_cleanup_old_files(void) {
+    size_t output_dir_length = strlen(output_directory);
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir(output_directory)) != NULL) {
+        while ((ent = readdir(dir)) != NULL) {
+            if (ent->d_type != DT_REG)
+                continue;
+
+            char *name = ent->d_name;
+            size_t length = strlen(ent->d_name);
+            if (!(length >= 2 && name[length - 2] == '.' &&
+                  (name[length - 1] == 'h' || name[length - 1] == 'c' ||
+                   name[length - 1] == 'd' || name[length - 1] == 'o')))
+                continue;
+
+            char *name_no_ext = strdup(name);
+            name_no_ext[length - 2] = '\0';
+
+            // Delete the file if it is not generated
+            if (smap_retrieve(generated_files, name_no_ext) == NULL) {
+                char *full_path = malloc(output_dir_length + length + 2);
+                sprintf(full_path, "%s%s", output_directory, name);
+                printf(COLOR_GREEN " RM        " COLOR_RESET "%s\n",
+                       full_path);
+                if (remove(full_path) != 0)
+                    perror("remove");
+
+                mem_free(full_path);
+            }
+            mem_free(name_no_ext);
+        }
+        closedir(dir);
+    } else {
+        /* could not open directory */
+        perror("Error opening directory for file cleanup");
     }
 }
