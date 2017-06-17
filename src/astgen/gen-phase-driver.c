@@ -14,11 +14,15 @@ static inline void print_indent(int level, char *single_indent, FILE *fp) {
 static void print_phase_tree(Phase *p, int level, FILE *fp,
                              char *root_node_name) {
 
-    if (p->type == PH_subphases) {
+    // Omit printing the name of the root phase
+    if (level > 0) {
         out("    printf(\"");
         print_indent(level, "**", fp);
-
         out(" %s\\n\");\n", p->info != NULL ? p->info : p->id);
+    }
+
+    if (p->type == PH_subphases) {
+
         for (int i = 0; i < array_size(p->subphases); i++) {
             print_phase_tree(array_get(p->subphases, i), level + 1, fp,
                              root_node_name);
@@ -71,7 +75,7 @@ static void generate(Config *config, FILE *fp, bool header) {
         out(";\n");
     } else {
         out(" {\n");
-        print_phase_tree(config->phase_tree, 1, fp, config->root_node->id);
+        print_phase_tree(config->phase_tree, 0, fp, config->root_node->id);
         out("}\n");
     }
 }
