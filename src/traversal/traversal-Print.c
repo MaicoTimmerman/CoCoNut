@@ -1,5 +1,5 @@
+#include "generated/traversal-Print.h"
 #include "astgen/errors.h"
-#include "generated/trav-ast.h"
 #include "lib/memory.h"
 #include <stdio.h>
 
@@ -8,13 +8,14 @@
 struct Info {
     int indent;
 };
-struct Info *Print_createinfo(void) {
-    struct Info *res = (struct Info *)mem_alloc(sizeof(struct Info));
+
+Info *Print_createinfo(void) {
+    Info *res = (Info *)mem_alloc(sizeof(Info));
     res->indent = 0;
     return res;
 }
 
-void Print_freeinfo(struct Info *info) {
+void Print_freeinfo(Info *info) {
     mem_free(info);
 }
 
@@ -44,23 +45,23 @@ static void print_basictype(BasicType type) {
     }
 }
 
-void Print_Root(Root *node, struct Info *info) {
+void Print_Root(Root *node, Info *info) {
     trav_Root_symbol(node, info);
     trav_Root_funsymbol(node, info);
     trav_Root_decls(node, info);
 }
 
-void Print_Decls(Decls *node, struct Info *info) {
+void Print_Decls(Decls *node, Info *info) {
     trav_Decls_decl(node, info);
     trav_Decls_next(node, info);
 }
 
-void Print_LocalFunDef(LocalFunDef *node, struct Info *info) {
+void Print_LocalFunDef(LocalFunDef *node, Info *info) {
     trav_LocalFunDef_decl(node, info);
     trav_LocalFunDef_next(node, info);
 }
 
-void Print_FunDef(FunDef *node, struct Info *info) {
+void Print_FunDef(FunDef *node, Info *info) {
     if (node->external) {
         printf("extern ");
         trav_FunDef_funheader(node, info);
@@ -79,14 +80,14 @@ void Print_FunDef(FunDef *node, struct Info *info) {
     }
 }
 
-void Print_FunHeader(FunHeader *node, struct Info *info) {
+void Print_FunHeader(FunHeader *node, Info *info) {
     print_basictype(node->rettype);
     printf(" %s(", node->id);
     trav_FunHeader_params(node, info);
     printf(")");
 }
 
-void Print_Param(Param *node, struct Info *info) {
+void Print_Param(Param *node, Info *info) {
     print_basictype(node->type);
     printf(" %s", node->id);
     if (node->next != NULL) {
@@ -95,14 +96,14 @@ void Print_Param(Param *node, struct Info *info) {
     }
 }
 
-void Print_GlobalDec(GlobalDec *node, struct Info *info) {
+void Print_GlobalDec(GlobalDec *node, Info *info) {
     INDENT;
     printf("extern ");
     print_basictype(node->type);
     printf(" %s;", node->id);
 }
 
-void Print_GlobalDef(GlobalDef *node, struct Info *info) {
+void Print_GlobalDef(GlobalDef *node, Info *info) {
     INDENT;
     if (node->export) {
         printf("export ");
@@ -118,7 +119,7 @@ void Print_GlobalDef(GlobalDef *node, struct Info *info) {
     printf(";");
 }
 
-void Print_FunBody(FunBody *node, struct Info *info) {
+void Print_FunBody(FunBody *node, Info *info) {
     trav_FunBody_vardec(node, info);
     printf("\n");
     trav_FunBody_localfundef(node, info);
@@ -126,7 +127,7 @@ void Print_FunBody(FunBody *node, struct Info *info) {
     trav_FunBody_stmtlist(node, info);
 }
 
-void Print_VarDec(VarDec *node, struct Info *info) {
+void Print_VarDec(VarDec *node, Info *info) {
     INDENT;
     print_basictype(node->type);
     printf(" %s", node->id);
@@ -143,7 +144,7 @@ void Print_VarDec(VarDec *node, struct Info *info) {
     }
 }
 
-void Print_StmtList(StmtList *node, struct Info *info) {
+void Print_StmtList(StmtList *node, Info *info) {
     INDENT;
     trav_StmtList_stmt(node, info);
 
@@ -160,18 +161,18 @@ void Print_StmtList(StmtList *node, struct Info *info) {
     trav_StmtList_next(node, info);
 }
 
-void Print_VarLet(VarLet *node, struct Info *info) {
+void Print_VarLet(VarLet *node, Info *info) {
     printf("%s = ", node->id);
     trav_VarLet_expr(node, info);
 }
 
-void Print_FunCall(FunCall *node, struct Info *info) {
+void Print_FunCall(FunCall *node, Info *info) {
     printf("%s(", node->id);
     trav_FunCall_params(node, info);
     printf(")");
 }
 
-void Print_ExprList(ExprList *node, struct Info *info) {
+void Print_ExprList(ExprList *node, Info *info) {
     trav_ExprList_expr(node, info);
     if (node->next != NULL) {
         printf(", ");
@@ -179,7 +180,7 @@ void Print_ExprList(ExprList *node, struct Info *info) {
     }
 }
 
-void Print_IfElse(IfElse *node, struct Info *info) {
+void Print_IfElse(IfElse *node, Info *info) {
     printf("if (");
     trav_IfElse_condition(node, info);
     printf(") {\n");
@@ -202,7 +203,7 @@ void Print_IfElse(IfElse *node, struct Info *info) {
     }
 }
 
-void Print_While(While *node, struct Info *info) {
+void Print_While(While *node, Info *info) {
     printf("while (");
     trav_While_condition(node, info);
     printf(") {\n");
@@ -215,7 +216,7 @@ void Print_While(While *node, struct Info *info) {
     printf("}");
 }
 
-void Print_DoWhile(DoWhile *node, struct Info *info) {
+void Print_DoWhile(DoWhile *node, Info *info) {
     printf("do {\n");
 
     info->indent++;
@@ -228,7 +229,7 @@ void Print_DoWhile(DoWhile *node, struct Info *info) {
     printf(")");
 }
 
-void Print_For(For *node, struct Info *info) {
+void Print_For(For *node, Info *info) {
 
     printf("for (int %s = ", node->id);
     trav_For_initexpr(node, info);
@@ -250,7 +251,7 @@ void Print_For(For *node, struct Info *info) {
     printf("}");
 }
 
-void Print_Return(Return *node, struct Info *info) {
+void Print_Return(Return *node, Info *info) {
     printf("return");
     if (node->expr != NULL) {
         printf(" ");
@@ -258,7 +259,7 @@ void Print_Return(Return *node, struct Info *info) {
     }
 }
 
-void Print_BinOp(BinOp *node, struct Info *info) {
+void Print_BinOp(BinOp *node, Info *info) {
 
     printf("(");
     trav_BinOp_left(node, info);
@@ -317,7 +318,7 @@ void Print_BinOp(BinOp *node, struct Info *info) {
     printf(")");
 }
 
-void Print_MonOp(MonOp *node, struct Info *info) {
+void Print_MonOp(MonOp *node, Info *info) {
     switch (node->op) {
     case MO_not:
         printf("(! ");
@@ -332,7 +333,7 @@ void Print_MonOp(MonOp *node, struct Info *info) {
     printf(")");
 }
 
-void Print_Cast(Cast *node, struct Info *info) {
+void Print_Cast(Cast *node, Info *info) {
     printf("(");
     switch (node->type) {
     case BT_int:
@@ -353,19 +354,19 @@ void Print_Cast(Cast *node, struct Info *info) {
     printf("))");
 }
 
-void Print_Var(Var *node, struct Info *info) {
+void Print_Var(Var *node, Info *info) {
     printf("%s", node->id);
 }
 
-void Print_IntConst(IntConst *node, struct Info *info) {
+void Print_IntConst(IntConst *node, Info *info) {
     printf("%d", node->value);
 }
 
-void Print_FloatConst(FloatConst *node, struct Info *info) {
+void Print_FloatConst(FloatConst *node, Info *info) {
     printf("%f", node->value);
 }
 
-void Print_BoolConst(BoolConst *node, struct Info *info) {
+void Print_BoolConst(BoolConst *node, Info *info) {
     if (node->value) {
         printf("true");
     } else {
@@ -373,7 +374,7 @@ void Print_BoolConst(BoolConst *node, struct Info *info) {
     }
 }
 
-void Print_Ternary(Ternary *node, struct Info *info) {
+void Print_Ternary(Ternary *node, Info *info) {
     printf("(");
     trav_Ternary_testexpr(node, info);
     printf(" ? ");
@@ -383,7 +384,7 @@ void Print_Ternary(Ternary *node, struct Info *info) {
     printf(")");
 }
 
-void Print_Symbol(Symbol *node, struct Info *info) {
+void Print_Symbol(Symbol *node, Info *info) {
 
     INDENT;
     printf(" * %s (Scope: %d, Offset: %d, Extern: %s, Export: %s)\n",
@@ -393,7 +394,7 @@ void Print_Symbol(Symbol *node, struct Info *info) {
     trav_Symbol_next(node, info);
 }
 
-void Print_FunSymbol(FunSymbol *node, struct Info *info) {
+void Print_FunSymbol(FunSymbol *node, Info *info) {
     INDENT;
     printf(" * function %s: %p (%d params, scope: %d, offset: %d, Extern: %s, "
            "Export: %s)\n",

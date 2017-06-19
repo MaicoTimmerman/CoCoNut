@@ -25,8 +25,6 @@ enum BinOpEnum {
     }
 };
 
-pass A;
-
 traversal Print;
 traversal ByteCode;
 traversal RenameFor {
@@ -87,258 +85,259 @@ nodeset Stmt {
 
 root node Root {
     children {
-        Decls decls { construct, mandatory },
-        FunSymbol funsymbol { construct },
-        Symbol symbol { construct }
+        Decls decls { constructor, mandatory },
+        FunSymbol funsymbol { constructor },
+        Symbol symbol { constructor }
     }
 };
 
 node Decls {
     children {
-        Decl decl { construct, mandatory },
-        Decls next { construct }
+        Decl decl { constructor, mandatory },
+        Decls next { constructor }
     }
 };
 
 node LocalFunDef {
     children {
-        FunDef decl { construct, mandatory },
-        LocalFunDef next { construct }
+        FunDef decl { constructor, mandatory },
+        LocalFunDef next { constructor }
     }
 };
 
 node FunDef {
     children {
-        FunHeader funheader { construct, mandatory },
-        FunBody funbody { construct },
-        FunSymbol funsymbol { construct },
-        Symbol symbol { construct }
+        FunHeader funheader { constructor, mandatory },
+        FunBody funbody { constructor },
+        FunSymbol funsymbol { constructor },
+        Symbol symbol { constructor }
     },
     attributes {
-        construct bool external,
-        construct bool export
+        bool external { constructor },
+        bool export { constructor }
     }
 };
 
 node FunHeader {
     children {
-        Param params { construct, mandatory }
+        Param params { constructor, mandatory }
     },
     attributes {
-        construct BasicType rettype,
-        construct string id
+        BasicType rettype { constructor },
+        string id { constructor }
     }
 };
 
 node Param {
     children {
-        Param next { construct }
+        Param next { constructor }
     },
     attributes {
-        construct BasicType type,
-        construct string id
+        BasicType type { constructor },
+        string id { constructor }
     }
 };
 
 node GlobalDec {
     attributes {
-        construct BasicType type,
-        construct string id
+        BasicType type { constructor },
+        string id { constructor }
     }
 };
 
 node GlobalDef {
     children {
-        Expr expr { construct }
+        Expr expr { constructor }
     },
     attributes {
-        construct BasicType type,
-        construct string id,
-        construct bool export,
-        Symbol symbol
+        BasicType type { constructor },
+        string id { constructor },
+        bool export { constructor },
+        Symbol symbol = NULL
     }
 };
 
 node FunBody {
     children {
-        VarDec vardec { construct },
-        LocalFunDef localfundef { construct },
-        StmtList stmtlist { construct }
+        VarDec vardec { constructor },
+        LocalFunDef localfundef { constructor },
+        StmtList stmtlist { constructor }
     }
 };
 
 node VarDec {
     children {
-        Expr expr { construct, mandatory },
-        VarDec next { construct }
+        Expr expr { constructor, mandatory },
+        VarDec next { constructor }
     },
     attributes {
-        Symbol symbol,
-        construct BasicType type,
-        construct string id
+        Symbol symbol = NULL,
+        BasicType type { constructor },
+        string id { constructor }
     }
 };
 
 node StmtList {
     children {
-        Stmt stmt { construct, mandatory },
-        StmtList next { construct }
+        Stmt stmt { constructor, mandatory },
+        StmtList next { constructor }
     }
 };
 
 node VarLet {
     children {
-        Expr expr { construct, mandatory }
+        Expr expr { constructor, mandatory }
     },
     attributes {
-        Symbol symbol,
-        construct string id
+        Symbol symbol = NULL,
+        string id { constructor }
     }
 };
 
 node FunCall {
     children {
-        ExprList params { construct }
+        ExprList params { constructor }
     },
     attributes {
-        FunSymbol symbol,
-        construct string id
+        FunSymbol symbol = NULL,
+        string id { constructor }
     }
 };
 
 node ExprList {
     children {
-        Expr expr { construct, mandatory },
-        ExprList next { construct }
+        Expr expr { constructor, mandatory },
+        ExprList next { constructor }
     }
 };
 
 node IfElse {
     children {
-        Expr condition { construct, mandatory },
-        StmtList ifblock { construct },
-        StmtList elseblock { construct }
+        Expr condition { constructor, mandatory },
+        StmtList ifblock { constructor },
+        StmtList elseblock { constructor }
     }
 };
 
 node While {
     children {
-        Expr condition { construct, mandatory },
-        StmtList block { construct }
+        Expr condition { constructor, mandatory },
+        StmtList block { constructor }
     }
 };
 
 node DoWhile {
     children {
-        Expr condition { construct, mandatory },
-        StmtList block { construct }
+        Expr condition { constructor, mandatory },
+        StmtList block { constructor }
     }
 };
 
 node For {
     children {
-        Expr initexpr { construct, mandatory },
-        Expr boundexpr { construct, mandatory },
-        Expr stepexpr { construct },
-        StmtList block { construct }
+        Expr initexpr { constructor, mandatory },
+        Expr boundexpr { constructor, mandatory },
+        Expr stepexpr { constructor },
+        StmtList block { constructor }
     },
     attributes {
-        Symbol symbol,
-        construct string id
+        Symbol symbol = NULL,
+        string id { constructor }
     }
 };
 
 node Return {
     children {
-        Expr expr { construct }
+        Expr expr { constructor }
     }
 };
 
 node BinOp {
     children {
-        Expr left { construct, mandatory },
-        Expr right { construct, mandatory }
+        Expr left { constructor, mandatory },
+        Expr right { constructor, mandatory }
     },
     attributes {
-        construct BinOpEnum op
+        BinOpEnum op { constructor }
     }
 };
 
 node MonOp {
     children {
-        Expr expr { construct, mandatory }
+        Expr expr { constructor, mandatory }
     },
     attributes {
-        construct MonOpEnum op
+        MonOpEnum op { constructor }
     }
 };
 
 node Cast {
     children {
-        Expr expr { construct, mandatory }
+        Expr expr { constructor, mandatory }
     },
     attributes {
-        construct BasicType type
+        BasicType type { constructor }
     }
 };
 
 node Var {
     attributes {
-        construct string id,
-        Symbol symbol
+        string id { constructor },
+        Symbol symbol = NULL
     }
 };
 
 node IntConst {
     attributes {
-        construct int value
+        int value { constructor }
     }
 };
 
 node FloatConst {
     attributes {
-        construct float value
+        float value { constructor }
     }
 };
 
 node BoolConst {
     attributes {
-        construct bool value
+        bool value { constructor }
     }
 };
 
 node Ternary {
     children {
-        Expr testexpr { construct, mandatory },
-        Expr trueexpr { construct, mandatory },
-        Expr falseexpr { construct, mandatory }
+        Expr testexpr { constructor, mandatory },
+        Expr trueexpr { constructor, mandatory },
+        Expr falseexpr { constructor, mandatory }
     }
 };
 
 node Symbol {
     children {
-        Symbol next { construct }
+        Symbol next { constructor }
     },
     attributes {
-        construct bool external,
-        construct bool export,
-        construct string name,
-        construct int scope,
-        construct int offset
+        bool external { constructor },
+        bool export { constructor },
+        string name { constructor },
+        int scope { constructor },
+        int offset { constructor }
     }
 };
 
 node FunSymbol {
     children {
-        FunSymbol next { construct }
+        FunSymbol next { constructor }
     },
     attributes {
-        construct bool export,
-        construct bool external,
-        construct string name,
-        construct string scopedname,
-        construct int arity,
-        construct int scope,
-        construct int offset
+        bool export { constructor },
+        bool external { constructor },
+        string name { constructor },
+        string scopedname { constructor },
+        int arity { constructor },
+        int scope { constructor },
+        int offset { constructor }
     }
 };
+// vim: ft=ast

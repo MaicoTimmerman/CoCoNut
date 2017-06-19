@@ -165,16 +165,15 @@ MandatoryPhase *create_mandatory_phaserange(char *phase_start, char *phase_end,
     return p;
 }
 
-Attr *create_attr(Attr *attrhead, AttrValue *default_value) {
-    attrhead->default_value = default_value;
-
-    return attrhead;
+Attr *create_attr(Attr *a, AttrValue *default_value, int construct) {
+    a->default_value = default_value;
+    a->construct = construct;
+    return a;
 }
 
-Attr *create_attrhead_primitive(int construct, enum AttrType type, char *id) {
+Attr *create_attrhead_primitive(enum AttrType type, char *id) {
 
     Attr *a = mem_alloc(sizeof(Attr));
-    a->construct = construct;
     a->type = type;
     a->type_id = NULL;
     a->id = id;
@@ -183,10 +182,9 @@ Attr *create_attrhead_primitive(int construct, enum AttrType type, char *id) {
     return a;
 }
 
-Attr *create_attrhead_idtype(int construct, char *type, char *id) {
+Attr *create_attrhead_idtype(char *type, char *id) {
 
     Attr *a = mem_alloc(sizeof(Attr));
-    a->construct = construct;
     a->type = AT_link_or_enum;
     a->type_id = type;
     a->id = id;

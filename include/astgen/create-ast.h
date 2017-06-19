@@ -32,11 +32,11 @@ MandatoryPhase *create_mandatory_singlephase(char *phase, int negation);
 MandatoryPhase *create_mandatory_phaserange(char *phase_start, char *phase_end,
                                             int negation);
 
-Attr *create_attr(Attr *attrhead, AttrValue *default_value);
+Attr *create_attr(Attr *attrhead, AttrValue *default_value, int construct);
 
-Attr *create_attrhead_primitive(int construct, enum AttrType type, char *id);
+Attr *create_attrhead_primitive(enum AttrType type, char *id);
 
-Attr *create_attrhead_idtype(int construct, char *type, char *id);
+Attr *create_attrhead_idtype(char *type, char *id);
 
 AttrValue *create_attrval_string(char *value);
 

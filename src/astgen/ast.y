@@ -112,7 +112,7 @@ static void new_location(void *ptr, struct ParserLocation *loc);
 
 %token T_ATTRIBUTES "attributes"
 %token T_CHILDREN "children"
-%token T_CONSTRUCT "construct"
+%token T_CONSTRUCTOR "construct"
 %token T_CYCLE "cycle"
 %token T_ENUM "enum"
 %token T_MANDATORY "mandatory"
@@ -455,21 +455,21 @@ child: T_ID T_ID
          new_location($1, &@1);
          new_location($2, &@2);
      }
-     | T_ID T_ID '{' T_CONSTRUCT ',' mandatory '}'
+     | T_ID T_ID '{' T_CONSTRUCTOR ',' mandatory '}'
      {
          $$ = create_child(1, 1, $6, $2, $1);
          new_location($$, &@$);
          new_location($1, &@1);
          new_location($2, &@2);
      }
-     | T_ID T_ID '{' mandatory ',' T_CONSTRUCT '}'
+     | T_ID T_ID '{' mandatory ',' T_CONSTRUCTOR '}'
      {
          $$ = create_child(1, 1, $4, $2, $1);
          new_location($$, &@$);
          new_location($1, &@1);
          new_location($2, &@2);
      }
-     | T_ID T_ID '{' T_CONSTRUCT '}'
+     | T_ID T_ID '{' T_CONSTRUCTOR '}'
      {
          $$ = create_child(1, 0, NULL, $2, $1);
          new_location($$, &@$);
@@ -501,43 +501,30 @@ attrlist: attrlist ',' attr
             // $$ is an array and should not be in the locations list
         }
         ;
-attr: attrhead
+attr: attrhead '{' T_CONSTRUCTOR '}'
     {
-        $$ = create_attr($1, NULL);
+        $$ = create_attr($1, NULL, 1);
         new_location($$, &@$);
     }
     | attrhead '=' attrval
     {
-        $$ = create_attr($1, $3);
+        $$ = create_attr($1, $3, 0);
         new_location($$, &@$);
     }
     ;
 /* Optional [construct] keyword, for adding to constructor. */
 attrhead: attrprimitivetype T_ID
         {
-            $$ = create_attrhead_primitive(0, $1, $2);
+            $$ = create_attrhead_primitive($1, $2);
             new_location($$, &@$);
             new_location($2, &@2);
-        }
-        | T_CONSTRUCT attrprimitivetype T_ID
-        {
-            $$ = create_attrhead_primitive(1, $2, $3);
-            new_location($$, &@$);
-            new_location($3, &@3);
         }
         | T_ID T_ID
         {
-            $$ = create_attrhead_idtype(0, $1, $2);
+            $$ = create_attrhead_idtype($1, $2);
             new_location($$, &@$);
             new_location($1, &@1);
             new_location($2, &@2);
-        }
-        | T_CONSTRUCT T_ID T_ID
-        {
-            $$ = create_attrhead_idtype(1, $2, $3);
-            new_location($$, &@$);
-            new_location($2, &@2);
-            new_location($3, &@3);
         }
         ;
 
