@@ -9,6 +9,7 @@
 #include "astgen/ast.h"
 #include "astgen/errors.h"
 #include "astgen/filegen-util.h"
+#include "astgen/print.h"
 
 #include "lib/array.h"
 #include "lib/memory.h"
@@ -61,7 +62,7 @@ static void add_filename_to_set(char *filename) {
     size_t length = strlen(fn);
     if (!(fn[length - 2] == '.' &&
           (fn[length - 1] == 'c' || fn[length - 1] == 'h'))) {
-        fprintf(stderr, "Filename has incorrect format: %s\n", filename);
+        print_internal_error("Filename has incorrect format: %s\n", filename);
         return;
     }
 

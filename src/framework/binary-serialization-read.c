@@ -7,21 +7,30 @@
 #include "framework/serialization-binary-format.h"
 #include "lib/array.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 
-static bool read(int N, FILE *fp, void *res) {
+char *_serialization_read_fn = NULL;
+
+static bool file_read(int N, FILE *fp, void *res) {
     size_t num = fread(res, 1, N, fp);
+
+    // TODO: Make these errors propagate
     if (num < N) {
         if (ferror(fp)) {
-            fprintf(stderr, "Error reading file: Tried to read %d bytes but "
-                            "read %zu bytes\n",
-                    N, num);
+            print_user_error(
+                SERIALIZE_READ_BIN_ERROR_HEADER,
+                "%s: Error reading file: Tried to read %d bytes but "
+                "read only %zu bytes.",
+                _serialization_read_fn, N, num);
         } else if (feof(fp)) {
-            fprintf(stderr, "Error reading file: End of file reached\n");
+            print_user_error(
+                SERIALIZE_READ_BIN_ERROR_HEADER,
+                "%s: Error reading file: Unexpected end of file reached.",
+                _serialization_read_fn);
         } else {
-            fprintf(stderr, "Error reading file: Tried to read %d bytes but "
-                            "read %zu bytes\n",
-                    N, num);
-            fprintf(stderr, "Error reading file: unknown error\n");
+            print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER,
+                             "%s: Error reading file: Unknown error.",
+                             _serialization_read_fn);
         }
 
         return false;
@@ -32,26 +41,26 @@ static bool read(int N, FILE *fp, void *res) {
 
 static uint32_t read_u4(FILE *fp) {
     uint32_t res = 0;
-    read(4, fp, &res);
+    file_read(4, fp, &res);
     return res;
 }
 
 static uint16_t read_u2(FILE *fp) {
     uint16_t res = 0;
-    read(2, fp, &res);
+    file_read(2, fp, &res);
     return res;
 }
 
 static uint8_t read_u1(FILE *fp) {
     uint8_t res = 0;
-    read(1, fp, &res);
+    file_read(1, fp, &res);
     return res;
 }
 
 static char *read_string(FILE *fp) {
     uint16_t length = read_u2(fp);
     char *result = mem_alloc(length + 1);
-    read(length, fp, result);
+    file_read(length, fp, result);
     result[length] = '\0';
     return result;
 }
@@ -90,56 +99,58 @@ static Attribute *read_attr(FILE *fp) {
 
     switch (type) {
     case AT_int:
-        read(8, fp, &(attr->value.val_int.value));
+        file_read(8, fp, &(attr->value.val_int.value));
         break;
     case AT_uint:
-        read(8, fp, &(attr->value.val_uint.value));
+        file_read(8, fp, &(attr->value.val_uint.value));
         break;
     case AT_int8:
-        read(1, fp, &(attr->value.val_int8.value));
+        file_read(1, fp, &(attr->value.val_int8.value));
         break;
     case AT_int16:
-        read(2, fp, &(attr->value.val_int16.value));
+        file_read(2, fp, &(attr->value.val_int16.value));
         break;
     case AT_int32:
-        read(4, fp, &(attr->value.val_int32.value));
+        file_read(4, fp, &(attr->value.val_int32.value));
         break;
     case AT_int64:
-        read(8, fp, &(attr->value.val_int32.value));
+        file_read(8, fp, &(attr->value.val_int32.value));
         break;
     case AT_uint8:
-        read(1, fp, &(attr->value.val_uint8.value));
+        file_read(1, fp, &(attr->value.val_uint8.value));
         break;
     case AT_uint16:
-        read(2, fp, &(attr->value.val_uint16.value));
+        file_read(2, fp, &(attr->value.val_uint16.value));
         break;
     case AT_uint32:
-        read(4, fp, &(attr->value.val_uint32.value));
+        file_read(4, fp, &(attr->value.val_uint32.value));
         break;
     case AT_uint64:
-        read(8, fp, &(attr->value.val_uint64.value));
+        file_read(8, fp, &(attr->value.val_uint64.value));
         break;
     case AT_float:
-        read(4, fp, &(attr->value.val_float.value));
+        file_read(4, fp, &(attr->value.val_float.value));
         break;
     case AT_double:
-        read(8, fp, &(attr->value.val_double.value));
+        file_read(8, fp, &(attr->value.val_double.value));
         break;
     case AT_bool:
-        read(1, fp, &(attr->value.val_bool.value));
+        file_read(1, fp, &(attr->value.val_bool.value));
         break;
     case AT_string:
-        read(4, fp, &(attr->value.val_string.value_index));
+        file_read(4, fp, &(attr->value.val_string.value_index));
         break;
     case AT_link:
-        read(4, fp, &(attr->value.val_link.node_index));
+        file_read(4, fp, &(attr->value.val_link.node_index));
         break;
     case AT_enum:
-        read(2, fp, &(attr->value.val_enum.type_index));
-        read(2, fp, &(attr->value.val_enum.value_index));
+        file_read(2, fp, &(attr->value.val_enum.type_index));
+        file_read(2, fp, &(attr->value.val_enum.value_index));
         break;
     default:
-        fprintf(stderr, "Invalid attribute type: %d\n", type);
+        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER,
+                         "%s: Invalid attribute type: %d",
+                         _serialization_read_fn, type);
         mem_free(attr);
         return NULL;
     }
@@ -188,7 +199,9 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
 
     const uint32_t magic_correct = FILE_MAGIC;
     if (memcmp(&magic, &magic_correct, 4) != 0) {
-        fprintf(stderr, "File signature is incorrect.\n");
+        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER,
+                         "%s: File signature is incorrect.",
+                         _serialization_read_fn);
         return NULL;
     }
 
@@ -202,10 +215,10 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
     bool file_endianness = (bool)(ast->flags & AST_LITTLE_ENDIAN);
 
     if (file_endianness != HOST_LITTLE_ENDIAN) {
-        fprintf(
-            stderr,
-            "Endianness mismatch: host is %s-endian but file is %s-endian\n",
-            HOST_LITTLE_ENDIAN ? "little" : "big",
+        print_user_error(
+            SERIALIZE_READ_BIN_ERROR_HEADER,
+            "%s: Endianness mismatch: host is %s-endian but file is %s-endian",
+            _serialization_read_fn, HOST_LITTLE_ENDIAN ? "little" : "big",
             file_endianness ? "little" : "big");
         mem_free(ast);
         return NULL;
@@ -213,7 +226,7 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
 
     ast->hash = mem_alloc(16 * sizeof(uint8_t));
 
-    read(16, fp, ast->hash);
+    file_read(16, fp, ast->hash);
 
     uint32_t string_pool_count = read_u4(fp);
 
@@ -231,7 +244,6 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
     uint16_t enum_pool_count = read_u2(fp);
 
     if (enum_pool_count > 0) {
-
         ast->enum_pool = array_init(enum_pool_count);
 
         for (int i = 0; i < enum_pool_count; i++) {
@@ -239,14 +251,12 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
 
             array_append(ast->enum_pool, e);
         }
-
     } else
         ast->enum_pool = NULL;
 
     uint32_t node_count = read_u4(fp);
 
     if (node_count > 0) {
-
         ast->nodes = array_init(node_count);
 
         for (int i = 0; i < node_count; i++) {

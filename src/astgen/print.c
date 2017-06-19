@@ -1,33 +1,14 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <unistd.h>
 
-#include "astgen/ast.h"
+#include "astgen/print.h"
 #include "lib/array.h"
 #include "lib/imap.h"
 
 extern char *yy_filename;
 extern array *yy_lines;
 extern imap_t *yy_parser_locations;
-
-#define RED "\x1B[31m"
-#define GREEN "\x1B[32m"
-#define YELLOW "\x1B[33m"
-#define MAGENTA "\x1B[35m"
-#define CYAN "\x1B[36m"
-
-#define DIM "\x1B[2m"
-#define BOLD "\x1B[1m"
-#define RESET_COLOR "\x1B[0m"
-
-#define PRINT_COLOR(c)                                                        \
-    {                                                                         \
-        if (isatty(STDERR_FILENO))                                            \
-            fprintf(stderr, c);                                               \
-    }
-
-enum PrintType { PT_error, PT_warning, PT_note };
 
 static void do_print(enum PrintType type, int lineno, int column_start,
                      int column_end, char *line, char *format, va_list ap) {
@@ -98,10 +79,35 @@ static void do_print_at_loc(enum PrintType type, void *loc_obj, char *format,
              line, format, ap);
 }
 
+void _print_internal_error(const char *file, const char *func, int line,
+                           const char *format, ...) {
+    PRINT_COLOR(BOLD RED);
+
+    fprintf(stderr, "internal error: ");
+
+    PRINT_COLOR(RESET_COLOR BOLD);
+
+    fprintf(stderr, "%s:%s:%d: ", file, func, line);
+
+    PRINT_COLOR(RESET_COLOR);
+
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    fprintf(stderr, "\n");
+}
+
 void print_error_at(int lineno, int column, char *line, char *format, ...) {
     va_list ap;
     va_start(ap, format);
     do_print(PT_error, lineno, column, column, line, format, ap);
+}
+
+void print_error_range(int lineno, int column_start, int column_end,
+                       char *line, char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print(PT_error, lineno, column_start, column_end, line, format, ap);
 }
 
 void print_error(void *loc_obj, char *format, ...) {
@@ -116,6 +122,13 @@ void print_warning_at(int lineno, int column, char *line, char *format, ...) {
     do_print(PT_warning, lineno, column, column, line, format, ap);
 }
 
+void print_warning_range(int lineno, int column_start, int column_end,
+                         char *line, char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print(PT_warning, lineno, column_start, column_end, line, format, ap);
+}
+
 void print_warning(void *loc_obj, char *format, ...) {
     va_list ap;
     va_start(ap, format);
@@ -126,6 +139,13 @@ void print_note_at(int lineno, int column, char *line, char *format, ...) {
     va_list ap;
     va_start(ap, format);
     do_print(PT_note, lineno, column, column, line, format, ap);
+}
+
+void print_note_range(int lineno, int column_start, int column_end, char *line,
+                      char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print(PT_note, lineno, column_start, column_end, line, format, ap);
 }
 
 void print_note(void *loc_obj, char *format, ...) {

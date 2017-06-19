@@ -4,6 +4,7 @@
 #include "astgen/ast.h"
 #include "astgen/filegen-driver.h"
 #include "astgen/filegen-util.h"
+#include "astgen/print.h"
 #include "astgen/str-ast.h"
 
 #include "lib/array.h"
@@ -143,17 +144,16 @@ static void generate_node_gen_traversal(Node *node, FILE *fp) {
                 out("    tag = AT_bool;\n");
                 break;
             case AT_string:
-                out("        tag = AT_string;\n");
+                out("    tag = AT_string;\n");
                 break;
             case AT_link:
-                out("        tag = AT_link;\n");
+                out("    tag = AT_link;\n");
                 break;
             case AT_enum:
                 out("    tag = AT_enum;\n");
                 break;
             default:
-                fprintf(stderr, "%s:%s:%d: Invalid attribute type: %d",
-                        __FILE__, __func__, __LINE__, attr->type);
+                print_internal_error("Invalid attribute type: %d", attr->type);
                 break;
             }
 
@@ -542,9 +542,15 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
     out("    return NULL;\n");
     out("}\n\n");
 
-    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, FILE *fp) {\n",
+    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, char *fn) {\n",
         n->id, n->id);
 
+    out("    FILE *fp = fopen(fn, \"wb\");\n");
+    out("    if (fp == NULL) {\n");
+    out("        print_user_error(__func__, \"%%s: %%s\", fn, "
+        "strerror(errno));\n");
+    out("        return;\n");
+    out("    }\n\n");
     out("    string_attrs = array_init(32);\n");
     out("    attrs_index = smap_init(32);\n");
     out("    node_indices = imap_init(32);\n\n");
@@ -610,12 +616,12 @@ static void generate_serialization_function_nodeset(Nodeset *n, FILE *fp) {
 
     for (int i = 0; i < array_size(n->nodes); i++) {
         Node *node = array_get(n->nodes, i);
-        out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *, FILE *);\n", node->id,
+        out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *, char *fn);\n", node->id,
             node->id);
     }
     out("\n");
 
-    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, FILE *fp) {\n",
+    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, char *fn) {\n",
         n->id, n->id);
 
     out("    switch (syntaxtree->type) {\n");
@@ -625,7 +631,7 @@ static void generate_serialization_function_nodeset(Nodeset *n, FILE *fp) {
 
         out("    case " NS_FORMAT ":\n", n->id, node->id);
         out("        " SERIALIZE_WRITE_BIN_FORMAT
-            "(syntaxtree->value.val_%s, fp);\n",
+            "(syntaxtree->value.val_%s, fn);\n",
             node->id, node->id);
         out("        break;\n");
     }
@@ -684,6 +690,7 @@ void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
     out("#include <stdio.h>\n");
     out("#include <stdint.h>\n");
     out("#include <string.h>\n");
+    out("#include <errno.h>\n");
     out("#include \"generated/ast.h\"\n");
     out("#include \"generated/binary-serialization-util.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
@@ -691,6 +698,7 @@ void generate_binary_serialization_node(Config *config, FILE *fp, Node *node) {
     out("#include \"lib/smap.h\"\n");
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
     out("\n");
 
     out("#define WRITE(N, data) do { \\\n"
@@ -746,6 +754,7 @@ void generate_binary_serialization_nodeset(Config *config, FILE *fp,
     out("#include <stdio.h>\n");
     out("#include <stdint.h>\n");
     out("#include <string.h>\n");
+    out("#include <unistd.h>\n");
     out("#include \"generated/ast.h\"\n");
     out("#include \"generated/binary-serialization-util.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
@@ -753,6 +762,7 @@ void generate_binary_serialization_nodeset(Config *config, FILE *fp,
     out("#include \"lib/smap.h\"\n");
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
     out("\n");
 
     out("#define WRITE(N, data) do { \\\n"

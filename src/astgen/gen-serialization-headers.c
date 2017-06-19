@@ -7,12 +7,12 @@ static void generate(FILE *fp, char *name) {
     out("#pragma once\n");
     out("#include <stdio.h>\n");
     out("#include \"framework/serialization-binary-format.h\"\n\n");
-    out("%s *" SERIALIZE_READ_BIN_FORMAT "(FILE *fp);\n", name, name);
-    out("%s *" SERIALIZE_READ_TXT_FORMAT "(FILE *fp);\n", name, name);
+    out("%s *" SERIALIZE_READ_BIN_FORMAT "(char *fn);\n", name, name);
+    out("%s *" SERIALIZE_READ_TXT_FORMAT "(char *fn);\n", name, name);
     out("\n");
-    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, FILE *fp);\n",
+    out("void " SERIALIZE_WRITE_BIN_FORMAT "(%s *syntaxtree, char *fn);\n",
         name, name);
-    out("void " SERIALIZE_WRITE_TXT_FORMAT "(%s *syntaxtree, FILE *fp);\n",
+    out("void " SERIALIZE_WRITE_TXT_FORMAT "(%s *syntaxtree, char *fn);\n",
         name, name);
 }
 

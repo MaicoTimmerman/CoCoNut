@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define SERIALIZE_READ_BIN_ERROR_HEADER "binary-serialization-reader"
+#define SERIALIZE_WRITE_BIN_ERROR_HEADER "binary-serialization-writer"
+
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define HOST_LITTLE_ENDIAN 1
 #define FILE_MAGIC 0x00545341

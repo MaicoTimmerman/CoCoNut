@@ -9,11 +9,30 @@ static void generate_check_attr_type(char *attr_type, FILE *fp, Attr *attr,
                                      Node *node) {
 
     out("            if (attr->type != AT_%s) {\n", attr_type);
-    out("                fprintf(stderr, \"Invalid type %%d for attribute %s "
-        "of node %s\\n\", attr->type);\n",
+    out("                print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, "
+        "\"%%s: Invalid type %%d for attribute %s "
+        "of node %s\", _serialization_read_fn, attr->type);\n",
         attr->id, node->id);
     out("                continue;\n");
     out("            }\n");
+}
+
+static void generate_entry_function(FILE *fp, char *id) {
+    out("%s *" SERIALIZE_READ_BIN_FORMAT "(char *fn) {\n", id, id);
+    out("    FILE *fp = fopen(fn, \"rb\");\n");
+    out("    if (fp == NULL) {\n");
+    out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, \"%%s: "
+        "%%s\", fn, strerror(errno));\n");
+    out("        return NULL;\n");
+    out("    }\n\n");
+    out("    _serialization_read_fn = fn;\n");
+    out("    AstBinFile *file = serialization_read_binfile(fp);\n");
+    out("    if (file == NULL) return NULL;\n\n");
+
+    out("    %s *res = _serialization_read_bin_%s(file, 0);\n", id, id);
+    out("    return res;\n");
+
+    out("}\n");
 }
 
 void generate_binary_serialization_read_node(Config *config, FILE *fp,
@@ -22,6 +41,7 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
     out("#include <stdio.h>\n");
     out("#include <stdint.h>\n");
     out("#include <string.h>\n");
+    out("#include <errno.h>\n");
     out("#include \"generated/ast.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
     out("#include \"framework/serialization-read-file.h\"\n");
@@ -29,6 +49,7 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/smap.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
     out("\n");
 
     for (int i = 0; i < array_size(node->children); i++) {
@@ -50,8 +71,9 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
         "node->type_index);\n");
     out("\n");
     out("    if(strcmp(type, \"%s\") != 0) {\n", node->id);
-    out("        fprintf(stderr, \"Type mismatch: expected node type %s, got "
-        "%%s\\n\", type);\n",
+    out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, "
+        "\"%%s: Type mismatch: expected node type %s, got "
+        "%%s\", _serialization_read_fn, type);\n",
         node->id);
     out("        mem_free(res);\n");
     out("        return NULL;\n");
@@ -82,8 +104,9 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
         }
 
         out("        else {\n");
-        out("            fprintf(stderr, \"Invalid child %%s of node %s\\n\", "
-            "child_name);\n",
+        out("            print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, "
+            "\"%%s: Invalid child %%s of node %s\", "
+            "_serialization_read_fn, child_name);\n",
             node->id);
         out("            mem_free(res);\n");
         out("            return NULL;\n");
@@ -202,15 +225,7 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
 
     out("}\n\n");
 
-    out("%s *" SERIALIZE_READ_BIN_FORMAT "(FILE *fp) {\n", node->id, node->id);
-    out("    AstBinFile *file = serialization_read_binfile(fp);\n");
-    out("    if (file == NULL) return NULL;\n\n");
-
-    out("    %s *res = _serialization_read_bin_%s(file, 0);\n", node->id,
-        node->id);
-    out("    return res;\n");
-
-    out("}\n");
+    generate_entry_function(fp, node->id);
 }
 
 void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
@@ -219,6 +234,7 @@ void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
     out("#include <stdio.h>\n");
     out("#include <stdint.h>\n");
     out("#include <string.h>\n");
+    out("#include <errno.h>\n");
     out("#include \"generated/ast.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
     out("#include \"framework/serialization-read-file.h\"\n");
@@ -226,6 +242,8 @@ void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/smap.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
+    out("#include \"generated/ast.h\"\n");
     out("\n");
 
     for (int i = 0; i < array_size(nodeset->nodes); i++) {
@@ -266,12 +284,60 @@ void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
     }
 
     out("    else {\n");
-    out("        fprintf(stderr, \"Invalid root node type for nodeset %s: "
-        "%%s\\n\", root_type);\n",
+    out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, "
+        "\"%%s: Invalid root node type for nodeset %s: "
+        "%%s\", _serialization_read_fn, root_type);\n",
         nodeset->id);
     out("        mem_free(res);\n");
     out("        return NULL;\n");
     out("    }\n");
 
     out("}\n");
+
+    generate_entry_function(fp, nodeset->id);
+
+    /*  */
+    /* out("%s *" SERIALIZE_READ_BIN_FORMAT "(char *fn) {\n", nodeset->id,
+     * nodeset->id); */
+    /* out("    FILE *fp = fopen(fn, \"rb\");\n"); */
+    /* out("    if (fp == NULL) {\n"); */
+    /* out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, \"%%s:
+     * %%s\", fn, strerror(errno));\n"); */
+    /* out("        return NULL;\n"); */
+    /* out("    }\n\n"); */
+    /* out("    _serialization_read_fn = fn;\n"); */
+    /* out("    AstBinFile *file = serialization_read_binfile(fp);\n"); */
+    /* out("    fclose(fp);\n"); */
+    /* out("    if (file == NULL) return NULL;\n\n"); */
+    /*  */
+    /* out("    %s *res = _serialization_read_bin_%s(file, 0);\n", nodeset->id,
+     */
+    /*     nodeset->id); */
+    /* out("    return res;\n"); */
+    /*  */
+    /* out("}\n"); */
+    /*
+    for (int i = 0; i < array_size(nodeset->nodes); i++) {
+        Node *node = array_get(nodeset->nodes, i);
+        out("void " SERIALIZE_READ_BIN_FORMAT "(char *fn);\n", node->id);
+    }
+    out("\n");
+
+    out("void " SERIALIZE_READ_BIN_FORMAT "(char *fn) {\n", nodeset->id);
+
+    out("    switch (syntaxtree->type) {\n");
+
+    for (int i = 0; i < array_size(nodeset->nodes); i++) {
+        Node *node = array_get(n->nodes, i);
+
+        out("    case " NS_FORMAT ":\n", n->id, node->id);
+        out("        " SERIALIZE_WRITE_BIN_FORMAT
+            "(syntaxtree->value.val_%s, fn);\n",
+            node->id, node->id);
+        out("        break;\n");
+    }
+
+    out("    }\n");
+    out("}\n");
+    */
 }

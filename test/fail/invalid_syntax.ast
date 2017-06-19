@@ -1,0 +1,12 @@
+node SomeNode {
+    blablabla
+};
+
+root phase RootPhase {
+    passes {
+        A
+    }
+};
+pass A;
+
+root node RootNode { attributes { int a } };
