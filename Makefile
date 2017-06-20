@@ -9,12 +9,12 @@ AST_GENERATED_SRC_GENFILE 		= $(AST_GENERATED_SOURCES).gen
 AST_GENERATED_INC_GENFILE 		= $(AST_GENERATED_HEADERS).gen
 
 
-AST_GEN_SOURCES = src/astgen
+AST_GEN_SOURCES = src/cocogen
 AST_SOURCES   = $(LIB_SOURCES) $(AST_GEN_SOURCES)
 AST_SRC       = $(foreach dir,$(AST_SOURCES),$(wildcard $(dir)/*.c))
-AST_PARSER    = src/astgen/ast.parser.c
-AST_LEXER     = src/astgen/ast.lexer.c
-AST_TARGET    = astgen
+AST_PARSER    = src/cocogen/ast.parser.c
+AST_LEXER     = src/cocogen/ast.lexer.c
+AST_TARGET    = cocogen
 
 SOURCES       += src/framework
 SRC           = $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
@@ -52,7 +52,7 @@ compile_generated: $(AST_GENERATED_SRC_GENFILE)
 $(AST_GENERATED_SRC_GENFILE): $(AST_GENERATED_INC_GENFILE) ;
 
 $(AST_GENERATED_INC_GENFILE): $(AST_TARGET_BIN) $(AST_FILE)
-	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) ASTGEN$(COLOR_RESET)    $(AST_FILE)"
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) COCOGEN$(COLOR_RESET)    $(AST_FILE)"
 	$(DEBUG)$(AST_TARGET_BIN) --source-dir $(AST_GENERATED_SOURCES) \
 		--header-dir $(AST_GENERATED_HEADERS) $(AST_FILE)
 	$(DEBUG)touch $(AST_GENERATED_INC_GENFILE) $(AST_GENERATED_SRC_GENFILE)

@@ -4,8 +4,17 @@
 #include "generated/free-ast.h"
 #include "generated/phase-driver.h"
 #include "generated/trav-ast.h"
+
+#include "generated/serialization-Root.h"
+
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
+
+/* void serialization_write_binfile_VarLet(VarLet *syntaxtree, FILE *fp); */
+/* VarLet *serialization_read_binfile_VarLet(FILE *fp); */
+/* void serialization_write_binfile_Root(Root *syntaxtree, FILE *fp); */
+/* Root *serialization_read_binfile_Root(FILE *fp); */
 
 /// export int main() {
 ///     int a1;
@@ -61,7 +70,13 @@ int main() {
     Root *program = create_Root(
         create_Decls(create_Decl_FunDef(mainfun), NULL), NULL, NULL);
 
-    phasedriver_run(program);
+    // phasedriver_run(program);
+    FILE *fp;
+
+    serialization_write_binfile_Root(program, "test-serialization.bin");
+    Root *root_ser = serialization_read_binfile_Root("test-serialization.bin");
+
+    trav_start_Root(root_ser, TRAV_Print);
 
     return 0;
 }

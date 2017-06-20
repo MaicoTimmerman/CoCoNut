@@ -1,5 +1,5 @@
 #include "generated/traversal-Print.h"
-#include "astgen/errors.h"
+#include "lib/errors.h"
 #include "lib/memory.h"
 #include <stdio.h>
 

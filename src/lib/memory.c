@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "astgen/errors.h"
+#include "lib/errors.h"
 
 void *mem_alloc(size_t size) {
     void *ptr = malloc(size);
