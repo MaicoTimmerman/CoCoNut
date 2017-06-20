@@ -5,13 +5,13 @@ cycle phase B {
 };
 
 phase F {
-    phases {
+    subphases {
         D
     }
 };
 
 phase D {
-    phases {
+    subphases {
         F
     }
 };
@@ -19,7 +19,7 @@ phase D {
 
 
 pass a {
-    traversal = someTrav;
+    func = someTrav
 };
 
 pass c;
@@ -33,4 +33,4 @@ root phase RootPhase {
 };
 pass A;
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a = 0 } };

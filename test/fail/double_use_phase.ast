@@ -18,9 +18,7 @@ phase D {
 
 
 
-pass a {
-    traversal = someTrav;
-};
+pass a;
 
 pass c;
 
@@ -33,4 +31,4 @@ root phase RootPhase {
 };
 pass A;
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a = 0 } };

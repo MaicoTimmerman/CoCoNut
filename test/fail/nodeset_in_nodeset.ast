@@ -11,7 +11,7 @@ nodeset N2 {
 };
 
 root  node A {
-    attributes { int a }
+    attributes { int a = 0 }
 };
 
 root phase RootPhase { passes { PASS } };

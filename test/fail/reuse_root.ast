@@ -1,0 +1,20 @@
+root phase RootPhase {
+    passes {
+        A
+        }
+    }
+
+pass A;
+
+root node Root {
+    children {
+        NoRoot noroot { constructor }
+    }
+}
+
+node NoRoot {
+    children {
+        Root yesroot { constructor }
+    }
+}
+

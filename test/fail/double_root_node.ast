@@ -1,7 +1,14 @@
+root phase Z {
+    passes {
+        Y
+        }
+    }
+
+pass Y;
 root node A {
-    attributes { int a }
+    attributes { int a { constructor } }
 };
 
 root node B {
-    attributes { int a }
+    attributes { int a { constructor } }
 };

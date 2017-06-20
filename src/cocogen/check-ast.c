@@ -291,13 +291,19 @@ static int check_node(Node *node, struct Info *info) {
                 child->nodeset = child_nodeset;
             }
 
-            if (!child->mandatory_phases) {
-                for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
-                    MandatoryPhase *phase = (MandatoryPhase *)array_get(
-                        child->mandatory_phases, i);
+            if (child_node && child_node == info->root_node) {
+                print_error(
+                    child->id,
+                    "Child '%s' of node '%s' cannot use root node as type",
+                    child->id, node->id);
+                error = 1;
+            }
 
-                    error = check_mandatory_phase(phase, info);
-                }
+            for (int i = 0; i < array_size(child->mandatory_phases); ++i) {
+                MandatoryPhase *phase =
+                    (MandatoryPhase *)array_get(child->mandatory_phases, i);
+
+                error = +check_mandatory_phase(phase, info);
             }
         }
     }

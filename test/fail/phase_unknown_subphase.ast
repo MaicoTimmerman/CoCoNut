@@ -5,4 +5,4 @@ root phase TheRootPhase {
 };
 
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a = 0} };

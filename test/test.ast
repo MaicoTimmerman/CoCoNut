@@ -1,0 +1,35 @@
+
+phase B {
+    passes {
+        pA
+    }
+};
+
+phase C {
+    passes {
+        pA
+    }
+};
+
+phase D {
+    passes {
+        pA
+    }
+};
+
+root phase A {
+    subphases {
+        B, C, D
+    }
+};
+
+pass pA;
+
+root node nA {
+    attributes {
+        construct int a
+    }
+};
+
+
+

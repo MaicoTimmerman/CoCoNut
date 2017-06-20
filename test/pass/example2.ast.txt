@@ -1,0 +1,19 @@
+
+enum MyEnum { prefix = MY, values { A, B, C, D, E } };
+
+node MyNode {
+    attributes {
+        MyEnum some_enum { constructor }
+    }
+};
+
+node MySecondNode {
+    attributes {
+        MyEnum some_enum { constructor },
+        MyNode some_node { constructor }
+    }
+};
+
+nodeset MyNodeSet {
+    MyNode, MySecondNode
+};

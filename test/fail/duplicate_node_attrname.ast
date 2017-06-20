@@ -5,8 +5,8 @@ enum SomeEnum {
 
 node IdExpr {
     attributes {
-        int a,
-        SomeEnum a
+        int a = 0,
+        SomeEnum a { constructor }
     }
 };
 
@@ -18,4 +18,4 @@ root phase RootPhase {
 };
 pass A;
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a = 0 } };
