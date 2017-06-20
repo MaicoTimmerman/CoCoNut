@@ -31,7 +31,7 @@ traversal SomeTrav {
 root node SomeNode {
     info = "blabla",
      attributes {
-        int a
+         int a = 0
      }
 };
 

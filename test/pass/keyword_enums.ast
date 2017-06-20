@@ -7,10 +7,10 @@ enum MyEnum {
 
 node MyNode {
     attributes {
-        MyEnum en,
-        int a,
-        float b,
-        bool c
+        MyEnum en { constructor },
+        int a { constructor },
+        float b { constructor },
+        bool c = true
     }
 };
 
@@ -21,4 +21,6 @@ root phase RootPhase {
 };
 pass A;
 
-root node RootNode { attributes { int a } };
+root node RootNode {
+    attributes { int a = 0 }
+};

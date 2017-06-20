@@ -47,45 +47,43 @@ node MonOp {
         Expr expr
     },
     attributes {
-        construct MonOpEnum op
+        MonOpEnum op { constructor }
     }
 };
 
 
 node VarLet {
     children {
-        Expr expr {
-            construct
-        }
+        Expr expr { constructor }
     },
     attributes {
-        string id
+        string id = NULL
     }
 };
 
 node Var {
     attributes {
-        string id
+        string id = NULL
     }
 };
 
 node IfElse {
     children {
-        Expr condition { construct, mandatory },
-        Stmt trueblock { construct, mandatory },
-        Stmt falseblock { construct, mandatory }
+        Expr condition { constructor, mandatory },
+        Stmt trueblock { constructor, mandatory },
+        Stmt falseblock { constructor, mandatory }
     }
 };
 
 root node For {
     children {
-        Expr initexpr { construct, mandatory },
-        Expr stepexpr { construct, mandatory },
-        Expr boundexpr { construct, mandatory },
-        Stmt blockexpr { construct, mandatory }
+        Expr initexpr { constructor, mandatory },
+        Expr stepexpr { constructor, mandatory },
+        Expr boundexpr { constructor, mandatory },
+        Stmt blockexpr { constructor, mandatory }
     },
     attributes {
-        construct string id
+        string id { constructor }
     }
 };
 

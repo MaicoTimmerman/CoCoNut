@@ -48,4 +48,4 @@ traversal SOT {
 };
 
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a { constructor } } };

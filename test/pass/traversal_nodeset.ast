@@ -17,11 +17,11 @@ nodeset SET2 {
     }
 };
 
-node MyNode { attributes {int a} };
-node A { attributes {int a} };
-node B { attributes {int a} };
-node C { attributes {int a} };
-node D { attributes {int a} };
+node MyNode { attributes {int a { constructor } } };
+node A { attributes {int a { constructor } } };
+node B { attributes {int a { constructor } } };
+node C { attributes {int a { constructor } } };
+node D { attributes {int a { constructor } } };
 
 root phase RootPhase {
     passes {
@@ -30,4 +30,4 @@ root phase RootPhase {
 };
 pass AA;
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a { constructor } } };
