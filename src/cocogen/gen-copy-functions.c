@@ -3,6 +3,7 @@
 #include "cocogen/ast.h"
 #include "cocogen/filegen-driver.h"
 #include "cocogen/filegen-util.h"
+#include "cocogen/str-ast.h"
 
 #include "lib/memory.h"
 #include "lib/smap.h"
@@ -16,6 +17,7 @@ static void generate_node(Node *node, FILE *fp, bool header) {
     } else {
         out(" {\n");
 
+        out("    if (node == NULL) return NULL;\n");
         out("    struct %s *res = mem_alloc(sizeof(struct %s));\n", node->id,
             node->id);
 
@@ -30,10 +32,26 @@ static void generate_node(Node *node, FILE *fp, bool header) {
         for (int i = 0; i < array_size(node->attrs); i++) {
             Attr *attr = array_get(node->attrs, i);
             if (attr->type == AT_string) {
-                out("    res->%s = strdup(node->%s);\n", attr->id, attr->id);
-            } else if (attr->type == AT_link) {
-                out("    res->%s = imap_retrieve(imap, node->%s);\n", attr->id,
+                out("    if (res->%s) {\n", attr->id);
+                out("         res->%s = strdup(node->%s);\n", attr->id,
                     attr->id);
+                out("    } else {\n");
+                out("         res->%s = NULL;\n", attr->id);
+                out("    }\n");
+            } else if (attr->type == AT_link) {
+                out("    // If link is copied, use copy and check for NULL\n");
+                out("    if (res->%s) {\n", attr->id);
+                out("         struct %s *copy = imap_retrieve(imap, "
+                    "node->%s);\n",
+                    attr->type_id, attr->id);
+                out("         if (copy) {\n");
+                out("             res->%s = copy;\n", attr->id);
+                out("         } else {\n");
+                out("             res->%s = node->%s;\n", attr->id, attr->id);
+                out("         }\n");
+                out("    } else {\n");
+                out("         res->%s = NULL;\n", attr->id);
+                out("    }\n");
             } else {
                 out("    res->%s = node->%s;\n", attr->id, attr->id);
             }
