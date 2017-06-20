@@ -18,6 +18,8 @@ static bool **node_reachability = NULL;
 
 static bool **traversal_node_handles = NULL;
 
+#define ERROR_HEADER "traversal-driver"
+
 static void compute_reachable_nodes(Config *config) {
     if (node_reachability && traversal_node_handles) {
         return;
@@ -138,9 +140,11 @@ static void generate_replace_node(Node *node, FILE *fp, bool header) {
         out("        node_replacement_type = " NT_FORMAT ";\n", node->id);
         out("        node_replacement = node;\n");
         out("    } else {\n");
-        out("        fprintf(stderr, \"" REPLACE_NODE_FORMAT ": "
-            "Not make a node replacement, since another replacement function "
-            "was already called previously\\n\");\n",
+        out("        print_user_error(\"" ERROR_HEADER
+            "\", \"" REPLACE_NODE_FORMAT ": "
+            "Not making a node replacement, since another replacement "
+            "function "
+            "was already called previously.\");\n",
             node->id);
         out("    }\n");
         out("}\n");
@@ -186,7 +190,8 @@ static void generate_node_child_node(Node *node, Child *child, FILE *fp) {
         child->type);
     out("            node->%s = node_replacement;\n", child->id);
     out("        } else {\n");
-    out("            fprintf(stderr, \"Replacement node for %s->%s is not of "
+    out("            print_user_error(\"" ERROR_HEADER
+        "\",  \"Replacement node for %s->%s is not of "
         "type "
         "%s.\");\n",
         node->id, child->id, child->type);
@@ -224,7 +229,8 @@ static void generate_node_child_nodeset(Node *node, Child *child, FILE *fp) {
     }
 
     out("        default:\n");
-    out("            fprintf(stderr, \"Replacement node for %s->%s is not a "
+    out("            print_user_error(\"" ERROR_HEADER
+        "\", \"Replacement node for %s->%s is not a "
         "node type of nodeset %s.\");\n",
         node->id, child->id, child->type);
     out("            break;\n");
@@ -337,6 +343,7 @@ void generate_trav_node_definitions(Config *config, FILE *fp, Node *node) {
     compute_reachable_nodes(config);
 
     out("#include <stdio.h>\n");
+    out("#include \"lib/print.h\"\n");
     out("#include \"generated/trav-%s.h\"\n", node->id);
     out("// generated/trav-core.h is included by my header.\n");
 

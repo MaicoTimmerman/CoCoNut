@@ -679,14 +679,14 @@ int check_config(Config *config) {
 
     // TODO: create print_error without location
     if (info->root_node == NULL) {
-        fprintf(stderr, "error: No root node or root nodeset specified\n");
+        print_error_no_loc("No root node specified.");
         success++;
     } else {
         config->root_node = info->root_node;
     }
 
     if (info->root_phase == NULL) {
-        fprintf(stderr, "error: No root phase specified\n");
+        print_error_no_loc("No root phase specified.");
         success++;
     } else {
         if (!phase_errors) {

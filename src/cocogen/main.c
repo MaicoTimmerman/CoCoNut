@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 
 #include "lib/errors.h"
+#include "lib/print.h"
 
 #include "cocogen/ast.h"
 #include "cocogen/check-ast.h"
@@ -14,6 +15,7 @@
 #include "cocogen/free-ast.h"
 #include "cocogen/hash-ast.h"
 #include "cocogen/print-ast.h"
+#include "cocogen/print.h"
 #include "cocogen/sort-ast.h"
 
 #include "cocogen/gen-ast-definition.h"
@@ -63,21 +65,22 @@ static FILE *open_input_file(char *path) {
 
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
-        fprintf(stderr, "%s: cannot open file: %s\n", path, strerror(errno));
+        print_error_no_loc("%s: cannot open file: %s", path, strerror(errno));
         exit(CANNOT_OPEN_FILE);
     }
 
     // Test if file a regular file.
     if (S_ISREG(path_stat.st_mode) != 1) {
-        fprintf(stderr, "%s: cannot open file: %s\n", path,
-                "file is not a regular file.");
+        print_error_no_loc("%s: cannot open file: "
+                           "specified path is not a regular file.",
+                           path);
         exit(CANNOT_OPEN_FILE);
     }
 
     FILE *f = fopen(path, "r");
     if (f == NULL) {
-        fprintf(stderr, "%s: cannot open file: %s\n", yy_filename,
-                strerror(errno));
+        print_error_no_loc("%s: cannot open file: %s", yy_filename,
+                           strerror(errno));
         exit(CANNOT_OPEN_FILE);
     }
 
@@ -152,7 +155,9 @@ int main(int argc, char *argv[]) {
     fclose(f);
 
     if (check_config(parse_result)) {
-        fprintf(stderr, "\n\nFound errors\n");
+        PRINT_COLOR(MAGENTA);
+        fprintf(stderr, "Errors where found, code generation terminated.\n");
+        PRINT_COLOR(RESET_COLOR);
         exit(INVALID_CONFIG);
     }
 

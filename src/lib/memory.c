@@ -2,11 +2,12 @@
 #include <stdlib.h>
 
 #include "lib/errors.h"
+#include "lib/print.h"
 
 void *mem_alloc(size_t size) {
     void *ptr = malloc(size);
     if (ptr == NULL) {
-        fprintf(stderr, "Memory allocation returned NULL-ptr");
+        print_user_error("memory", "malloc allocation returned NULL.");
         exit(MALLOC_NULL);
     }
     return ptr;

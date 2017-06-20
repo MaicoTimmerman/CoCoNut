@@ -6,8 +6,8 @@ node A {
 
 node B {
     attributes {
-        int a
+        int a {constructor}
     }
 };
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a {constructor} } };

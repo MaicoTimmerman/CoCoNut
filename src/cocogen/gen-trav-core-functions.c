@@ -34,7 +34,8 @@ static void generate_stack_functions(FILE *fp, bool header) {
     } else {
         out(" {\n");
         out("    if (current_traversal == NULL) {\n");
-        out("        fprintf(stderr, \"Cannot pop of empty stack.\");\n");
+        out("        print_user_error(\"traversal-driver\", \"Cannot pop of "
+            "empty traversal stack.\");\n");
         out("        return;\n");
         out("    }\n");
         out("    struct TravStack *prev = current_traversal->prev;\n");
@@ -75,6 +76,7 @@ void generate_trav_core_definitions(Config *config, FILE *fp) {
     out("#include \"generated/enum.h\"\n");
     out("#include \"generated/trav-core.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
     out("// Stack of traversals, so that new traversals can be started "
         "inside other traversals. \n");
     out("static struct TravStack *current_traversal;\n");

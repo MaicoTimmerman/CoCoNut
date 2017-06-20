@@ -2,8 +2,8 @@
 #include "cocogen/print.h"
 #include "cocogen/str-ast.h"
 
-#include "lib/memory.h"
 #include "lib/errors.h"
+#include "lib/memory.h"
 
 #include <mhash.h>
 
@@ -195,7 +195,7 @@ void hash_config(Config *c) {
 
     config_td = mhash_init(MHASH_MD5);
     if (config_td == MHASH_FAILED) {
-        fprintf(stderr, "Cannot make config hash.\n");
+        print_internal_error("Creating config hash failed.");
         exit(HASH_ERROR);
     }
 

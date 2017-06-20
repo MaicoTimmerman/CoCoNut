@@ -5,4 +5,4 @@ phase NotTheRootPhase {
 };
 pass A;
 
-root node RootNode { attributes { int a } };
+root node RootNode { attributes { int a {constructor} } };

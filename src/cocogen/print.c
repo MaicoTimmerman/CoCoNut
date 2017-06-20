@@ -13,11 +13,13 @@ extern imap_t *yy_parser_locations;
 static void do_print(enum PrintType type, int lineno, int column_start,
                      int column_end, char *line, char *format, va_list ap) {
 
-    PRINT_COLOR(BOLD);
+    if (line != NULL) {
+        PRINT_COLOR(BOLD);
 
-    fprintf(stderr, "%s:%d:%d: ", yy_filename, lineno, column_start);
+        fprintf(stderr, "%s:%d:%d: ", yy_filename, lineno, column_start);
 
-    PRINT_COLOR(RESET_COLOR);
+        PRINT_COLOR(RESET_COLOR);
+    }
 
     char *color = "";
 
@@ -42,26 +44,28 @@ static void do_print(enum PrintType type, int lineno, int column_start,
     PRINT_COLOR(RESET_COLOR);
 
     vfprintf(stderr, format, ap);
-    fprintf(stderr, "\n%s\n", line);
 
-    int c = 1;
-    while (c < column_start) {
-        fputc(' ', stderr);
+    if (line != NULL) {
+        fprintf(stderr, "\n%s\n", line);
+
+        int c = 1;
+        while (c < column_start) {
+            fputc(' ', stderr);
+            c++;
+        }
+
+        PRINT_COLOR(color);
+
+        fputc('^', stderr);
+
         c++;
+
+        while (c <= column_end) {
+            fputc('~', stderr);
+            c++;
+        }
+        PRINT_COLOR(RESET_COLOR);
     }
-
-    PRINT_COLOR(color);
-
-    fputc('^', stderr);
-
-    c++;
-
-    while (c <= column_end) {
-        fputc('~', stderr);
-        c++;
-    }
-    PRINT_COLOR(RESET_COLOR);
-
     fputc('\n', stderr);
 }
 
@@ -77,6 +81,10 @@ static void do_print_at_loc(enum PrintType type, void *loc_obj, char *format,
              loc->last_line == loc->first_line ? loc->last_column
                                                : loc->first_column,
              line, format, ap);
+}
+
+static void do_print_no_loc(enum PrintType type, char *format, va_list ap) {
+    do_print(type, 0, 0, 0, NULL, format, ap);
 }
 
 void _print_internal_error(const char *file, const char *func, int line,
@@ -116,6 +124,12 @@ void print_error(void *loc_obj, char *format, ...) {
     do_print_at_loc(PT_error, loc_obj, format, ap);
 }
 
+void print_error_no_loc(char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print_no_loc(PT_error, format, ap);
+}
+
 void print_warning_at(int lineno, int column, char *line, char *format, ...) {
     va_list ap;
     va_start(ap, format);
@@ -135,6 +149,12 @@ void print_warning(void *loc_obj, char *format, ...) {
     do_print_at_loc(PT_warning, loc_obj, format, ap);
 }
 
+void print_warning_no_loc(char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print_no_loc(PT_warning, format, ap);
+}
+
 void print_note_at(int lineno, int column, char *line, char *format, ...) {
     va_list ap;
     va_start(ap, format);
@@ -152,4 +172,10 @@ void print_note(void *loc_obj, char *format, ...) {
     va_list ap;
     va_start(ap, format);
     do_print_at_loc(PT_note, loc_obj, format, ap);
+}
+
+void print_note_no_loc(char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    do_print_no_loc(PT_note, format, ap);
 }

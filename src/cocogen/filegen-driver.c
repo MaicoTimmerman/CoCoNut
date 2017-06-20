@@ -10,8 +10,8 @@
 #include "cocogen/filegen-util.h"
 #include "cocogen/print.h"
 
-#include "lib/errors.h"
 #include "lib/array.h"
+#include "lib/errors.h"
 #include "lib/memory.h"
 #include "lib/smap.h"
 
