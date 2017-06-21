@@ -218,6 +218,9 @@ int main(int argc, char *argv[]) {
     filegen_all_nodesets("serialization-%s.h",
                          generate_binary_serialization_nodeset_header);
 
+    filegen_generate("serialization-all.h",
+                     generate_binary_serialization_all_header);
+
     filegen_cleanup_old_files();
 
     // Genereate all the source files.

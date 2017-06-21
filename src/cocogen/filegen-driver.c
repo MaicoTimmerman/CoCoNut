@@ -60,15 +60,12 @@ static void add_filename_to_set(char *filename) {
     }
 
     size_t length = strlen(fn);
-    if (!(fn[length - 2] == '.' &&
-          (fn[length - 1] == 'c' || fn[length - 1] == 'h'))) {
-        print_internal_error("Filename has incorrect format: %s\n", filename);
-        return;
+    if ((fn[length - 2] == '.' &&
+         (fn[length - 1] == 'c' || fn[length - 1] == 'h'))) {
+        fn[length - 2] = '\0';
+        smap_insert(generated_files, fn, fn);
+        free(filename_dup);
     }
-
-    fn[length - 2] = '\0';
-    smap_insert(generated_files, fn, fn);
-    free(filename_dup);
 }
 
 static bool hash_match(NodeCommonInfo *info, char *full_path) {

@@ -11,6 +11,8 @@
 
 char *_serialization_read_fn = NULL;
 
+static AstBinFile *_ast;
+
 static bool file_read(int N, FILE *fp, void *res) {
     size_t num = fread(res, 1, N, fp);
 
@@ -25,8 +27,9 @@ static bool file_read(int N, FILE *fp, void *res) {
         } else if (feof(fp)) {
             print_user_error(
                 SERIALIZE_READ_BIN_ERROR_HEADER,
-                "%s: Error reading file: Unexpected end of file reached.",
-                _serialization_read_fn);
+                "%s: Error reading file: Unexpected end of file reached."
+                "Read only %zu of %d bytes",
+                _serialization_read_fn, num, N);
         } else {
             print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER,
                              "%s: Error reading file: Unknown error.",
@@ -207,6 +210,8 @@ AstBinFile *serialization_read_binfile(FILE *fp) {
 
     AstBinFile *ast = mem_alloc(sizeof(AstBinFile));
     memset(ast, 0, sizeof(AstBinFile));
+
+    _ast = ast;
 
     uint8_t flags_l = read_u1(fp);
     uint8_t flags_r = read_u1(fp);

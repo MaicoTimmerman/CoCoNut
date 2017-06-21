@@ -43,6 +43,7 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
     out("#include <string.h>\n");
     out("#include <errno.h>\n");
     out("#include \"generated/ast.h\"\n");
+    out("#include \"generated/binary-serialization-util.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
     out("#include \"framework/serialization-read-file.h\"\n");
     out("#include \"lib/array.h\"\n");
@@ -209,7 +210,13 @@ void generate_binary_serialization_read_node(Config *config, FILE *fp,
                 break;
             case AT_enum:
                 generate_check_attr_type("enum", fp, attr, node);
-                out("            // TODO: set enum\n");
+                out("            res->%s = "
+                    "_serialization_enum_strings_to_enum("
+                    "file, "
+                    "attr->value.val_enum.type_index, "
+                    "attr->value.val_enum.value_index);\n",
+                    attr->id);
+
                 break;
             default:
                 break;
@@ -295,49 +302,4 @@ void generate_binary_serialization_read_nodeset(Config *config, FILE *fp,
     out("}\n");
 
     generate_entry_function(fp, nodeset->id);
-
-    /*  */
-    /* out("%s *" SERIALIZE_READ_BIN_FORMAT "(char *fn) {\n", nodeset->id,
-     * nodeset->id); */
-    /* out("    FILE *fp = fopen(fn, \"rb\");\n"); */
-    /* out("    if (fp == NULL) {\n"); */
-    /* out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, \"%%s:
-     * %%s\", fn, strerror(errno));\n"); */
-    /* out("        return NULL;\n"); */
-    /* out("    }\n\n"); */
-    /* out("    _serialization_read_fn = fn;\n"); */
-    /* out("    AstBinFile *file = serialization_read_binfile(fp);\n"); */
-    /* out("    fclose(fp);\n"); */
-    /* out("    if (file == NULL) return NULL;\n\n"); */
-    /*  */
-    /* out("    %s *res = _serialization_read_bin_%s(file, 0);\n", nodeset->id,
-     */
-    /*     nodeset->id); */
-    /* out("    return res;\n"); */
-    /*  */
-    /* out("}\n"); */
-    /*
-    for (int i = 0; i < array_size(nodeset->nodes); i++) {
-        Node *node = array_get(nodeset->nodes, i);
-        out("void " SERIALIZE_READ_BIN_FORMAT "(char *fn);\n", node->id);
-    }
-    out("\n");
-
-    out("void " SERIALIZE_READ_BIN_FORMAT "(char *fn) {\n", nodeset->id);
-
-    out("    switch (syntaxtree->type) {\n");
-
-    for (int i = 0; i < array_size(nodeset->nodes); i++) {
-        Node *node = array_get(n->nodes, i);
-
-        out("    case " NS_FORMAT ":\n", n->id, node->id);
-        out("        " SERIALIZE_WRITE_BIN_FORMAT
-            "(syntaxtree->value.val_%s, fn);\n",
-            node->id, node->id);
-        out("        break;\n");
-    }
-
-    out("    }\n");
-    out("}\n");
-    */
 }

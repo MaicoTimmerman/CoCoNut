@@ -144,10 +144,10 @@ static void generate_node_gen_traversal(Node *node, FILE *fp) {
                 out("    tag = AT_bool;\n");
                 break;
             case AT_string:
-                out("    tag = AT_string;\n");
+                out("        tag = AT_string;\n");
                 break;
             case AT_link:
-                out("    tag = AT_link;\n");
+                out("        tag = AT_link;\n");
                 break;
             case AT_enum:
                 out("    tag = AT_enum;\n");
@@ -393,8 +393,7 @@ static void generate_enum_to_index_table(Config *config, FILE *fp) {
         for (int j = 0; j < array_size(e->values); j++) {
             char *value = array_get(e->values, j);
             out("    case %s_%s:\n", e->prefix, value);
-            out("        return %d;\n",
-                *((int *)smap_retrieve(string_pool_indices, value)));
+            out("        return %d;\n", j);
         }
         out("    default:\n");
         out("        return -1;\n");
@@ -534,6 +533,59 @@ static void generate_enum_pool_write_function(Config *config, FILE *fp) {
     out("}\n\n");
 }
 
+static void generate_enum_read_functions(Config *config, FILE *fp) {
+    out("int _serialization_enum_strings_to_enum(AstBinFile *file, int "
+        "type_index, int value_index) {\n");
+    out("    EnumPoolEntry *e = array_get(file->enum_pool, type_index);\n");
+    /* out("    if (e == NULL) {\n"); */
+    /* out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, " */
+    /*         "\"%%s: Enum pool index %%d out of range.\", type_index);\n");
+     */
+    /* out("        return 0;\n"); */
+    /* out("    }\n"); */
+    out("\n");
+
+    out("    char *type = array_get(file->string_pool, e->name_index);\n");
+    out("    int *value_str_index = array_get(e->values, value_index);\n");
+    out("    char *value = array_get(file->string_pool, *value_str_index);\n");
+    out("\n");
+
+    for (int i = 0; i < array_size(config->enums); i++) {
+        out("    ");
+        if (i > 0)
+            out("else ");
+
+        Enum *e = array_get(config->enums, i);
+
+        out("if (strcmp(type, \"%s\") == 0) {\n", e->id);
+
+        for (int j = 0; j < array_size(e->values); j++) {
+            out("        ");
+            if (j > 0)
+                out("else ");
+
+            char *value = array_get(e->values, j);
+            out("if (strcmp(value, \"%s\") == 0) {\n", value);
+            out("            return %d;\n", j);
+            out("        }\n");
+        }
+        out("        else {\n");
+        out("            print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, "
+            "\"%%s: Unknown value %%s for enum type %s\", value);\n",
+            e->id);
+        out("            return 0;\n");
+        out("        }\n");
+        out("    }\n");
+    }
+
+    out("    else {\n");
+    out("        print_user_error(SERIALIZE_READ_BIN_ERROR_HEADER, \"%%s: "
+        "Unknown enum type %%s\", _serialization_read_fn, type);\n");
+    out("        return 0;\n");
+    out("    }\n");
+    out("}\n");
+}
+
 static void generate_serialization_function_node(Node *n, FILE *fp) {
 
     // TODO: put in util
@@ -547,13 +599,16 @@ static void generate_serialization_function_node(Node *n, FILE *fp) {
 
     out("    FILE *fp = fopen(fn, \"wb\");\n");
     out("    if (fp == NULL) {\n");
-    out("        print_user_error(__func__, \"%%s: %%s\", fn, "
+    out("        print_user_error(SERIALIZE_WRITE_BIN_ERROR_HEADER, \"%%s: "
+        "%%s\", fn, "
         "strerror(errno));\n");
     out("        return;\n");
     out("    }\n\n");
     out("    string_attrs = array_init(32);\n");
     out("    attrs_index = smap_init(32);\n");
-    out("    node_indices = imap_init(32);\n\n");
+    out("    node_indices = imap_init(32);\n");
+    out("    node_index_counter = 0;\n");
+    out("\n");
 
     out("    _serialization_populate_node_indices_%s(syntaxtree);\n\n", n->id);
 
@@ -648,10 +703,12 @@ void generate_binary_serialization_util(Config *config, FILE *fp) {
     out("#include <string.h>\n");
     out("#include \"generated/ast.h\"\n");
     out("#include \"framework/serialization-binary-format.h\"\n");
+    out("#include \"framework/serialization-read-file.h\"\n");
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/smap.h\"\n");
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/memory.h\"\n");
+    out("#include \"lib/print.h\"\n");
     out("\n");
 
     out("#define WRITE(N, data) do { \\\n"
@@ -675,6 +732,8 @@ void generate_binary_serialization_util(Config *config, FILE *fp) {
     generate_static_string_pool_write_function(config, fp);
 
     generate_enum_pool_write_function(config, fp);
+
+    generate_enum_read_functions(config, fp);
 
     array_cleanup(string_pool_constants, NULL);
     smap_map(string_pool_indices, free_int_index_string);
@@ -806,6 +865,7 @@ void generate_binary_serialization_util_header(Config *config, FILE *fp) {
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/imap.h\"\n");
     out("#include \"lib/smap.h\"\n");
+    out("#include \"framework/serialization-binary-format.h\"\n");
     out("\n");
 
     out("extern array *string_attrs;\n");
@@ -817,6 +877,8 @@ void generate_binary_serialization_util_header(Config *config, FILE *fp) {
     out("void _serialization_write_file_header(FILE *fp);\n");
     out("void _serialization_write_enum_pool(FILE *fp);\n");
     out("void _serialization_write_static_string_pool(FILE *fp);\n");
+    out("int _serialization_enum_strings_to_enum(AstBinFile *file, int "
+        "type_index, int value_index);\n");
 
     for (int i = 0; i < array_size(config->enums); i++) {
         Enum *e = array_get(config->enums, i);
