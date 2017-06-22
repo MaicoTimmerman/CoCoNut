@@ -4,7 +4,7 @@
 #include <regex.h>
 
 #include "cocogen/ast.h"
-#include "cocogen/print.h"
+#include "lib/print.h"
 #include "lib/errors.h"
 #include "lib/array.h"
 
@@ -18,15 +18,18 @@
                                 return T_ID; \
                             } \
 
+extern void exit_compile_error();
+
 bool yy_lex_keywords = true;
 static char yy_linebuf[500];
 static regex_t regex;
 
 int yycolumn = 1;
 
-array *yy_lines;
+extern array *yy_lines;
 
 static inline void token_action();
+
 static inline void lexer_init();
 static inline void check_c_keyword(const char *);
 
@@ -166,7 +169,7 @@ static inline void check_c_keyword(const char *);
 . {
     print_error_at(yylineno, yycolumn - 1, yy_linebuf,
         "Unexpected token found, quit parsing", yytext);
-    exit(INVALID_CONFIG);
+    exit_compile_error();
 }
 %%
 
@@ -185,8 +188,6 @@ static inline void lexer_init(void) {
         print_internal_error("Could not compile C keyword regex.");
         exit(REGEX_COMPILE_ERROR);
     }
-
-    yy_lines = array_init(32);
 }
 
 static inline void check_c_keyword(const char *str) {
@@ -201,7 +202,7 @@ static inline void check_c_keyword(const char *str) {
                 yylineno, yycolumn - strlen(str), yycolumn - 1,
                 yy_linebuf, "Found C-keyword as identifier, "
                 "which would generate invalid C code.");
-        exit(INVALID_CONFIG);
+        exit_compile_error();
     }
 }
 
@@ -220,6 +221,6 @@ int yywrap() {
 
 void yyerror(const char* s) {
     print_error_range(yylineno, yycolumn - yyleng, yycolumn - 1,
-        yy_linebuf, "Parse error: %s", s);
-    exit(INVALID_CONFIG);
+        yy_linebuf, (char*) s);
+    exit_compile_error();
 }

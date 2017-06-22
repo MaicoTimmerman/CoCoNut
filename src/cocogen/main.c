@@ -15,7 +15,6 @@
 #include "cocogen/free-ast.h"
 #include "cocogen/hash-ast.h"
 #include "cocogen/print-ast.h"
-#include "cocogen/print.h"
 #include "cocogen/sort-ast.h"
 
 #include "cocogen/gen-ast-definition.h"
@@ -32,9 +31,9 @@
 #include "cocogen/gen-trav-functions.h"
 #include "cocogen/gen-user-trav-header.h"
 
+// Defined in parser
 extern Config *parse(FILE *fp);
-
-char *yy_filename;
+extern char *yy_filename;
 
 static void usage(char *program) {
     char *program_bin = strrchr(program, '/');
@@ -85,6 +84,13 @@ static FILE *open_input_file(char *path) {
     }
 
     return f;
+}
+
+void exit_compile_error(void) {
+    PRINT_COLOR(MAGENTA);
+    fprintf(stderr, "Errors where found, code generation terminated.\n");
+    PRINT_COLOR(RESET_COLOR);
+    exit(INVALID_CONFIG);
 }
 
 int main(int argc, char *argv[]) {
@@ -155,10 +161,7 @@ int main(int argc, char *argv[]) {
     fclose(f);
 
     if (check_config(parse_result)) {
-        PRINT_COLOR(MAGENTA);
-        fprintf(stderr, "Errors where found, code generation terminated.\n");
-        PRINT_COLOR(RESET_COLOR);
-        exit(INVALID_CONFIG);
+        exit_compile_error();
     }
 
     // Sort to prevent changes in order of attributes trigger regeneration of

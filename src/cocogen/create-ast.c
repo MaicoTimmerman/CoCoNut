@@ -8,6 +8,7 @@
 
 #include "lib/array.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 
 extern ParserLocation yy_parser_location;
 

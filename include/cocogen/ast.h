@@ -51,15 +51,6 @@ enum PhaseType { PH_subphases, PH_passes };
 
 enum PhaseLeafType { PL_pass, PL_traversal };
 
-// We define the type for YYLTYPE here,
-// to avoid a circular dependency between this header and the parser
-typedef struct ParserLocation {
-    int first_line;
-    int first_column;
-    int last_line;
-    int last_column;
-} ParserLocation;
-
 typedef struct Config {
     array *phases;
     array *passes;

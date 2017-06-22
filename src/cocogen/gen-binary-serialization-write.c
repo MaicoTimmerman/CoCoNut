@@ -4,12 +4,12 @@
 #include "cocogen/ast.h"
 #include "cocogen/filegen-driver.h"
 #include "cocogen/filegen-util.h"
-#include "cocogen/print.h"
 #include "cocogen/str-ast.h"
 
 #include "lib/array.h"
 #include "lib/imap.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 #include "lib/smap.h"
 
 static smap_t *string_pool_indices;

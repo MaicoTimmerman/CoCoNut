@@ -5,10 +5,10 @@
 
 #include "cocogen/ast.h"
 #include "cocogen/check-ast.h"
-#include "cocogen/print.h"
 
 #include "lib/array.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 #include "lib/smap.h"
 
 struct Info {

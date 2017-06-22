@@ -1,9 +1,9 @@
 #include "cocogen/hash-ast.h"
-#include "cocogen/print.h"
 #include "cocogen/str-ast.h"
 
 #include "lib/errors.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 
 #include <mhash.h>
 

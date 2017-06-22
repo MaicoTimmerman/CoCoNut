@@ -54,13 +54,6 @@ typedef struct {
     AST_TXT_AttributeValue *value;
 } AST_TXT_Attribute;
 
-typedef struct {
-    int first_line;
-    int first_column;
-    int last_line;
-    int last_column;
-} AST_TXT_ParserLocation;
-
 AST_TXT_File *_serialization_txt_create_file(array *nodes);
 AST_TXT_Node *_serialization_txt_create_node(AST_TXT_NodeHeader *header,
                                              AST_TXT_Node *nodebody);

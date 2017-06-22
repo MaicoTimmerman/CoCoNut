@@ -12,13 +12,7 @@
 
 #include "lib/array.h"
 #include "lib/imap.h"
-
-extern int yylex();
-extern int yyparse();
-extern int yylineno;
-extern int yycolumn;
-extern char* yytext;
-extern FILE* yyin;
+#include "lib/print.h"
 
 extern bool yy_lex_keywords;
 
@@ -32,7 +26,10 @@ static array *config_nodes;
 
 static struct Config* parse_result = NULL;
 
+char *yy_filename;
+array *yy_lines;
 imap_t *yy_parser_locations;
+
 void yyerror(const char* s);
 int yydebug = 1;
 
@@ -656,7 +653,11 @@ struct Config* parse(FILE *fp) {
     config_traversals = create_array();
     config_nodesets = create_array();
     config_nodes = create_array();
+
+    yy_lines = array_init(32);
     yy_parser_locations = imap_init(128);
+
+    print_init(yy_filename, yy_lines, yy_parser_locations);
     yyparse();
     yylex_destroy();
     return parse_result;;

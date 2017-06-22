@@ -10,27 +10,20 @@
 #include "lib/array.h"
 #include "lib/imap.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 
 extern void lexer_init();
-extern int yylex();
-extern int yyparse();
-extern int yylineno;
-extern int yycolumn;
-extern char* yytext;
-extern FILE* yyin;
-
-extern bool yy_lex_keywords;
 
 static AST_TXT_File* parse_result = NULL;
 
-imap_t *yy_parser_locations;
+imap_t *ast_srl_yy_parser_locations;
 void yyerror(const char* s);
 int yydebug = 1;
 
 #define AST_SRL_YYLTYPE AST_SRL_YYLTYPE
-typedef AST_TXT_ParserLocation AST_SRL_YYLTYPE;
+typedef ParserLocation AST_SRL_YYLTYPE;
 
-AST_TXT_ParserLocation yy_parser_location;
+ParserLocation yy_parser_location;
 
 /* static void new_location(void *ptr, AST_TXT_ParserLocation *loc); */
 

@@ -8,11 +8,11 @@
 
 #include "cocogen/ast.h"
 #include "cocogen/filegen-util.h"
-#include "cocogen/print.h"
 
 #include "lib/array.h"
 #include "lib/errors.h"
 #include "lib/memory.h"
+#include "lib/print.h"
 #include "lib/smap.h"
 
 #define COLOR_GREEN "\033[1m\033[32m"
