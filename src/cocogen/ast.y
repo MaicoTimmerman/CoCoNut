@@ -13,7 +13,6 @@
 #include "lib/array.h"
 #include "lib/imap.h"
 
-extern void lexer_init();
 extern int yylex();
 extern int yyparse();
 extern int yylineno;

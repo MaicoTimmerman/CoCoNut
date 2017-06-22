@@ -148,10 +148,10 @@ static inline void check_c_keyword(const char *);
     yylval.fval = strtold(yytext, NULL); return T_FLOATVAL;}
 -[0-9]+ {
     // (negative) integer numbers
-    yylval.intval = (int64_t)strtoll(yytext, NULL, 10); return T_UINTVAL;}
+    yylval.intval = (int64_t)strtoll(yytext, NULL, 10); return T_INTVAL;}
 [0-9]+ {
     // (positive) integer numbers
-    yylval.uintval = (uint64_t)strtoull(yytext, NULL, 10); return T_INTVAL;}
+    yylval.uintval = (uint64_t)strtoull(yytext, NULL, 10); return T_UINTVAL;}
 
 \"(\\.|[^\\"])*\"   {
     // Remove surrounding quotes

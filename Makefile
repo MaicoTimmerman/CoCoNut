@@ -16,8 +16,14 @@ AST_PARSER    = src/cocogen/ast.parser.c
 AST_LEXER     = src/cocogen/ast.lexer.c
 AST_TARGET    = cocogen
 
+AST_SRC_FILTERED = $(filter-out $(AST_LEXER) $(AST_PARSER),$(AST_SRC))
+
+AST_TXT_PARSER 	= src/framework/serialization-txt.parser.c
+AST_TXT_LEXER 	= src/framework/serialization-txt.lexer.c
+
 SOURCES       += src/framework
 SRC           = $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
+SRC_FILTERED  = $(filter-out $(AST_TXT_LEXER) $(AST_TXT_PARSER),$(SRC))
 
 COLOR_GREEN	  = "\\e[1m\\e[32m"
 COLOR_RESET	  = "\\e[0m"
@@ -33,10 +39,12 @@ ECHO = $(shell which echo)
 
 all: $(TARGET_BIN) ;
 
-$(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
+$(TARGET_BIN): $(SRC_FILTERED:.c=.o) $(LIB_SRC:.c=.o) $(AST_TXT_LEXER:.c=.o) $(AST_TXT_PARSER:.c=.o) compile_generated
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
-	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(SRC:.c=.o) $(LIB_SRC:.c=.o) $(wildcard $(AST_GENERATED_SOURCES)*.o)
+	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(SRC_FILTERED:.c=.o) $(LIB_SRC:.c=.o) \
+		$(AST_TXT_PARSER:.c=.o) $(AST_TXT_LEXER:.c=.o) \
+		$(wildcard $(AST_GENERATED_SOURCES)*.o)
 
 %.o: %.c compile_generated
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
@@ -45,6 +53,20 @@ $(TARGET_BIN): $(SRC:.c=.o) $(LIB_SRC:.c=.o) compile_generated
 compile_generated: $(AST_GENERATED_SRC_GENFILE)
 	$(DEBUG)make -C $(AST_GENERATED_SOURCES) -j4 CC="$(CC)" CFLAGS="$(CFLAGS)" \
 		COLOR_GREEN="$(COLOR_GREEN)" COLOR_RESET="$(COLOR_RESET)"
+
+$(AST_TXT_LEXER:.c=.o): $(AST_TXT_LEXER) $(AST_TXT_PARSER:.c=.h)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
+	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
+
+$(AST_TXT_PARSER:.c=.o): $(AST_TXT_PARSER) $(AST_TXT_LEXER:.c=.h)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
+	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
+
+$(AST_TXT_PARSER:.c=.h): $(AST_TXT_PARSER)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) BISON$(COLOR_RESET)     $@"
+
+$(AST_TXT_LEXER:.c=.h): $(AST_TXT_LEXER)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
 
 
 # ----------------------- AST-gen rules --------------------
@@ -57,12 +79,12 @@ $(AST_GENERATED_INC_GENFILE): $(AST_TARGET_BIN) $(AST_FILE)
 		--header-dir $(AST_GENERATED_HEADERS) $(AST_FILE)
 	$(DEBUG)touch $(AST_GENERATED_INC_GENFILE) $(AST_GENERATED_SRC_GENFILE)
 
-$(AST_TARGET_BIN): $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
+$(AST_TARGET_BIN): $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC_FILTERED:.c=.o)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
-	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC:.c=.o)
+	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(AST_PARSER:.c=.o) $(AST_LEXER:.c=.o) $(AST_SRC_FILTERED:.c=.o)
 
-$(LIB_SOURCES)%.o: $(LIB_SOURCES)%.c
+$(LIB_SOURCES)/%.o: $(LIB_SOURCES)/%.c
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
 	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
@@ -70,15 +92,26 @@ $(AST_GEN_SOURCES)/%.o: $(AST_GEN_SOURCES)/%.c
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
 	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
-%.lexer.h: %.lexer.c
+$(AST_LEXER:.c=.o): $(AST_LEXER) $(AST_PARSER:.c=.h)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
+	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
+
+$(AST_PARSER:.c=.o): $(AST_PARSER) $(AST_LEXER:.c=.h)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
+	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
+
+$(AST_PARSER:.c=.h): $(AST_PARSER)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) BISON$(COLOR_RESET)     $@"
+
+$(AST_LEXER:.c=.h): $(AST_LEXER)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
 
 %.lexer.c: %.l
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
-	$(DEBUG)flex -o $@ --header-file=$(AST_LEXER:.c=.h) $<
+	$(DEBUG)flex -o $@ --header-file=$(@:.c=.h) $<
 
-%.parser.c: %.y %.lexer.h
-	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) BISON$(COLOR_RESET)     $@"
+%.parser.c: %.y
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) BISON$(COLOR_RESET)     $@ $%"
 	$(DEBUG)bison -dv -o $@ $<
 
 
@@ -89,6 +122,9 @@ clean:
 	$(DEBUG)rm -f $(AST_LEXER) $(AST_LEXER:.c=.h) \
 		$(AST_PARSER) $(AST_PARSER:.c=.output) \
 		$(AST_PARSER:.c=.h) \
+		$(AST_TXT_LEXER) $(AST_TXT_LEXER:.c=.h) \
+		$(AST_TXT_PARSER) $(AST_TXT_PARSER:.c=.output) \
+		$(AST_TXT_PARSER:.c=.h) \
 		$(AST_GENERATED_SOURCES)*.c \
 		$(AST_GENERATED_HEADERS)*.h
 	$(DEBUG)find . -type f -name '*.o' -exec rm {} \;
