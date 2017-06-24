@@ -657,7 +657,8 @@ struct Config* parse(FILE *fp) {
     yy_lines = array_init(32);
     yy_parser_locations = imap_init(128);
 
-    print_init(yy_filename, yy_lines, yy_parser_locations);
+    print_init_compilation_messages(NULL, yy_filename,
+        yy_lines, yy_parser_locations);
     yyparse();
     yylex_destroy();
     return parse_result;;

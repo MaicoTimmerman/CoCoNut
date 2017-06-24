@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include "serialization-txt.lexer.h"
 #include "framework/serialization-txt-ast.h"
@@ -15,17 +16,18 @@
 extern void lexer_init();
 
 static AST_TXT_File* parse_result = NULL;
+static imap_t *yy_parser_locations;
+array *ast_srl_yy_lines;
 
-imap_t *ast_srl_yy_parser_locations;
 void yyerror(const char* s);
 int yydebug = 1;
 
 #define AST_SRL_YYLTYPE AST_SRL_YYLTYPE
 typedef ParserLocation AST_SRL_YYLTYPE;
 
-ParserLocation yy_parser_location;
+static ParserLocation yy_parser_location;
 
-/* static void new_location(void *ptr, AST_TXT_ParserLocation *loc); */
+static void new_location(void *ptr, ParserLocation *loc);
 
 // Override YYLLOC_DEFAULT so we can set yy_parser_location
 // to the current location
@@ -90,7 +92,7 @@ ParserLocation yy_parser_location;
 
 %%
 
-root: nodelist  { $$ = _serialization_txt_create_file($1); }
+root: nodelist  { parse_result = _serialization_txt_create_file($1); }
     ;
 
 nodelist: node nodelist  { $$ = $2;
@@ -100,12 +102,18 @@ nodelist: node nodelist  { $$ = $2;
                          }
         ;
 
-node: nodeheader '{' nodebody '}' optsemicolon { $$ = _serialization_txt_create_node($1, $3); }
-    | nodeheader ';'                           { $$ = _serialization_txt_create_node($1, NULL); }
+node: nodeheader '{' nodebody '}' optsemicolon { $$ = _serialization_txt_create_node($1, $3);
+                                                 new_location($$, &@$); }
+    | nodeheader ';'                           { $$ = _serialization_txt_create_node($1, NULL);
+                                                 new_location($$, &@$); }
     ;
 
-nodeheader: T_ID T_UINTVAL          { $$ = _serialization_txt_create_nodeheader($1, $2, false); }
-          | T_ROOT T_ID T_UINTVAL   { $$ = _serialization_txt_create_nodeheader($2, $3, true); }
+nodeheader: T_ID T_UINTVAL          { $$ = _serialization_txt_create_nodeheader($1, $2, false);
+                                      new_location($$, &@$);
+                                      new_location($1, &@2); }
+          | T_ROOT T_ID T_UINTVAL   { $$ = _serialization_txt_create_nodeheader($2, $3, true);
+                                      new_location($$, &@$);
+                                      new_location($2, &@2); }
           ;
 
 nodebody: children ',' attributes   { $$ = _serialization_txt_create_nodebody($1, $3); }
@@ -113,7 +121,7 @@ nodebody: children ',' attributes   { $$ = _serialization_txt_create_nodebody($1
         | children                  { $$ = _serialization_txt_create_nodebody($1, NULL); }
         | attributes                { $$ = _serialization_txt_create_nodebody(NULL, $1); }
 
-children: T_CHILDREN '{' childlist '}' { $$ = $3; }
+children: T_CHILDREN '{' childlist '}' { $$ = $3; new_location($$, &@$); }
         ;
 
 childlist: child ',' childlist           { $$ = $3;
@@ -123,7 +131,9 @@ childlist: child ',' childlist           { $$ = $3;
                                          }
          ;
 
-child: T_ID '=' T_UINTVAL                { $$ = _serialization_txt_create_child($1, $3); }
+child: T_ID '=' T_UINTVAL                { $$ = _serialization_txt_create_child($1, $3);
+                                           new_location($$, &@$);
+                                           new_location($1, &@1); }
 
 attributes: T_ATTRIBUTES '{' attributelist '}'  { $$ = $3; }
           ;
@@ -135,11 +145,13 @@ attributelist: attribute ',' attributelist  { $$ = $3;
                                             }
              ;
 
-attribute: T_ID '=' attributevalue      { $$ = _serialization_txt_create_attribute($1, $3); }
+attribute: T_ID '=' attributevalue      { $$ = _serialization_txt_create_attribute($1, $3);
+                                          new_location($$, &@$);
+                                          new_location($1, &@1); }
          ;
 
-attributevalue: T_ID            { $$ = _serialization_txt_create_attrval_id($1); }
-              | T_STRINGVAL     { $$ = _serialization_txt_create_attrval_str($1); }
+attributevalue: T_ID            { $$ = _serialization_txt_create_attrval_id($1); new_location($$, &@$);  }
+              | T_STRINGVAL     { $$ = _serialization_txt_create_attrval_str($1); new_location($$, &@$); }
               | T_INTVAL        { $$ = _serialization_txt_create_attrval_int($1); }
               | T_UINTVAL       { $$ = _serialization_txt_create_attrval_uint($1); }
               | T_FLOATVAL      { $$ = _serialization_txt_create_attrval_float($1); }
@@ -152,16 +164,28 @@ optsemicolon: ';'
          ;
 %%
 
-/* static void new_location(void *ptr, struct ParserLocation *loc) { */
-/*     struct ParserLocation *loc_copy = malloc(sizeof(struct ParserLocation)); */
-/*     memcpy(loc_copy, loc, sizeof(struct ParserLocation)); */
-/*  */
-/*     imap_insert(yy_parser_locations, ptr, loc_copy); */
-/* } */
+static void new_location(void *ptr, struct ParserLocation *loc) {
+    /* struct ParserLocation *loc_copy = malloc(sizeof(struct ParserLocation)); */
+    /* memcpy(loc_copy, loc, sizeof(struct ParserLocation)); */
+    /* imap_insert(yy_parser_locations, ptr, loc_copy); */
+}
 
-AST_TXT_File *_serialization_txt_parse_file(FILE *fp) {
-    ast_srl_yyin = fp;
+AST_TXT_File *_serialization_txt_parse_file(char *fn) {
+    ast_srl_yyin = fopen(fn ,"r");
+    if (!ast_srl_yyin) {
+        print_user_error(SERIALIZE_READ_TXT_ERROR_HEADER, "%s: cannot open file: %s",
+        fn, strerror(errno));
+        return NULL;
+    }
+
+    ast_srl_yy_lines = array_init(32);
+    yy_parser_locations = imap_init(128);
+
+    print_init_compilation_messages(SERIALIZE_READ_TXT_ERROR_HEADER, fn,
+        ast_srl_yy_lines, yy_parser_locations);
+
     ast_srl_yyparse();
     ast_srl_yylex_destroy();
+
     return parse_result;
 }

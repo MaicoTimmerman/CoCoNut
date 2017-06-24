@@ -683,7 +683,6 @@ int check_config(Config *config) {
             phase_errors = true;
     }
 
-    // TODO: create print_error without location
     if (info->root_node == NULL) {
         print_error_no_loc("No root node specified.");
         success++;

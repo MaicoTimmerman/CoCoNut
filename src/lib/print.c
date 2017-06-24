@@ -6,12 +6,23 @@
 #include "lib/imap.h"
 #include "lib/print.h"
 
+static char *yy_header;
 static char *yy_filename;
 static array *yy_lines;
 static imap_t *yy_parser_locations;
 
+static void print_header(char *header) {
+    if (header) {
+        PRINT_COLOR(BOLD MAGENTA);
+        fprintf(stderr, "[%s] ", header);
+        PRINT_COLOR(RESET_COLOR);
+    }
+}
+
 static void do_print(enum PrintType type, int lineno, int column_start,
                      int column_end, char *line, char *format, va_list ap) {
+
+    print_header(yy_header);
 
     if (line != NULL) {
         PRINT_COLOR(BOLD);
@@ -72,6 +83,14 @@ static void do_print(enum PrintType type, int lineno, int column_start,
 static void do_print_at_loc(enum PrintType type, void *loc_obj, char *format,
                             va_list ap) {
     ParserLocation *loc = imap_retrieve(yy_parser_locations, loc_obj);
+
+    // TODO: handle this correctly
+    if (!loc) {
+        vfprintf(stderr, format, ap);
+        fputc('\n', stderr);
+        return;
+    }
+
     assert(loc != NULL);
     assert(loc->first_line > 0);
 
@@ -87,7 +106,9 @@ static void do_print_no_loc(enum PrintType type, char *format, va_list ap) {
     do_print(type, 0, 0, 0, NULL, format, ap);
 }
 
-void print_init(char *filename, array *lines, imap_t *parser_locations) {
+void print_init_compilation_messages(char *header, char *filename,
+                                     array *lines, imap_t *parser_locations) {
+    yy_header = header;
     yy_filename = filename;
     yy_lines = lines;
     yy_parser_locations = parser_locations;
@@ -186,10 +207,8 @@ void print_note_no_loc(char *format, ...) {
     do_print_no_loc(PT_note, format, ap);
 }
 
-void print_user_error(const char *header, const char *format, ...) {
-    PRINT_COLOR(BOLD MAGENTA);
-
-    fprintf(stderr, "[%s] ", header);
+void print_user_error(char *header, const char *format, ...) {
+    print_header(header);
 
     PRINT_COLOR(BOLD RED);
 

@@ -108,7 +108,7 @@ void generate_ast_nodeset_header(Config *config, FILE *fp, Nodeset *nodeset) {
     for (int j = 0; j < array_size(nodeset->nodes); ++j) {
         Node *node = (Node *)array_get(nodeset->nodes, j);
         if (smap_retrieve(map, node->id) == NULL) {
-            out("struct %s;\n", node->id);
+            out("typedef struct %s %s;\n", node->id, node->id);
             smap_insert(map, node->id, node);
         }
     }

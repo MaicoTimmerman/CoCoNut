@@ -4,18 +4,17 @@
 
 #include "lib/errors.h"
 #include "lib/array.h"
+#include "lib/print.h"
 
 #include "framework/serialization-txt-ast.h"
 #include "serialization-txt.parser.h"
 
 #define AST_SRL_YY_DECL int ast_srl_yylex()
 
-bool ast_srl_yy_lex_keywords = true;
 static char ast_srl_yy_linebuf[500];
 
-int ast_srl_yycolumn = 1;
-
-array *ast_srl_yy_lines;
+static int ast_srl_yycolumn = 1;
+extern array *ast_srl_yy_lines;
 
 static inline void token_action();
 static inline void lexer_init();
@@ -115,9 +114,8 @@ static inline void lexer_init();
     yy_push_state(SAVELINE);
 }
 . {
-    printf("Unknown character\n");
-    /* print_error_at(ast_srl_yylineno, ast_srl_yycolumn - 1, ast_srl_yy_linebuf, */
-    /*     "Unexpected token found, quit parsing", ast_srl_yytext); */
+    print_error_at(ast_srl_yylineno, ast_srl_yycolumn - 1, ast_srl_yy_linebuf,
+        "Unexpected token found, quit parsing", ast_srl_yytext);
     exit(INVALID_CONFIG);
 }
 %%
@@ -142,8 +140,7 @@ int ast_srl_yywrap() {
 }
 
 void ast_srl_yyerror(const char* s) {
-    printf("Parse error: %s\n", s);
-    /* print_error_range(ast_srl_yylineno, ast_srl_yycolumn - ast_srl_yyleng, ast_srl_yycolumn - 1, */
-    /*     ast_srl_yy_linebuf, "Parse error: %s", s); */
+    print_error_range(ast_srl_yylineno, ast_srl_yycolumn - ast_srl_yyleng, ast_srl_yycolumn - 1,
+        ast_srl_yy_linebuf, (char*) s);
     exit(INVALID_CONFIG);
 }

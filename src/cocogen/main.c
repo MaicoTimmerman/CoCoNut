@@ -27,6 +27,7 @@
 #include "cocogen/gen-pass-header.h"
 #include "cocogen/gen-phase-driver.h"
 #include "cocogen/gen-serialization-headers.h"
+#include "cocogen/gen-textual-serialization.h"
 #include "cocogen/gen-trav-core-functions.h"
 #include "cocogen/gen-trav-functions.h"
 #include "cocogen/gen-user-trav-header.h"
@@ -257,6 +258,12 @@ int main(int argc, char *argv[]) {
 
     filegen_all_nodesets("binary-serialization-%s-read.c",
                          generate_binary_serialization_read_nodeset);
+
+    filegen_all_nodes("textual-serialization-%s-read.c",
+                      generate_textual_serialization_read_node);
+
+    filegen_all_nodesets("textual-serialization-%s-read.c",
+                         generate_textual_serialization_read_nodeset);
 
     filegen_cleanup_old_files();
 

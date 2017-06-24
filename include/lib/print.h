@@ -33,8 +33,10 @@ typedef struct ParserLocation {
 
 enum PrintType { PT_error, PT_warning, PT_note };
 
-void print_user_error(const char *header, const char *format, ...);
-void print_init(char *filename, array *lines, imap_t *parser_locations);
+void print_user_error(char *header, const char *format, ...);
+
+void print_init_compilation_messages(char *header, char *filename,
+                                     array *lines, imap_t *parser_locations);
 
 void print_error(void *loc_obj, char *format, ...);
 void print_error_at(int lineno, int column, char *line, char *format, ...);

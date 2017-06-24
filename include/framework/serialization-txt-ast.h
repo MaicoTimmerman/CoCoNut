@@ -1,13 +1,13 @@
 #pragma once
 
-#include "lib/array.h"
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "lib/array.h"
+#include "lib/imap.h"
+
 #define SERIALIZE_READ_TXT_ERROR_HEADER "textual-serialization-reader"
 #define SERIALIZE_WRITE_TXT_ERROR_HEADER "textual-serialization-writer"
-
-typedef struct { array *nodes; } AST_TXT_File;
 
 typedef struct {
     char *type;
@@ -16,6 +16,13 @@ typedef struct {
     array *children;
     array *attributes;
 } AST_TXT_Node;
+
+typedef struct {
+    array *nodes;
+    AST_TXT_Node *rootnode;
+    imap_t *node_id_map;
+    imap_t *used_nodes;
+} AST_TXT_File;
 
 typedef struct {
     char *type;

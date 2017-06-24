@@ -16,7 +16,7 @@ void generate_node_header_includes(Config *config, FILE *fp, Node *node) {
     for (int i = 0; i < array_size(node->children); ++i) {
         Child *child = (Child *)array_get(node->children, i);
         if (smap_retrieve(map, child->type) == NULL) {
-            out("struct %s;\n", child->type);
+            out("typedef struct %s %s;\n", child->type, child->type);
             smap_insert(map, child->type, child);
         }
     }
