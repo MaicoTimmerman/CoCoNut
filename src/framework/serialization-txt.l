@@ -123,7 +123,6 @@ static inline void lexer_init();
 static inline void lexer_init(void) {
     // We start by reading the whole first line, and then continue lexing it
     yy_push_state(SAVELINE);
-    ast_srl_yy_lines = array_init(32);
 }
 
 static inline void token_action() {

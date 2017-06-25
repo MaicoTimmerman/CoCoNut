@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include "framework/serialization-txt-ast.h"
 #include "lib/imap.h"
 #include "lib/print.h"
+
+
 
 int _serialization_txt_check_file(AST_TXT_File *file) {
 
@@ -46,7 +50,7 @@ int _serialization_txt_check_file(AST_TXT_File *file) {
             if (imap_retrieve(nodemap, (void *)c->id) != NULL) {
                 imap_insert(used_nodes, (void *)c->id, c);
             } else {
-                print_error(n, "Reference to non-existing node with id %d",
+                print_error(n, "Reference to non-existing node with id %" PRIu64,
                             c->id);
                 errors++;
             }
@@ -58,7 +62,6 @@ int _serialization_txt_check_file(AST_TXT_File *file) {
         if (n != root_node &&
             imap_retrieve(used_nodes, (void *)n->id) == NULL) {
             print_warning(n, "Node unused in AST");
-            printf("%s %ld\n", n->type, n->id);
         }
     }
 

@@ -165,9 +165,9 @@ optsemicolon: ';'
 %%
 
 static void new_location(void *ptr, struct ParserLocation *loc) {
-    /* struct ParserLocation *loc_copy = malloc(sizeof(struct ParserLocation)); */
-    /* memcpy(loc_copy, loc, sizeof(struct ParserLocation)); */
-    /* imap_insert(yy_parser_locations, ptr, loc_copy); */
+    struct ParserLocation *loc_copy = malloc(sizeof(struct ParserLocation));
+    memcpy(loc_copy, loc, sizeof(struct ParserLocation));
+    imap_insert(yy_parser_locations, ptr, loc_copy);
 }
 
 AST_TXT_File *_serialization_txt_parse_file(char *fn) {
@@ -183,6 +183,7 @@ AST_TXT_File *_serialization_txt_parse_file(char *fn) {
 
     print_init_compilation_messages(SERIALIZE_READ_TXT_ERROR_HEADER, fn,
         ast_srl_yy_lines, yy_parser_locations);
+
 
     ast_srl_yyparse();
     ast_srl_yylex_destroy();
