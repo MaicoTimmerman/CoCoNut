@@ -213,7 +213,7 @@ void generate_textual_serialization_read_node(Config *config, FILE *fp,
                     attr->id);
                 break;
             case AT_link:
-                generate_check_attr_type("id", fp, attr, node);
+                generate_check_attr_type("uint", fp, attr, node);
                 /* out("            res->%s = (int)
                  * attr->value.data.val_int;\n", */
                 /* attr->id); */

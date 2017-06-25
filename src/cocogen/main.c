@@ -222,6 +222,9 @@ int main(int argc, char *argv[]) {
     filegen_all_nodesets("serialization-%s.h",
                          generate_binary_serialization_nodeset_header);
 
+    filegen_generate("textual-serialization-write-util.h",
+                     generate_textual_serialization_write_util_header);
+
     filegen_generate("serialization-all.h",
                      generate_binary_serialization_all_header);
 
@@ -264,6 +267,15 @@ int main(int argc, char *argv[]) {
 
     filegen_all_nodesets("textual-serialization-%s-read.c",
                          generate_textual_serialization_read_nodeset);
+
+    filegen_all_nodes("textual-serialization-%s-write.c",
+                      generate_textual_serialization_write_node);
+
+    filegen_all_nodesets("textual-serialization-%s-write.c",
+                         generate_textual_serialization_write_nodeset);
+
+    filegen_generate("textual-serialization-write-util.c",
+                     generate_textual_serialization_write_util);
 
     filegen_cleanup_old_files();
 
