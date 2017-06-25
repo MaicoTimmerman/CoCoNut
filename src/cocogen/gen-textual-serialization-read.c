@@ -48,6 +48,7 @@ void generate_textual_serialization_read_node(Config *config, FILE *fp,
     out("#include <errno.h>\n");
     out("#include \"generated/ast-%s.h\"\n", node->id);
     out("#include \"generated/free-%s.h\"\n", node->id);
+    out("#include \"generated/textual-serialization-util.h\"\n");
     out("#include \"framework/serialization-read-file.h\"\n");
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/imap.h\"\n");
@@ -220,9 +221,17 @@ void generate_textual_serialization_read_node(Config *config, FILE *fp,
                 break;
             case AT_enum:
                 generate_check_attr_type("id", fp, attr, node);
-                /* out("            res->%s = (int)
-                 * attr->value.data.val_int;\n", */
-                /*     attr->id); */
+                out("            int value_%s = "
+                    "_serialization_txt_string_to_%s(attr->value->data.val_id)"
+                    ";\n",
+                    attr->id, attr->type_id);
+                out("            if (value_%s < 0)\n", attr->id);
+                out("                print_error(attr->value, \"Invalid value "
+                    "for enum type %s\");\n",
+                    attr->type_id);
+                out("            else \n");
+                out("                res->%s = value_%s;\n", attr->id,
+                    attr->id);
                 break;
             default:
                 break;

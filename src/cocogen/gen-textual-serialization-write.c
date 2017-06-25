@@ -37,7 +37,7 @@ void generate_textual_serialization_write_node(Config *config, FILE *fp,
     out("#include <errno.h>\n");
     out("#include \"generated/ast-%s.h\"\n", node->id);
     out("#include \"generated/free-%s.h\"\n", node->id);
-    out("#include \"generated/textual-serialization-write-util.h\"\n");
+    out("#include \"generated/textual-serialization-util.h\"\n");
     out("#include \"framework/serialization-txt-ast.h\"\n");
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/imap.h\"\n");
@@ -236,7 +236,7 @@ void generate_textual_serialization_write_node(Config *config, FILE *fp,
             break;
         case AT_enum:
             out("        fprintf(fp, \"        %s = %%s\", "
-                "_serialization_write_txt_%s_to_string(node->%s));\n",
+                "_serialization_txt_%s_to_string(node->%s));\n",
                 attr->id, attr->type_id, attr->id);
             break;
         case AT_link:
@@ -294,7 +294,7 @@ void generate_textual_serialization_write_nodeset(Config *config, FILE *fp,
     out("#include <errno.h>\n");
     out("#include \"generated/ast-%s.h\"\n", nodeset->id);
     out("#include \"generated/free-%s.h\"\n", nodeset->id);
-    out("#include \"generated/textual-serialization-write-util.h\"\n");
+    out("#include \"generated/textual-serialization-util.h\"\n");
     out("#include \"framework/serialization-txt-ast.h\"\n");
     out("#include \"lib/array.h\"\n");
     out("#include \"lib/imap.h\"\n");
@@ -371,32 +371,4 @@ void generate_textual_serialization_write_nodeset(Config *config, FILE *fp,
     out("}\n");
 
     generate_entry_function(fp, nodeset->id);
-}
-
-void generate_textual_serialization_write_util(Config *config, FILE *fp) {
-    out("#include \"generated/enum.h\"\n\n");
-    for (int i = 0; i < array_size(config->enums); i++) {
-        Enum *e = array_get(config->enums, i);
-        out("char *_serialization_write_txt_%s_to_string(%s value) {\n", e->id,
-            e->id);
-        out("    switch (value) {\n");
-        for (int j = 0; j < array_size(e->values); j++) {
-            char *value = array_get(e->values, j);
-            out("        case %s_%s:\n", e->prefix, value);
-            out("            return \"%s_%s\";\n", e->prefix, value);
-        }
-        out("    }\n");
-        out("    return \"\";\n");
-        out("}\n\n");
-    }
-}
-
-void generate_textual_serialization_write_util_header(Config *config,
-                                                      FILE *fp) {
-    out("#include \"generated/enum.h\"\n\n");
-    for (int i = 0; i < array_size(config->enums); i++) {
-        Enum *e = array_get(config->enums, i);
-        out("char *_serialization_write_txt_%s_to_string(%s value);\n", e->id,
-            e->id);
-    }
 }

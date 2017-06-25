@@ -150,13 +150,13 @@ attribute: T_ID '=' attributevalue      { $$ = _serialization_txt_create_attribu
                                           new_location($1, &@1); }
          ;
 
-attributevalue: T_ID            { $$ = _serialization_txt_create_attrval_id($1); new_location($$, &@$);  }
-              | T_STRINGVAL     { $$ = _serialization_txt_create_attrval_str($1); new_location($$, &@$); }
-              | T_INTVAL        { $$ = _serialization_txt_create_attrval_int($1); }
-              | T_UINTVAL       { $$ = _serialization_txt_create_attrval_uint($1); }
-              | T_FLOATVAL      { $$ = _serialization_txt_create_attrval_float($1); }
-              | T_TRUE          { $$ = _serialization_txt_create_attrval_bool(true); }
-              | T_FALSE         { $$ = _serialization_txt_create_attrval_bool(false); }
+attributevalue: T_ID            { $$ = _serialization_txt_create_attrval_id($1);        new_location($$, &@$); }
+              | T_STRINGVAL     { $$ = _serialization_txt_create_attrval_str($1);       new_location($$, &@$); }
+              | T_INTVAL        { $$ = _serialization_txt_create_attrval_int($1);       new_location($$, &@$); }
+              | T_UINTVAL       { $$ = _serialization_txt_create_attrval_uint($1);      new_location($$, &@$);}
+              | T_FLOATVAL      { $$ = _serialization_txt_create_attrval_float($1);     new_location($$, &@$);}
+              | T_TRUE          { $$ = _serialization_txt_create_attrval_bool(true);    new_location($$, &@$);}
+              | T_FALSE         { $$ = _serialization_txt_create_attrval_bool(false);   new_location($$, &@$);}
               ;
 
 optsemicolon: ';'
