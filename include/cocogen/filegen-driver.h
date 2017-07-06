@@ -2,7 +2,7 @@
 #include "cocogen/ast.h"
 #include <stdio.h>
 
-void filegen_init(Config *config);
+void filegen_init(Config *config, bool list_gen_files_flag);
 void filegen_dir(char *out_dir);
 void filegen_generate(char *filename, void (*func)(Config *, FILE *));
 void filegen_all_nodes(char *fileformatter,

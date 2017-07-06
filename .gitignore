@@ -92,6 +92,8 @@ tags
 
 # End of https://www.gitignore.io/api/c,vim,flex
 
+*.tmp
+
 include/generated/
 src/generated/*
 !src/generated/Makefile

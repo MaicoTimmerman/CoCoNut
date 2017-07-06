@@ -2,11 +2,12 @@
 include Makefile.config
 # ----------------------- Other variables --------------------
 
-LIB_SOURCES   			= src/lib
+LIB_SOURCES   = src/lib
 LIB_SRC       = $(foreach dir,$(LIB_SOURCES),$(wildcard $(dir)/*.c))
 
-AST_GENERATED_SRC_GENFILE 		= $(AST_GENERATED_SOURCES).gen
-AST_GENERATED_INC_GENFILE 		= $(AST_GENERATED_HEADERS).gen
+AST_GENERATED_SRC_GENFILE       = $(AST_GENERATED_SOURCES).gen
+AST_GENERATED_INC_GENFILE       = $(AST_GENERATED_HEADERS).gen
+AST_GENERATED_SRC_BUILDFILE     = $(AST_GENERATED_SOURCES).build
 
 
 AST_GEN_SOURCES = src/cocogen
@@ -18,41 +19,67 @@ AST_TARGET    = cocogen
 
 AST_SRC_FILTERED = $(filter-out $(AST_LEXER) $(AST_PARSER),$(AST_SRC))
 
-AST_TXT_PARSER 	= src/framework/serialization-txt.parser.c
-AST_TXT_LEXER 	= src/framework/serialization-txt.lexer.c
+AST_TXT_PARSER  = src/framework/serialization-txt.parser.c
+AST_TXT_LEXER   = src/framework/serialization-txt.lexer.c
 
 SOURCES       += src/framework
 SRC           = $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.c))
 SRC_FILTERED  = $(filter-out $(AST_TXT_LEXER) $(AST_TXT_PARSER),$(SRC))
+SRC_DEPS      = $(foreach dir,$(SOURCES),$(wildcard $(dir)/*.d))
 
-COLOR_GREEN	  = "\\e[1m\\e[32m"
-COLOR_RESET	  = "\\e[0m"
+SRC_NO_DEPS   = $(filter-out $(SRC_DEPS:.d=.o),$(SRC:.c=.o))
 
-TARGET_BIN 		= $(BIN_DIR)$(TARGET)
+COLOR_GREEN   = "\\e[1m\\e[32m"
+COLOR_RESET   = "\\e[0m"
+
+TARGET_BIN      = $(BIN_DIR)$(TARGET)
 AST_TARGET_BIN  = $(BIN_DIR)$(AST_TARGET)
+
+GENERATED_DEPS  = regenerated_files.mk.tmp
 
 # ----------------------- Compiler rules --------------------
 
+
 ECHO = $(shell which echo)
 
-.PHONY: all compile_generated clean test format doc
+.PHONY: all clean test format doc
 
-all: $(TARGET_BIN) ;
+all: $(TARGET_BIN)
 
-$(TARGET_BIN): $(SRC_FILTERED:.c=.o) $(LIB_SRC:.c=.o) $(AST_TXT_LEXER:.c=.o) $(AST_TXT_PARSER:.c=.o) compile_generated
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),format)
+include $(GENERATED_DEPS)
+endif
+endif
+
+
+$(GENERATED_DEPS): $(AST_TARGET_BIN) $(AST_FILE)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) GEN$(COLOR_RESET)       $@"
+# Let the metacompiler fail silently when the specification file contains
+# an error, to avoid the confusing "No such file or directory" error
+	$(DEBUG)$(AST_TARGET_BIN) --list-gen-files $(AST_FILE) \
+		> gen_files.tmp 2> /dev/null | true
+	$(DEBUG)sed 's/^\(.\+\)$$/\1: $$(AST_GENERATED_SRC_BUILDFILE)/g' \
+		< gen_files.tmp > $(GENERATED_DEPS)
+	$(DEBUG)rm gen_files.tmp
+
+
+$(TARGET_BIN): $(SRC_FILTERED:.c=.o) $(LIB_SRC:.c=.o) $(AST_TXT_LEXER:.c=.o) $(AST_TXT_PARSER:.c=.o) $(AST_GENERATED_SRC_BUILDFILE)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) LINK$(COLOR_RESET)      $@"
 	$(DEBUG)mkdir -p $(BIN_DIR)
 	$(DEBUG)$(CC) -o $@ $(LDFLAGS) $(SRC_FILTERED:.c=.o) $(LIB_SRC:.c=.o) \
 		$(AST_TXT_PARSER:.c=.o) $(AST_TXT_LEXER:.c=.o) \
 		$(wildcard $(AST_GENERATED_SOURCES)*.o)
 
-%.o: %.c compile_generated
+$(SRC_NO_DEPS): $(AST_GENERATED_INC_GENFILE)
+%.o: %.c
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
 	$(DEBUG)$(CC) $(CFLAGS) -I include/ -o $@ -c $<
 
-compile_generated: $(AST_GENERATED_SRC_GENFILE)
+$(AST_GENERATED_SRC_BUILDFILE): $(AST_GENERATED_SRC_GENFILE)
 	$(DEBUG)make -C $(AST_GENERATED_SOURCES) -j4 CC="$(CC)" CFLAGS="$(CFLAGS)" \
 		COLOR_GREEN="$(COLOR_GREEN)" COLOR_RESET="$(COLOR_RESET)"
+	$(DEBUG)touch $(AST_GENERATED_SRC_BUILDFILE)
 
 $(AST_TXT_LEXER:.c=.o): $(AST_TXT_LEXER) $(AST_TXT_PARSER:.c=.h)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) CC$(COLOR_RESET)        $@"
@@ -67,14 +94,14 @@ $(AST_TXT_PARSER:.c=.h): $(AST_TXT_PARSER)
 
 $(AST_TXT_LEXER:.c=.h): $(AST_TXT_LEXER)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
+	$(DEBUG)touch $(AST_TXT_LEXER:.c=.h)
 
 
 # ----------------------- AST-gen rules --------------------
 
-$(AST_GENERATED_SRC_GENFILE): $(AST_GENERATED_INC_GENFILE) ;
-
-$(AST_GENERATED_INC_GENFILE): $(AST_TARGET_BIN) $(AST_FILE)
-	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) COCOGEN$(COLOR_RESET)    $(AST_FILE)"
+$(AST_GENERATED_INC_GENFILE): $(AST_GENERATED_SRC_GENFILE)
+$(AST_GENERATED_SRC_GENFILE): $(AST_TARGET_BIN) $(AST_FILE)
+	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) COCOGEN$(COLOR_RESET)   $(AST_FILE)"
 	$(DEBUG)$(AST_TARGET_BIN) --source-dir $(AST_GENERATED_SOURCES) \
 		--header-dir $(AST_GENERATED_HEADERS) $(AST_FILE)
 	$(DEBUG)touch $(AST_GENERATED_INC_GENFILE) $(AST_GENERATED_SRC_GENFILE)
@@ -105,6 +132,7 @@ $(AST_PARSER:.c=.h): $(AST_PARSER)
 
 $(AST_LEXER:.c=.h): $(AST_LEXER)
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
+	$(DEBUG)touch $(AST_LEXER:.c=.h)
 
 %.lexer.c: %.l
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) FLEX$(COLOR_RESET)      $@"
@@ -126,7 +154,11 @@ clean:
 		$(AST_TXT_PARSER) $(AST_TXT_PARSER:.c=.output) \
 		$(AST_TXT_PARSER:.c=.h) \
 		$(AST_GENERATED_SOURCES)*.c \
-		$(AST_GENERATED_HEADERS)*.h
+		$(AST_GENERATED_HEADERS)*.h \
+		$(AST_GENERATED_INC_GENFILE) \
+		$(AST_GENERATED_SRC_GENFILE) \
+		$(AST_GENERATED_SRC_BUILDFILE) \
+		$(GENERATED_DEPS)
 	$(DEBUG)find . -type f -name '*.o' -exec rm {} \;
 	$(DEBUG)find . -type f -name '*.d' -exec rm {} \;
 	$(DEBUG)$(ECHO) -e "$(COLOR_GREEN) DONE$(COLOR_RESET)"

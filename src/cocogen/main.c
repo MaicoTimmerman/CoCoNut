@@ -50,6 +50,10 @@ static void usage(char *program) {
     printf("  --source-dir <directory>     Directory to write generated "
            "source files to.\n");
     printf("                               Defaults to ./src/generated/\n");
+    printf("  --list-gen-files             Outputs a list of files which "
+           "would be (re)generated,\n");
+    printf("                               but does not actually modify any "
+           "files.\n");
     printf("  --verbose/-v                 Enable verbose mode.\n");
     printf("  --dot <directory>            Will produce ast.dot in "
            "<directory>.\n");
@@ -96,6 +100,7 @@ void exit_compile_error(void) {
 
 int main(int argc, char *argv[]) {
     int verbose_flag = 0;
+    int list_gen_files_flag = 0;
     int ret = 0;
     int option_index;
     int c = 0;
@@ -103,13 +108,15 @@ int main(int argc, char *argv[]) {
     char *source_dir = NULL;
     char *dot_dir = NULL;
 
-    struct option long_options[] = {{"verbose", no_argument, &verbose_flag, 1},
-                                    {"header-dir", required_argument, 0, 21},
-                                    {"source-dir", required_argument, 0, 22},
-                                    {"dot", required_argument, 0, 23},
-                                    {"help", no_argument, 0, 'h'},
-                                    {"version", no_argument, 0, 0},
-                                    {0, 0, 0, 0}};
+    struct option long_options[] = {
+        {"verbose", no_argument, &verbose_flag, 1},
+        {"header-dir", required_argument, 0, 21},
+        {"source-dir", required_argument, 0, 22},
+        {"list-gen-files", no_argument, &list_gen_files_flag, 1},
+        {"dot", required_argument, 0, 23},
+        {"help", no_argument, 0, 'h'},
+        {"version", no_argument, 0, 20},
+        {0, 0, 0, 0}};
 
     while (1) {
         c = getopt_long(argc, argv, "v", long_options, &option_index);
@@ -119,7 +126,7 @@ int main(int argc, char *argv[]) {
             break;
 
         switch (c) {
-        case 0:
+        case 20:
             version();
             return 0;
         case 'v':
@@ -175,7 +182,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Set the parse tree for file generation.
-    filegen_init(parse_result);
+    filegen_init(parse_result, list_gen_files_flag);
 
     if (dot_dir) {
         filegen_dir(dot_dir);
@@ -184,7 +191,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Generated all the header files.
-    filegen_init(parse_result);
     filegen_dir(header_dir);
     filegen_generate("enum.h", generate_enum_definitions);
     filegen_generate("ast.h", generate_ast_definitions);

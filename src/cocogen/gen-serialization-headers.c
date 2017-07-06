@@ -6,7 +6,10 @@
 static void generate(FILE *fp, char *name) {
     out("#pragma once\n");
     out("#include <stdio.h>\n");
-    out("#include \"framework/serialization-binary-format.h\"\n\n");
+    out("#include \"framework/serialization-binary-format.h\"\n");
+    out("#include \"generated/ast-%s.h\"\n", name);
+    out("\n");
+
     out("%s *" SERIALIZE_READ_BIN_FORMAT "(char *fn);\n", name, name);
     out("%s *" SERIALIZE_READ_TXT_FORMAT "(char *fn);\n", name, name);
     out("\n");

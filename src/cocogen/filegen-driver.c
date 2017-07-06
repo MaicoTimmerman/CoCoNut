@@ -23,6 +23,8 @@ static Config *ast_definition = NULL;
 static char *output_directory = NULL;
 static smap_t *generated_files = NULL;
 
+static bool only_list_files = false;
+
 static FILE *get_fp(char *full_path) {
     FILE *fp = fopen(full_path, "w");
     if (!fp) {
@@ -47,6 +49,13 @@ static char *get_full_path(char *filename, char *formatter) {
     }
 
     return full_path;
+}
+
+static void print_file_gen(char *full_path) {
+    if (only_list_files)
+        printf("%s\n", full_path);
+    else
+        printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
 }
 
 static void add_filename_to_set(char *filename) {
@@ -80,15 +89,15 @@ static bool hash_match(NodeCommonInfo *info, char *full_path) {
         if (fgets(current_hash, 42, fp) != NULL) {
             if (strncmp(current_hash + 9, info->hash, 32) == 0) {
                 rv = true;
-                printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n",
-                       full_path);
+                /* printf(COLOR_GREEN " SAME      " COLOR_RESET "%s\n", */
+                /*        full_path); */
             }
         }
         fclose(fp);
     }
 
     if (!rv) {
-        printf(COLOR_GREEN " GEN       " COLOR_RESET "%s\n", full_path);
+        print_file_gen(full_path);
     }
 
     add_filename_to_set(full_path);
@@ -96,8 +105,9 @@ static bool hash_match(NodeCommonInfo *info, char *full_path) {
     return rv;
 }
 
-void filegen_init(Config *config) {
+void filegen_init(Config *config, bool list_gen_files_flag) {
     ast_definition = config;
+    only_list_files = list_gen_files_flag;
 }
 
 void filegen_cleanup(void) {
@@ -151,12 +161,15 @@ void filegen_generate(char *filename, void (*func)(Config *, FILE *)) {
 
     add_filename_to_set(full_path);
 
-    FILE *fp = get_fp(full_path);
+    print_file_gen(full_path);
 
-    func(ast_definition, fp);
+    if (!only_list_files) {
+        FILE *fp = get_fp(full_path);
+        func(ast_definition, fp);
+        fclose(fp);
+    }
 
     mem_free(full_path);
-    fclose(fp);
 }
 
 void filegen_all_nodes(char *fileformatter,
@@ -173,11 +186,14 @@ void filegen_all_nodes(char *fileformatter,
             continue;
         }
 
-        fp = get_fp(full_path);
-        out(HASH_HEADER, node->common_info->hash);
-        func(ast_definition, fp, node);
+        if (!only_list_files) {
+            fp = get_fp(full_path);
+            out(HASH_HEADER, node->common_info->hash);
+            func(ast_definition, fp, node);
+            fclose(fp);
+        }
+
         mem_free(full_path);
-        fclose(fp);
     }
 }
 
@@ -195,11 +211,14 @@ void filegen_all_nodesets(char *fileformatter,
             continue;
         }
 
-        fp = get_fp(full_path);
-        out(HASH_HEADER, nodeset->common_info->hash);
-        func(ast_definition, fp, nodeset);
+        if (!only_list_files) {
+            fp = get_fp(full_path);
+            out(HASH_HEADER, nodeset->common_info->hash);
+            func(ast_definition, fp, nodeset);
+            fclose(fp);
+        }
+
         mem_free(full_path);
-        fclose(fp);
     }
 }
 
@@ -217,11 +236,14 @@ void filegen_all_traversals(char *fileformatter,
             continue;
         }
 
-        fp = get_fp(full_path);
-        out(HASH_HEADER, traversal->common_info->hash);
-        func(ast_definition, fp, traversal);
+        if (!only_list_files) {
+            fp = get_fp(full_path);
+            out(HASH_HEADER, traversal->common_info->hash);
+            func(ast_definition, fp, traversal);
+            fclose(fp);
+        }
+
         mem_free(full_path);
-        fclose(fp);
     }
 }
 
@@ -239,11 +261,14 @@ void filegen_all_passes(char *fileformatter,
             continue;
         }
 
-        fp = get_fp(full_path);
-        out(HASH_HEADER, pass->common_info->hash);
-        func(ast_definition, fp, pass);
+        if (!only_list_files) {
+            fp = get_fp(full_path);
+            out(HASH_HEADER, pass->common_info->hash);
+            func(ast_definition, fp, pass);
+            fclose(fp);
+        }
+
         mem_free(full_path);
-        fclose(fp);
     }
 }
 
